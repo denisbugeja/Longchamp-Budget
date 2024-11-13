@@ -1,0 +1,4 @@
+{
+    "liveSassCompile.settings.useNewCompiler": true,
+    "liveSassCompile.settings.includeItems": ["/src/*.scss"]
+}
