@@ -1,21 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html lang="en">
     <head>
         <meta charset="UTF-8" />
         <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
         <link rel="stylesheet" href="styles.min.css" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Budget</title>
-        <script type="module" src="/bootstrap/bootstrap.min.js" defer></script>
-        <script type="module" src="/main.min.js" defer></script>
+        <title>Budget</title>        
     </head>
-    <body>
-        <main>
-            <form id="greet-form">
-                <input id="greet-input" placeholder="Enter a name..." />
-                <button type="submit">Greet</button>
-            </form>
-            <p id="greet-msg"></p>
-        </main>
+    <body class="d-flex h-100 bg-white text-dark">
+        <div class="cover-container d-flex w-100 h-100 mx-auto flex-column">
+            <header class="mb-auto bg-dark text-white px-3 py-1">
+              <div>
+                <h3 class="float-md-start mb-0">Cover</h3>
+                <nav class="nav nav-masthead justify-content-center float-md-end">
+                  <a class="nav-link active" aria-current="page" href="index.html">Budgets</a>
+                  <a class="nav-link" href="#">Dépenses</a>
+                </nav>
+              </div>
+            </header>
+            <main class="px-3">
+                <h1 class="text-center">Cover your page.</h1>
+                <form action="" id="greet-form">
+                    <div class="row">
+                        <div class="col-10">
+                            <div class="input-group has-validation">
+                                <span class="input-group-text">@</span>
+                                <input id="greet-input" type="text" class="form-control"  placeholder="Enter a name..." required="">
+                                <div class="invalid-feedback">Your username is required.</div>
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <button type="submit" class="w-100 btn btn-primary">Greet</button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12" id="greet-msg"></div>
+                    </div>
+                </form>
+            </main>
+            <footer class="mt-auto text-white-50">
+              <p>Cover template for <a href="https://getbootstrap.com/" class="text-white">Bootstrap</a>, by <a href="https://twitter.com/mdo" class="text-white">@mdo</a>.</p>
+            </footer>
+        </div>
+        <script src="/bootstrap/bootstrap.min.js"></script>
+        <script src="/main.min.js"></script>
     </body>
 </html>

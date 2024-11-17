@@ -16,3 +16,18 @@ window.addEventListener("DOMContentLoaded", () => {
         greet();
     });
 });
+
+events = {
+    'click': {
+
+    }
+}
+
+
+
+document.body.addEventListener('click', (event) => {
+    if (!event.target.matches('a[data-method]')) return;
+    console.log('click');
+});
+
+
