@@ -1,33 +1,15 @@
-const { invoke } = window.__TAURI__.core;
+import { Application, Controller } from "/stimulus.min.js"
+window.Stimulus = Application.start()
+const { invoke } = window.__TAURI__.core
 
-let greetInputEl;
-let greetMsgEl;
+Stimulus.register("budget", class extends Controller {
+    static targets = ['textInput', 'message']
 
-async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    greetMsgEl.textContent = await invoke("greet", { name: greetInputEl.value + ' BA' });
-}
-
-window.addEventListener("DOMContentLoaded", () => {
-    greetInputEl = document.querySelector("#greet-input");
-    greetMsgEl = document.querySelector("#greet-msg");
-    document.querySelector("#greet-form").addEventListener("submit", (e) => {
-        e.preventDefault();
-        greet();
-    });
-});
-
-events = {
-    'click': {
-
+    connect() {
     }
-}
 
-
-
-document.body.addEventListener('click', (event) => {
-    if (!event.target.matches('a[data-method]')) return;
-    console.log('click');
-});
-
-
+    async formSubmit(e) {
+        e.preventDefault()
+        this.messageTarget.innerHTML = await invoke("greet", { name: this.textInputTarget.value })
+    }
+})

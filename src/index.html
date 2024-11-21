@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Budget</title>        
     </head>
-    <body class="d-flex h-100 bg-white text-dark">
+    <body class="d-flex h-100 bg-white text-dark" data-controller="budget">
         <div class="cover-container d-flex w-100 h-100 mx-auto flex-column">
             <header class="mb-auto bg-dark text-white px-3 py-1">
               <div>
@@ -19,12 +19,12 @@
             </header>
             <main class="px-3">
                 <h1 class="text-center">Cover your page.</h1>
-                <form action="" id="greet-form">
+                <form action="" id="greet-form" data-action="submit->budget#formSubmit">
                     <div class="row">
                         <div class="col-10">
                             <div class="input-group">
                                 <span class="input-group-text">@</span>
-                                <input id="greet-input" type="text" class="form-control"  placeholder="Enter a name..." required="Aa ">
+                                <input id="greet-input" type="text" class="form-control"  placeholder="Enter a name..." data-budget-target="textInput">
                             </div>
                         </div>
                         <div class="col-2">
@@ -32,7 +32,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-12" id="greet-msg"></div>
+                        <div class="col-12" id="greet-msg" data-budget-target="message"></div>
                     </div>
                 </form>
             </main>
@@ -41,6 +41,6 @@
             </footer>
         </div>
         <script src="/bootstrap/bootstrap.min.js"></script>
-        <script src="/main.min.js"></script>
+        <script type="module" src="/main.js"></script>
     </body>
 </html>
