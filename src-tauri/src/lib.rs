@@ -1,6 +1,5 @@
 use lazy_static::lazy_static;
 use std::sync::RwLock;
-use tauri::ipc::private::tracing::span::Id;
 use tauri::menu::{MenuBuilder, MenuEvent, MenuItemBuilder};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_dialog::DialogExt;
