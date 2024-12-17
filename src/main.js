@@ -16,7 +16,6 @@ Stimulus.register("budget", class extends Controller {
     }
 
     async openFile(e) {
-        e.preventDefault()
         const file = await open({
             multiple: false,
             directory: false,
