@@ -22,7 +22,7 @@ Stimulus.register("budget", class extends Controller {
         });
 
         if (file) {
-            await invoke("update_db_path", { path: file })
+            invoke("update_db_path", { path: file })
         }
     }
 

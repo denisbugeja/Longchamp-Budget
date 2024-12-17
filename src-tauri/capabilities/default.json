@@ -6,66 +6,8 @@
         "main"
     ],
     "permissions": [
-        "fs:allow-unwatch",
         "core:default",
-        "fs:default",
-        "core:window:allow-minimize",
-        "core:window:allow-maximize",
-        "core:window:allow-unmaximize",
-        "core:window:allow-close",
-        "core:window:allow-start-dragging",
-        "dialog:allow-open",
-        "dialog:allow-ask",
-        "dialog:allow-save",
-        "dialog:allow-confirm",
-        "dialog:allow-message",
-        {
-            "identifier": "shell:allow-spawn",
-            "allow": [
-                {
-                    "name": "sh",
-                    "cmd": "sh",
-                    "args": [
-                        "-c",
-                        {
-                            "validator": ".+"
-                        }
-                    ]
-                },
-                {
-                    "name": "cmd",
-                    "cmd": "cmd",
-                    "args": [
-                        "/C",
-                        {
-                            "validator": ".+"
-                        }
-                    ]
-                }
-            ]
-        },
         "shell:allow-open",
-        "shell:allow-kill",
-        "shell:allow-stdin-write",
-        "fs:allow-open",
-        "fs:allow-write",
-        "fs:allow-read",
-        "fs:allow-rename",
-        "fs:allow-mkdir",
-        "fs:allow-remove",
-        "fs:allow-write-text-file",
-        "fs:scope-download-recursive",
-        "fs:scope-resource-recursive",
-        {
-            "identifier": "fs:scope-appdata-recursive",
-            "allow": [
-                {
-                    "path": "$APPDATA/db/**"
-                }
-            ],
-            "deny": [
-                "$APPDATA/db/*.stronghold"
-            ]
-        }
+        "dialog:default"
     ]
 }

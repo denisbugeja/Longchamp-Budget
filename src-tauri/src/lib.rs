@@ -12,7 +12,7 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-#[tauri::command]
+#[tauri::command()]
 fn update_db_path(path: &str) {
     let mut file_path = GLOBAL_FILE_PATH.write().unwrap();
     *file_path = String::from(path);
@@ -24,6 +24,7 @@ fn update_db_path(path: &str) {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![greet, update_db_path])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");
