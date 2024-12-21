@@ -32,11 +32,11 @@ Stimulus.register("budget", class extends Controller {
     }
 
     loadExpenses(e) {
-        this.loadPart('_parts/_expenses.html', this.mainTarget)
+        this.loadPart('_parts/_windows/_expenses.html', this.mainTarget)
     }
 
     loadUnits(e) {
-        this.loadPart('_parts/_units.html', this.mainTarget)
+        this.loadPart('_parts/_windows/_units.html', this.mainTarget)
     }
 
     loadPart(htmlPart, target) {

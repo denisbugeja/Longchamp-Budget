@@ -1,4 +1,5 @@
 use lazy_static::lazy_static;
+use rusqlite::{Connection, Result};
 use std::sync::RwLock;
 
 lazy_static! {
