@@ -1,6 +1,6 @@
 // System import
 const { invoke } = window.__TAURI__.core
-const { open } = window.__TAURI__.dialog;
+const { open, save } = window.__TAURI__.dialog;
 
 
 // JS import
@@ -19,12 +19,24 @@ Stimulus.register("budget", class extends Controller {
         const file = await open({
             multiple: false,
             directory: false,
-        });
+        })
 
         if (file) {
             invoke("update_db_path", { path: file })
         }
     }
+
+    async createFile(e) {
+        const file = await save({
+            defaultPath: "budget.db",
+            filters: [{ name: "Fichier Longchamp Budget", extensions: ["db"] }]
+        })
+
+        if (file) {
+            invoke("update_db_path", { path: file })
+        }
+    }
+
 
     async formSubmit(e) {
         e.preventDefault()
