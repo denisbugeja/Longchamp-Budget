@@ -10,7 +10,7 @@ import { Application, Controller } from "/stimulus.min.js"
 window.Stimulus = Application.start()
 
 Stimulus.register("budget", class extends Controller {
-    static targets = ['textInput', 'message']
+    static targets = ['textInput', 'message', 'main']
 
     connect() {
     }
@@ -30,4 +30,21 @@ Stimulus.register("budget", class extends Controller {
         e.preventDefault()
         this.messageTarget.innerHTML = await invoke("greet", { name: this.textInputTarget.value })
     }
+
+    loadExpenses(e) {
+        this.loadPart('_parts/_expenses.html', this.mainTarget)
+    }
+
+    loadUnits(e) {
+        this.loadPart('_parts/_units.html', this.mainTarget)
+    }
+
+    loadPart(htmlPart, target) {
+        fetch(htmlPart)
+            .then(response => response.text())
+            .then(html => {
+                target.innerHTML = html
+            })
+    }
+
 })
