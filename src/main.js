@@ -10,7 +10,7 @@ import { Application, Controller } from "/stimulus.min.js"
 window.Stimulus = Application.start()
 
 Stimulus.register("budget", class extends Controller {
-    static targets = ['textInput', 'message', 'main']
+    static targets = ['textInput', 'message', 'main', 'sectionEditList', 'sectionEditAdd', 'sectionEditItem']
 
     connect() {
     }
@@ -29,7 +29,7 @@ Stimulus.register("budget", class extends Controller {
     async createFile(e) {
         const file = await save({
             defaultPath: "budget.db",
-            filters: [{ name: "Fichier Longchamp Budget", extensions: ["db"] }]
+            filters: [{ name: "Longchamp Budget", extensions: ["db"] }]
         })
 
         if (file) {
@@ -37,18 +37,28 @@ Stimulus.register("budget", class extends Controller {
         }
     }
 
-
     async formSubmit(e) {
         e.preventDefault()
         this.messageTarget.innerHTML = await invoke("greet", { name: this.textInputTarget.value })
+    }
+
+    sectionEditAddSubmit(e) {
+        e.preventDefault()
+        alert('coucou')
+    }
+
+    sectionEditListLoad() {
+        const sectionList = invoke("section_list_load")
     }
 
     loadExpenses(e) {
         this.loadPart('_parts/_windows/_expenses.html', this.mainTarget)
     }
 
-    loadUnits(e) {
-        this.loadPart('_parts/_windows/_units.html', this.mainTarget)
+    async loadSections(e) {
+        this.loadPart('_parts/_windows/_sections.html', this.mainTarget)
+        const sectionList = await invoke("section_list_load")
+        console.log(sectionList)
     }
 
     loadPart(htmlPart, target) {

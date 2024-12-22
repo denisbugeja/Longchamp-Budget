@@ -1,6 +1,17 @@
 use lazy_static::lazy_static;
 use rusqlite::{Connection, Result};
+use serde::Serialize;
+use serde_json;
 use std::sync::RwLock;
+
+mod repository;
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+struct Section {
+    uid: String,
+    title: String,
+    color: String,
+}
 
 lazy_static! {
     static ref GLOBAL_FILE_PATH: RwLock<String> = RwLock::new(String::from(""));
@@ -22,8 +33,37 @@ fn update_db_path(path: &str) {
     println!("new File: {}", &file_path);
 }
 
+#[tauri::command()]
+fn section_list_load() -> String {
+    let conn: Connection =
+        get_connection().expect("Impossible to load connection for unit list load");
+
+    let mut stmt = conn
+        .prepare("SELECT uid, title, color FROM sections")
+        .expect("Cannot prepare query");
+    let section_iter = stmt
+        .query_map([], |row| {
+            Ok(Section {
+                uid: row.get(0)?,
+                title: row.get(1)?,
+                color: row.get(2)?,
+            })
+        })
+        .expect("Cannot query sections");
+
+    let mut section_list: Vec<Section> = vec![];
+    for section in section_iter {
+        section_list.push(section.expect("Cannot get section"));
+    }
+
+    let json_result = serde_json::to_string(&section_list).expect("Cannot serialize section list");
+    json_result
+}
+
 fn get_connection() -> Result<Connection, rusqlite::Error> {
-    let file_path = GLOBAL_FILE_PATH.read().unwrap();
+    let file_path = GLOBAL_FILE_PATH
+        .read()
+        .expect("Impossible to read file path variable");
     Connection::open(String::from(file_path.clone()))
 }
 
@@ -79,7 +119,11 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![greet, update_db_path])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            update_db_path,
+            section_list_load
+        ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");
 }
