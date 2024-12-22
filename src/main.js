@@ -47,8 +47,12 @@ Stimulus.register("budget", class extends Controller {
         alert('coucou')
     }
 
-    sectionEditListLoad() {
-        const sectionList = invoke("section_list_load")
+    async sectionEditListLoad() {
+        const sectionList = JSON.parse(await invoke("section_list_load"))
+        if (!sectionList) {
+            return
+        }
+        this.sectionEditListTarget.innerHTML = await this.generateFromFilePath('_parts/_components/_section-edit-item.html', sectionList)
     }
 
     loadExpenses(e) {
@@ -57,8 +61,7 @@ Stimulus.register("budget", class extends Controller {
 
     async loadSections(e) {
         this.loadPart('_parts/_windows/_sections.html', this.mainTarget)
-        const sectionList = await invoke("section_list_load")
-        console.log(sectionList)
+        this.sectionEditListLoad()
     }
 
     loadPart(htmlPart, target) {
@@ -69,4 +72,29 @@ Stimulus.register("budget", class extends Controller {
             })
     }
 
+    renderTemplate(templateString, data) {
+        return templateString.replace(/{{(.*?)}}/g, (match, p1) => {
+            const key = p1.trim();
+            return data[key] !== undefined ? data[key] : match;
+        });
+    }
+
+    async fetchPart(htmlPart) {
+        var result;
+        await fetch(htmlPart)
+            .then(response => response.text())
+            .then(html => {
+                result = html
+            })
+        return result;
+    }
+
+    async generateFromFilePath(filePathString, data) {
+        let strPrototype = await this.fetchPart(filePathString)
+        if (Array.isArray(data)) {
+            return data.map((obj) => this.renderTemplate(strPrototype, obj)).join()
+        } else {
+            return this.renderTemplate(strPrototype, data)
+        }
+    }
 })
