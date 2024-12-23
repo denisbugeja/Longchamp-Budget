@@ -19,6 +19,7 @@ Stimulus.register("budget", class extends Controller {
         const file = await open({
             multiple: false,
             directory: false,
+            filters: [{ name: "Longchamp Budget", extensions: ["lb"] }]
         })
 
         if (file) {
@@ -28,8 +29,8 @@ Stimulus.register("budget", class extends Controller {
 
     async createFile(e) {
         const file = await save({
-            defaultPath: "budget.db",
-            filters: [{ name: "Longchamp Budget", extensions: ["db"] }]
+            defaultPath: "budget.lb",
+            filters: [{ name: "Longchamp Budget", extensions: ["lb"] }]
         })
 
         if (file) {
@@ -64,37 +65,31 @@ Stimulus.register("budget", class extends Controller {
         this.sectionEditListLoad()
     }
 
-    loadPart(htmlPart, target) {
-        fetch(htmlPart)
-            .then(response => response.text())
-            .then(html => {
-                target.innerHTML = html
-            })
+    async loadPart(htmlPart, target) {
+        target.innerHTML = await this.fetchPart(htmlPart)
     }
 
     renderTemplate(templateString, data) {
         return templateString.replace(/{{(.*?)}}/g, (match, p1) => {
-            const key = p1.trim();
-            return data[key] !== undefined ? data[key] : match;
+            const key = p1.trim()
+            return data[key] !== undefined ? data[key] : match
         });
     }
 
     async fetchPart(htmlPart) {
-        var result;
+        var result
         await fetch(htmlPart)
             .then(response => response.text())
             .then(html => {
                 result = html
             })
-        return result;
+        return result
     }
 
     async generateFromFilePath(filePathString, data) {
         let strPrototype = await this.fetchPart(filePathString)
-        if (Array.isArray(data)) {
-            return data.map((obj) => this.renderTemplate(strPrototype, obj)).join()
-        } else {
-            return this.renderTemplate(strPrototype, data)
-        }
+        return Array.isArray(data) ?
+            data.map((obj) => this.renderTemplate(strPrototype, obj)).join() :
+            this.renderTemplate(strPrototype, data)
     }
 })
