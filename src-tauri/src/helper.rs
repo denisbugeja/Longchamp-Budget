@@ -9,16 +9,22 @@ pub struct Section {
     color: String,
 }
 
+pub fn section_list_without_group() -> Vec<Section> {
+    raw_section_list("SELECT uid, title, color FROM sections WHERE uid != 'group'")
+}
+
 pub fn section_list() -> Vec<Section> {
-    let data_list: Vec<Section> =
-        repository::execute_read_sql("SELECT uid, title, color FROM sections", |row| {
-            Ok(Section {
-                uid: row.get(0)?,
-                title: row.get(1)?,
-                color: row.get(2)?,
-            })
-        });
-    data_list
+    raw_section_list("SELECT uid, title, color FROM sections")
+}
+
+fn raw_section_list(sql: &str) -> Vec<Section> {
+    repository::execute_read_sql(sql, |row| {
+        Ok(Section {
+            uid: row.get(0)?,
+            title: row.get(1)?,
+            color: row.get(2)?,
+        })
+    })
 }
 
 pub fn vec_to_json<T: Serialize>(vec_data: Vec<T>) -> String {

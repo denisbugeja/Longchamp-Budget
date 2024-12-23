@@ -6,6 +6,48 @@ const { open, save } = window.__TAURI__.dialog;
 // JS import
 import { Application, Controller } from "/stimulus.min.js"
 
+function renderTemplate(templateString, data) {
+    return templateString.replace(/{{(.*?)}}/g, (match, p1) => {
+        const key = p1.trim()
+        return data[key] !== undefined ? data[key] : match
+    });
+}
+
+async function fetchPart(htmlPart) {
+    var result
+    await fetch(htmlPart)
+        .then(response => response.text())
+        .then(html => {
+            result = html
+        })
+    return result
+}
+
+async function generateFromFilePath(filePathString, data) {
+    let strPrototype = await fetchPart(filePathString)
+    return Array.isArray(data) ?
+        data.map((obj) => renderTemplate(strPrototype, obj)).join() :
+        renderTemplate(strPrototype, data)
+}
+
+function escapeHtmlAttribute(str) {
+    return str.replace(/["'&<>]/g, function (char) {
+        switch (char) {
+            case '"':
+                return '&quot;';
+            case "'":
+                return '&#39;';
+            case '&':
+                return '&amp;';
+            case '<':
+                return '&lt;';
+            case '>':
+                return '&gt;';
+            default:
+                return char;
+        }
+    });
+}
 
 window.Stimulus = Application.start()
 
@@ -49,11 +91,19 @@ Stimulus.register("budget", class extends Controller {
     }
 
     async sectionEditListLoad() {
-        const sectionList = JSON.parse(await invoke("section_list_load"))
+        let sectionList = JSON.parse(await invoke("section_list_without_group_load"))
+
         if (!sectionList) {
             return
         }
-        this.sectionEditListTarget.innerHTML = await this.generateFromFilePath('_parts/_components/_section-edit-item.html', sectionList)
+
+        sectionList = sectionList.map((section) => {
+            section.title = escapeHtmlAttribute(section.title)
+            section.color = escapeHtmlAttribute(section.color)
+            return section
+        })
+
+        this.sectionEditListTarget.innerHTML = await generateFromFilePath('_parts/_components/_section-edit-item.html', sectionList)
     }
 
     loadExpenses(e) {
@@ -66,30 +116,26 @@ Stimulus.register("budget", class extends Controller {
     }
 
     async loadPart(htmlPart, target) {
-        target.innerHTML = await this.fetchPart(htmlPart)
+        target.innerHTML = await fetchPart(htmlPart)
     }
 
-    renderTemplate(templateString, data) {
-        return templateString.replace(/{{(.*?)}}/g, (match, p1) => {
-            const key = p1.trim()
-            return data[key] !== undefined ? data[key] : match
-        });
+})
+
+Stimulus.register("section", class extends Controller {
+    static targets = ['title', 'color']
+    static values = {
+        uid: String
     }
 
-    async fetchPart(htmlPart) {
-        var result
-        await fetch(htmlPart)
-            .then(response => response.text())
-            .then(html => {
-                result = html
-            })
-        return result
+    sectionEdit(e) {
+        if (!this.validate()) {
+            return
+        }
+        console.log({ uid: this.uidValue, title: this.titleTarget.value, color: this.colorTarget.value })
     }
 
-    async generateFromFilePath(filePathString, data) {
-        let strPrototype = await this.fetchPart(filePathString)
-        return Array.isArray(data) ?
-            data.map((obj) => this.renderTemplate(strPrototype, obj)).join() :
-            this.renderTemplate(strPrototype, data)
+    validate() {
+        return '' !== this.titleTarget.value.trim() && '' !== this.colorTarget.value.trim()
     }
+
 })

@@ -15,8 +15,8 @@ fn update_db_path(path: &str) {
 }
 
 #[tauri::command()]
-fn section_list_load() -> String {
-    helper::vec_to_json(helper::section_list())
+fn section_list_without_group_load() -> String {
+    helper::vec_to_json(helper::section_list_without_group())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -27,7 +27,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             greet,
             update_db_path,
-            section_list_load
+            section_list_without_group_load
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");

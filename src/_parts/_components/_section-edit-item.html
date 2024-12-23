@@ -1,1 +1,42 @@
-<div data-budget-target="sectionEditItem" data-uid="{{ uid }}">{{ title }}</div>
+<form action="" data-controller="section" data-section-uid-value="{{ uid }}">
+    <div class="row p-4">
+        <div class="col-8">
+            <div class="input-group">
+                <span class="input-group-text">Nom</span>
+                <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Saisis ici le nom de la section/pôle/section"
+                    title="Tu dois saisir le nom de la section/pôle/section"
+                    data-section-target="title"
+                    required="required"
+                    value="{{ title }}"
+                    data-action="change->section#sectionEdit"
+                />
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="input-group">
+                <span class="input-group-text">Couleur</span>
+                <input
+                    type="color"
+                    class="form-control form-control-color"
+                    placeholder="Saisis ici la couleur de la section/pôle/sectioné"
+                    data-section-target="color"
+                    required="required"
+                    value="{{ color }}"
+                    data-action="change->section#sectionEdit"
+                />
+            </div>
+        </div>
+        <div class="col-1">
+            <button
+                type="submit"
+                class="w-100 h-100 btn btn-primary text-align-center px-1"
+                title="Mettre à jour"
+            >
+                <i class="bi bi-floppy"></i>
+            </button>
+        </div>
+    </div>
+</form>
