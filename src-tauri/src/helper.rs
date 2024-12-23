@@ -9,7 +9,7 @@ pub struct Section {
     color: String,
 }
 
-pub fn section_list_to_json() -> String {
+pub fn section_list() -> Vec<Section> {
     let data_list: Vec<Section> =
         repository::execute_read_sql("SELECT uid, title, color FROM sections", |row| {
             Ok(Section {
@@ -18,5 +18,9 @@ pub fn section_list_to_json() -> String {
                 color: row.get(2)?,
             })
         });
-    serde_json::to_string(&data_list).expect("Cannot serialize section list")
+    data_list
+}
+
+pub fn vec_to_json<T: Serialize>(vec_data: Vec<T>) -> String {
+    serde_json::to_string(&vec_data).expect("Cannot serialize section list")
 }

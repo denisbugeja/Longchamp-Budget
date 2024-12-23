@@ -16,7 +16,7 @@ fn update_db_path(path: &str) {
 
 #[tauri::command()]
 fn section_list_load() -> String {
-    helper::section_list_to_json()
+    helper::vec_to_json(helper::section_list())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
