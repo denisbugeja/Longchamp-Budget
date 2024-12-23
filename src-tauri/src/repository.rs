@@ -24,19 +24,16 @@ pub fn execute_read_sql<F, T>(sql: &str, row_closure: F) -> Vec<T>
 where
     F: FnMut(&Row) -> Result<T, rusqlite::Error>,
 {
-    let conn: Connection =
-        self::get_connection().expect("Impossible to load connection for unit list load");
-
-    let mut stmt = conn.prepare(sql).expect("Cannot prepare query");
-    let data_iter = stmt
+    let data_iter: Vec<T> = self::get_connection()
+        .expect("Impossible to load connection")
+        .prepare(sql)
+        .expect("Cannot prepare query")
         .query_map([], row_closure)
-        .expect("Cannot query sections");
-
-    let mut data_list: Vec<T> = vec![];
-    for data in data_iter {
-        data_list.push(data.expect("Cannot get data"));
-    }
-    data_list
+        .expect("Cannot execute query_map")
+        .into_iter()
+        .flatten()
+        .collect();
+    data_iter
 }
 
 pub fn execute_migrations(conn: Connection) {
