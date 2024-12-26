@@ -57,6 +57,10 @@ Stimulus.register("budget", class extends Controller {
     connect() {
     }
 
+    sectionEditListTargetConnected(element) {
+        this.sectionEditListLoad()
+    }
+
     async openFile(e) {
         const file = await open({
             multiple: false,
@@ -112,7 +116,6 @@ Stimulus.register("budget", class extends Controller {
 
     async loadSections(e) {
         this.loadPart('_parts/_windows/_sections.html', this.mainTarget)
-        this.sectionEditListLoad()
     }
 
     async loadPart(htmlPart, target) {
