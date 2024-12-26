@@ -22,30 +22,28 @@ pub fn update_db_file_path(path: &str) {
 }
 
 pub fn insert_new_section(title: &str, color: &str) {
-    get_connection()
-        .expect("Impossible to load connection")
-        .execute(
-            "INSERT INTO sections (uid, title, color, position) VALUES (?1, ?2, ?3, 0)",
-            (Uuid::new_v4().to_string(), title, color),
-        )
-        .expect("Cannot insert new section");
+    execute_write_sql(
+        "INSERT INTO sections (uid, title, color, position) VALUES (?1, ?2, ?3, 0)",
+        params!(Uuid::new_v4().to_string(), title, color),
+    );
 }
 
 pub fn delete_section(uid: &str) {
-    get_connection()
-        .expect("Impossible to load connection")
-        .execute("DELETE FROM sections WHERE uid = ?1", params!(uid))
-        .expect("Cannot delete section");
+    execute_write_sql("DELETE FROM sections WHERE uid = ?1", params!(uid));
 }
 
 pub fn update_section(uid: &str, title: &str, color: &str) {
+    execute_write_sql(
+        "UPDATE sections SET title = ?1, color = ?2 WHERE uid = ?3",
+        params!(title, color, uid),
+    );
+}
+
+pub fn execute_write_sql<T: rusqlite::Params>(sql: &str, params: T) {
     get_connection()
         .expect("Impossible to load connection")
-        .execute(
-            "UPDATE sections SET title = ?1, color = ?2 WHERE uid = ?3",
-            params!(title, color, uid),
-        )
-        .expect("Cannot update section");
+        .execute(sql, params)
+        .expect("Cannot execute write sql");
 }
 
 pub fn execute_read_sql<F, T>(sql: &str, row_closure: F) -> Vec<T>
