@@ -15,8 +15,31 @@ fn update_db_path(path: &str) {
 }
 
 #[tauri::command()]
-fn section_list_without_group_load() -> String {
-    helper::vec_to_json(helper::section_list_without_group())
+fn section_list_load() -> String {
+    helper::vec_to_json(helper::section_list())
+}
+
+#[tauri::command()]
+fn insert_new_section(title: &str, color: &str) {
+    repository::insert_new_section(title, color);
+}
+
+#[tauri::command()]
+fn delete_section(uid: &str) {
+    if !is_allowed_to_delete_section(uid) {
+        return;
+    }
+    repository::delete_section(uid);
+}
+
+#[tauri::command()]
+fn update_section(uid: &str, title: &str, color: &str) {
+    repository::update_section(uid, title, color);
+}
+
+#[tauri::command()]
+fn is_allowed_to_delete_section(uid: &str) -> bool {
+    uid != "group"
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -27,7 +50,11 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             greet,
             update_db_path,
-            section_list_without_group_load
+            section_list_load,
+            insert_new_section,
+            delete_section,
+            update_section,
+            is_allowed_to_delete_section
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");

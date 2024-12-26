@@ -1,6 +1,7 @@
 use lazy_static::lazy_static;
-use rusqlite::{Connection, Result, Row};
+use rusqlite::{params, Connection, Result, Row};
 use std::sync::RwLock;
+use uuid::Uuid;
 
 lazy_static! {
     static ref GLOBAL_FILE_PATH: RwLock<String> = RwLock::new(String::from(""));
@@ -18,6 +19,33 @@ pub fn update_db_file_path(path: &str) {
     *file_path = String::from(path);
     let conn = Connection::open(String::from(file_path.clone())).expect("Unable to open file");
     execute_migrations(conn);
+}
+
+pub fn insert_new_section(title: &str, color: &str) {
+    get_connection()
+        .expect("Impossible to load connection")
+        .execute(
+            "INSERT INTO sections (uid, title, color, position) VALUES (?1, ?2, ?3, 0)",
+            (Uuid::new_v4().to_string(), title, color),
+        )
+        .expect("Cannot insert new section");
+}
+
+pub fn delete_section(uid: &str) {
+    get_connection()
+        .expect("Impossible to load connection")
+        .execute("DELETE FROM sections WHERE uid = ?1", params!(uid))
+        .expect("Cannot delete section");
+}
+
+pub fn update_section(uid: &str, title: &str, color: &str) {
+    get_connection()
+        .expect("Impossible to load connection")
+        .execute(
+            "UPDATE sections SET title = ?1, color = ?2 WHERE uid = ?3",
+            params!(title, color, uid),
+        )
+        .expect("Cannot update section");
 }
 
 pub fn execute_read_sql<F, T>(sql: &str, row_closure: F) -> Vec<T>

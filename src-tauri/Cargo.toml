@@ -28,6 +28,11 @@ tauri-plugin-dialog = "2"
 lazy_static = "1.5.0"
 tauri-plugin-fs = "2.2.0"
 rusqlite = { version = "0.32.0", features = ["bundled"] }
+uuid = { version = "1.11.0", features = [
+    "v4",
+    "fast-rng",
+    "macro-diagnostics",
+] }
 
 
 [profile.release]

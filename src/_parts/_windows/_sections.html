@@ -1,45 +1,47 @@
-<div data-budget-target="sectionEditList"></div>
-<div data-budget-target="sectionEditAdd">
-    <form
-        action=""
-        id="section-add-form"
-        data-action="submit->budget#sectionEditAddSubmit"
-    >
-        <div class="row p-4">
-            <div class="col-8">
-                <div class="input-group">
-                    <span class="input-group-text">Nom</span>
-                    <input
-                        type="text"
-                        class="form-control"
-                        placeholder="Saisis ici le nom de la section/pôle/section"
-                        title="Tu dois saisir le nom de la section/pôle/section"
-                        data-budget-target="sectionAddNameInput"
-                        required="required"
-                    />
+<div data-controller="section" id="main-section">
+    <div data-section-target="sectionList" class="py-4"></div>
+    <div>
+        <form
+            action=""
+            id="section-add-form"
+            data-action="submit->section#create"
+        >
+            <div class="row p-4">
+                <div class="col-8">
+                    <div class="input-group">
+                        <span class="input-group-text">Nom</span>
+                        <input
+                            type="text"
+                            class="form-control"
+                            placeholder="Saisis ici le nom de la section/pôle/section"
+                            title="Tu dois saisir le nom de la section/pôle/section"
+                            data-section-target="title"
+                            required="required"
+                        />
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="input-group">
+                        <span class="input-group-text">Couleur</span>
+                        <input
+                            type="color"
+                            class="form-control form-control-color"
+                            placeholder="Saisis ici la couleur de la section/pôle/sectioné"
+                            data-section-target="color"
+                            required="required"
+                        />
+                    </div>
+                </div>
+                <div class="col-1 d-grid gap-2">
+                    <button
+                        type="submit"
+                        class="w-100 h-100 btn btn-outline-primary text-align-center px-1"
+                        title="Ajouter"
+                    >
+                        <i class="bi bi-floppy"></i>
+                    </button>
                 </div>
             </div>
-            <div class="col-3">
-                <div class="input-group">
-                    <span class="input-group-text">Couleur</span>
-                    <input
-                        type="color"
-                        class="form-control form-control-color"
-                        placeholder="Saisis ici la couleur de la section/pôle/sectioné"
-                        data-budget-target="sectionAddColorInput"
-                        required="required"
-                    />
-                </div>
-            </div>
-            <div class="col-1">
-                <button
-                    type="submit"
-                    class="w-100 h-100 btn btn-primary text-align-center px-1"
-                    title="Ajouter"
-                >
-                    <i class="bi bi-floppy"></i>
-                </button>
-            </div>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>

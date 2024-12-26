@@ -9,10 +9,6 @@ pub struct Section {
     color: String,
 }
 
-pub fn section_list_without_group() -> Vec<Section> {
-    raw_section_list("SELECT uid, title, color FROM sections WHERE uid != 'group'")
-}
-
 pub fn section_list() -> Vec<Section> {
     raw_section_list("SELECT uid, title, color FROM sections")
 }

@@ -1,5 +1,11 @@
-<form action="" data-controller="section" data-section-uid-value="{{ uid }}">
-    <div class="row p-4">
+<form
+    action=""
+    data-controller="section-edit"
+    data-section-edit-uid-value="{{ uid }}"
+    data-action="section-edit#submit"
+    data-section-edit-section-outlet="#main-section"
+>
+    <div class="row px-4 py-1">
         <div class="col-8">
             <div class="input-group">
                 <span class="input-group-text">Nom</span>
@@ -8,10 +14,10 @@
                     class="form-control"
                     placeholder="Saisis ici le nom de la section/pôle/section"
                     title="Tu dois saisir le nom de la section/pôle/section"
-                    data-section-target="title"
+                    data-section-edit-target="title"
                     required="required"
                     value="{{ title }}"
-                    data-action="change->section#sectionEdit"
+                    data-action="change->section-edit#update"
                 />
             </div>
         </div>
@@ -22,20 +28,22 @@
                     type="color"
                     class="form-control form-control-color"
                     placeholder="Saisis ici la couleur de la section/pôle/sectioné"
-                    data-section-target="color"
+                    data-section-edit-target="color"
                     required="required"
                     value="{{ color }}"
-                    data-action="change->section#sectionEdit"
+                    data-action="change->section-edit#update"
                 />
             </div>
         </div>
-        <div class="col-1">
+        <div class="col-1 d-grid gap-2">
             <button
-                type="submit"
-                class="w-100 h-100 btn btn-primary text-align-center px-1"
-                title="Mettre à jour"
+                type="button"
+                class="w-100 h-100 btn btn-outline-danger text-align-center px-1"
+                title="Supprimer"
+                data-action="section-edit#delete"
+                data-section-edit-target="delete"
             >
-                <i class="bi bi-floppy"></i>
+                <i class="bi bi-trash"></i>
             </button>
         </div>
     </div>
