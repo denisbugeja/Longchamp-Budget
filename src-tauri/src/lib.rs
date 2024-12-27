@@ -20,8 +20,18 @@ fn section_list_load() -> String {
 }
 
 #[tauri::command()]
+fn expense_list_load() -> String {
+    helper::vec_to_json(helper::expense_list())
+}
+
+#[tauri::command()]
 fn insert_new_section(title: &str, color: &str) {
     repository::insert_new_section(title, color);
+}
+
+#[tauri::command()]
+fn insert_new_expense(title: &str, description: &str, rate: &str, unit_price: &str) {
+    repository::insert_new_expense(title, description, rate, unit_price);
 }
 
 #[tauri::command()]
@@ -54,7 +64,9 @@ pub fn run() {
             insert_new_section,
             delete_section,
             update_section,
-            is_allowed_to_delete_section
+            is_allowed_to_delete_section,
+            expense_list_load,
+            insert_new_expense,
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");

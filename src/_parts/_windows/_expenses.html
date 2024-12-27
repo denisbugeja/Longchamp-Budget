@@ -1,1 +1,66 @@
-<div>test</div>
+<div data-controller="expense" id="main-expense">
+    <div data-expense-target="expenseList" class="py-4"></div>
+    <div>
+        <form
+            action=""
+            id="expense-add-form"
+            data-action="submit->expense#create"
+        >
+            <div class="input-group">
+                <span class="input-group-text">Nom</span>
+                <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Saisis ici le nom de la dépense"
+                    title="Tu dois saisir le nom de la dépense"
+                    data-expense-target="title"
+                    required="required"
+                />
+            </div>
+
+            <div class="input-group">
+                <span class="input-group-text">Description</span>
+                <textarea
+                    class="form-control"
+                    placeholder="Saisis ici la description de la dépense"
+                    data-expense-target="description"
+                ></textarea>
+            </div>
+
+            <div class="input-group">
+                <span class="input-group-text">Ratio</span>
+                <input
+                    type="number"
+                    class="form-control"
+                    placeholder="Saisis ici le ratio de la dépense"
+                    title="Tu dois saisir le ratio de la dépense"
+                    data-expense-target="rate"
+                    required="required"
+                    min="1"
+                    max="100"
+                />
+            </div>
+
+            <div class="input-group">
+                <span class="input-group-text">Prix Unitaire</span>
+                <input
+                    type="number"
+                    class="form-control"
+                    placeholder="Saisis ici le prix unitaire de la dépense"
+                    title="Tu dois saisir le prix unitaire de la dépense"
+                    data-expense-target="unitPrice"
+                    required="required"
+                    min="1"
+                />
+            </div>
+
+            <button
+                type="submit"
+                class="w-100 h-100 btn btn-outline-primary text-align-center px-1"
+                title="Ajouter"
+            >
+                <i class="bi bi-floppy"></i>
+            </button>
+        </form>
+    </div>
+</div>

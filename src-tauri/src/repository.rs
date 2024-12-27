@@ -28,6 +28,15 @@ pub fn insert_new_section(title: &str, color: &str) {
     );
 }
 
+pub fn insert_new_expense(title: &str, description: &str, rate: &str, unitprice: &str) {
+    let rate_f32: f32 = rate.parse().expect("Failed to parse rate as f32");
+    let unitprice_f32: f32 = unitprice.parse().expect("Failed to parse unitprice as f32");
+    execute_write_sql(
+        "INSERT INTO expenses (uid, title, description, rate, unit_price, position) VALUES (?1, ?2, ?3, ?4, ?5, 0)",
+        params!(Uuid::new_v4().to_string(), title, description, rate_f32, unitprice_f32),
+    );
+}
+
 pub fn delete_section(uid: &str) {
     execute_write_sql("DELETE FROM sections WHERE uid = ?1", params!(uid));
 }

@@ -35,7 +35,7 @@ async function loadPart(htmlPart, target) {
 }
 
 function escapeHtmlAttribute(str) {
-    return str.replace(/["'&<>]/g, function (char) {
+    return str.toString().replace(/["'&<>]/g, function (char) {
         switch (char) {
             case '"':
                 return '&quot;';
@@ -174,5 +174,63 @@ Stimulus.register("section-edit", class extends Controller {
 
     validate() {
         return '' !== this.titleTarget.value.trim() && '' !== this.colorTarget.value.trim()
+    }
+})
+
+Stimulus.register("expense", class extends Controller {
+    static targets = ['title', 'description', 'rate', 'unitPrice', 'expenseList']
+
+    connect() {
+    }
+
+    expenseListTargetConnected(element) {
+        this.expenseListLoad()
+    }
+
+    create(e) {
+        e.preventDefault()
+        if (!this.validateExpense()) {
+            alert('Les champs ne sont pas correctement remplis.')
+            return;
+        }
+
+        invoke("insert_new_expense", { title: this.titleTarget.value, description: this.descriptionTarget.value, rate: this.rateTarget.value, unitPrice: this.unitPriceTarget.value })
+
+        this.titleTarget.value = ''
+        this.descriptionTarget.value = ''
+        this.rateTarget.value = ''
+        this.unitPriceTarget.value = ''
+
+        this.expenseListLoad()
+    }
+
+    async expenseListLoad() {
+        let expenseList = JSON.parse(await invoke("expense_list_load"))
+
+        if (!expenseList) {
+            return
+        }
+
+        expenseList = expenseList.map((expense) => {
+            expense.title = escapeHtmlAttribute(expense.title)
+            expense.description = escapeHtmlAttribute(expense.description)
+            expense.rate = escapeHtmlAttribute(expense.rate)
+            expense.unit_price = escapeHtmlAttribute(expense.unit_price)
+            return expense
+        })
+
+        this.expenseListTarget.innerHTML = await generateFromFilePath('_parts/_components/_expense-edit-item.html', expenseList)
+    }
+
+    validateExpense() {
+        return '' !== this.titleTarget.value.trim()
+
+            && '' !== this.rateTarget.value.trim()
+            && parseFloat(this.rateTarget.value) > 0
+            && parseFloat(this.rateTarget.value) <= 100
+
+            && "" !== this.unitPriceTarget.value.trim()
+            && parseFloat(this.unitPriceTarget.value) > 0
+            && parseFloat(this.unitPriceTarget.value) <= 100
     }
 })
