@@ -1,6 +1,36 @@
-<div>
-    {{ title }}<br />
-    {{ description }}<br />
-    {{ rate }}<br />
-    {{ unit_price }}<br />
-</div>
+<form
+    action=""
+    data-controller="expense-edit"
+    data-expense-edit-uid-value="{{ uid }}"
+    data-action="expense-edit#submit"
+    data-expense-edit-expense-outlet="[data-controller='expense']"
+>
+    <input
+        type="text"
+        data-expense-edit-target="title"
+        value="{{ title }}"
+        data-action="change->expense-edit#update"
+    />
+    <br />
+    <textarea
+        data-expense-edit-target="description"
+        data-action="change->expense-edit#update"
+    >
+{{ description }}</textarea
+    >
+    <br />
+    <input
+        type="number"
+        data-expense-edit-target="rate"
+        value="{{ rate }}"
+        data-action="change->expense-edit#update"
+    />
+    <br />
+    <input
+        type="number"
+        data-expense-edit-target="unitPrice"
+        value="{{ unit_price }}"
+        data-action="change->expense-edit#update"
+    />
+    <br />
+</form>

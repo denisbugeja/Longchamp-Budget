@@ -189,7 +189,7 @@ Stimulus.register("expense", class extends Controller {
 
     create(e) {
         e.preventDefault()
-        if (!this.validateExpense()) {
+        if (!this.validate()) {
             alert('Les champs ne sont pas correctement remplis.')
             return;
         }
@@ -222,7 +222,47 @@ Stimulus.register("expense", class extends Controller {
         this.expenseListTarget.innerHTML = await generateFromFilePath('_parts/_components/_expense-edit-item.html', expenseList)
     }
 
-    validateExpense() {
+    validate() {
+        return '' !== this.titleTarget.value.trim()
+
+            && '' !== this.rateTarget.value.trim()
+            && parseFloat(this.rateTarget.value) > 0
+            && parseFloat(this.rateTarget.value) <= 100
+
+            && "" !== this.unitPriceTarget.value.trim()
+            && parseFloat(this.unitPriceTarget.value) > 0
+            && parseFloat(this.unitPriceTarget.value) <= 100
+    }
+})
+
+Stimulus.register("expense-edit", class extends Controller {
+    static targets = ['title', 'description', 'rate', 'unitPrice']
+    static outlets = ["expense"]
+    static values = {
+        uid: String
+    }
+
+    submit(e) {
+        e.preventDefault()
+    }
+
+    update(e) {
+        if (!this.validate()) {
+            return
+        }
+        invoke("update_expense", { uid: this.uidValue, title: this.titleTarget.value, description: this.descriptionTarget.value, rate: this.rateTarget.value, unitPrice: this.unitPriceTarget.value })
+    }
+
+    async delete(e) {
+        if (!await invoke("is_allowed_to_delete_expense", { uid: this.uidValue })) {
+            alert("Tu ne peux pas supprimer cette dépense.\nElle est déja utilisée à par une section.")
+            return
+        }
+        invoke("delete_expense", { uid: this.uidValue })
+        this.expenseOutlet.expenseListLoad()
+    }
+
+    validate() {
         return '' !== this.titleTarget.value.trim()
 
             && '' !== this.rateTarget.value.trim()
