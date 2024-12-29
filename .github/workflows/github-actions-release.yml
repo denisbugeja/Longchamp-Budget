@@ -42,8 +42,6 @@ jobs:
 
       - name: Build assets
         run: |
-          npm install sass
-          npm install uglify-js
           sass --style=compressed --no-source-map ./src/styles.scss ./src/styles.min.css
           uglifyjs ./src/stimulus.js -o ./src/stimulus.min.js
 
