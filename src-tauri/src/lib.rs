@@ -16,12 +16,12 @@ fn update_db_path(path: &str) {
 
 #[tauri::command()]
 fn section_list_load() -> String {
-    helper::vec_to_json(helper::section_list())
+    helper::vec_to_json(repository::section_list())
 }
 
 #[tauri::command()]
 fn expense_list_load() -> String {
-    helper::vec_to_json(helper::expense_list())
+    helper::vec_to_json(repository::expense_list())
 }
 
 #[tauri::command()]

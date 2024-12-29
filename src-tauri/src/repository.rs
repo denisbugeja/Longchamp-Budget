@@ -1,3 +1,4 @@
+use crate::helper::{Expense, Section};
 use lazy_static::lazy_static;
 use rusqlite::{params, Connection, Result, Row};
 use std::sync::RwLock;
@@ -28,13 +29,30 @@ pub fn insert_new_section(title: &str, color: &str) {
     );
 }
 
-pub fn insert_new_expense(title: &str, description: &str, rate: &str, unitprice: &str) {
-    let rate_f32: f32 = rate.parse().expect("Failed to parse rate as f32");
-    let unitprice_f32: f32 = unitprice.parse().expect("Failed to parse unitprice as f32");
-    execute_write_sql(
-        "INSERT INTO expenses (uid, title, description, rate, unit_price, position) VALUES (?1, ?2, ?3, ?4, ?5, 0)",
-        params!(Uuid::new_v4().to_string(), title, description, rate_f32, unitprice_f32),
-    );
+pub fn section_list() -> Vec<Section> {
+    execute_read_sql("SELECT uid, title, color FROM sections", |row| {
+        Ok(Section {
+            uid: row.get(0)?,
+            title: row.get(1)?,
+            color: row.get(2)?,
+        })
+    })
+}
+
+pub fn expense_list() -> Vec<Expense> {
+    execute_read_sql(
+        "SELECT uid, title, description, rate, unit_price, position  FROM expenses",
+        |row| {
+            Ok(Expense {
+                uid: row.get(0)?,
+                title: row.get(1)?,
+                description: row.get(2)?,
+                rate: row.get(3)?,
+                unit_price: row.get(4)?,
+                position: row.get(5)?,
+            })
+        },
+    )
 }
 
 pub fn delete_section(uid: &str) {
@@ -45,6 +63,15 @@ pub fn update_section(uid: &str, title: &str, color: &str) {
     execute_write_sql(
         "UPDATE sections SET title = ?1, color = ?2 WHERE uid = ?3",
         params!(title, color, uid),
+    );
+}
+
+pub fn insert_new_expense(title: &str, description: &str, rate: &str, unitprice: &str) {
+    let rate_f32: f32 = rate.parse().expect("Failed to parse rate as f32");
+    let unitprice_f32: f32 = unitprice.parse().expect("Failed to parse unitprice as f32");
+    execute_write_sql(
+        "INSERT INTO expenses (uid, title, description, rate, unit_price, position) VALUES (?1, ?2, ?3, ?4, ?5, 0)",
+        params!(Uuid::new_v4().to_string(), title, description, rate_f32, unitprice_f32),
     );
 }
 
