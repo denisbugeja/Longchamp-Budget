@@ -74,9 +74,18 @@ pub fn insert_new_expense(
     unitprice: &str,
     section_list: Vec<&str>,
 ) {
+    let params: Vec<Box<dyn rusqlite::ToSql>> = section_list
+        .iter()
+        .map(|&s| Box::new(s) as Box<dyn rusqlite::ToSql>)
+        .collect();
+
     let get_count_sections: Vec<i32> = execute_read_sql(
         "SELECT COUNT(uid) AS cnt FROM sections WHERE uid IN (?1)",
-        params![section_list.join(",")],
+        params
+            .iter()
+            .map(|p| p.as_ref())
+            .collect::<Vec<&dyn rusqlite::ToSql>>()
+            .as_slice(),
         |row: &Row| -> Result<i32, rusqlite::Error> { row.get(0) },
     );
 
