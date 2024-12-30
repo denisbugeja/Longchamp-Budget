@@ -90,7 +90,7 @@ pub fn insert_new_expense(
     );
 
     let count: &i32 = get_count_sections.get(0).unwrap();
-    if *count == 0 {
+    if 0 == *count {
         return;
     }
 
