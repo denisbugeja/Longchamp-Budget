@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "sass": "^1.83.0",
-    "uglify-js": "^3.19.3"
-  }
-}
