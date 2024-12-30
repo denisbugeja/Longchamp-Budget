@@ -33,6 +33,7 @@ uuid = { version = "1.11.0", features = [
     "fast-rng",
     "macro-diagnostics",
 ] }
+itertools = "0.13.0"
 
 
 [profile.release]

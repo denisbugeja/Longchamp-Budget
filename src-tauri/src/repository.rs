@@ -30,7 +30,7 @@ pub fn insert_new_section(title: &str, color: &str) {
 }
 
 pub fn section_list() -> Vec<Section> {
-    execute_read_sql("SELECT uid, title, color FROM sections", |row| {
+    execute_read_sql("SELECT uid, title, color FROM sections", [], |row| {
         Ok(Section {
             uid: row.get(0)?,
             title: row.get(1)?,
@@ -42,6 +42,7 @@ pub fn section_list() -> Vec<Section> {
 pub fn expense_list() -> Vec<Expense> {
     execute_read_sql(
         "SELECT uid, title, description, rate, unit_price, position  FROM expenses",
+        [],
         |row| {
             Ok(Expense {
                 uid: row.get(0)?,
@@ -66,13 +67,39 @@ pub fn update_section(uid: &str, title: &str, color: &str) {
     );
 }
 
-pub fn insert_new_expense(title: &str, description: &str, rate: &str, unitprice: &str) {
+pub fn insert_new_expense(
+    title: &str,
+    description: &str,
+    rate: &str,
+    unitprice: &str,
+    section_list: Vec<&str>,
+) {
+    let get_count_sections: Vec<i32> = execute_read_sql(
+        "SELECT COUNT(uid) AS cnt FROM sections WHERE uid IN (?1)",
+        params![section_list.join(",")],
+        |row: &Row| -> Result<i32, rusqlite::Error> { row.get(0) },
+    );
+
+    let count: &i32 = get_count_sections.get(0).unwrap();
+    if *count == 0 {
+        return;
+    }
+
     let rate_f32: f32 = rate.parse().expect("Failed to parse rate as f32");
     let unitprice_f32: f32 = unitprice.parse().expect("Failed to parse unitprice as f32");
+    let uid_expense = Uuid::new_v4().to_string();
+
     execute_write_sql(
         "INSERT INTO expenses (uid, title, description, rate, unit_price, position) VALUES (?1, ?2, ?3, ?4, ?5, 0)",
-        params!(Uuid::new_v4().to_string(), title, description, rate_f32, unitprice_f32),
+        params!(uid_expense, title, description, rate_f32, unitprice_f32),
     );
+
+    for section in section_list {
+        execute_write_sql(
+            "INSERT INTO expense_section (uid_expense, uid_section) VALUES (?1, ?2)",
+            params!(uid_expense, section),
+        );
+    }
 }
 
 pub fn execute_write_sql<T: rusqlite::Params>(sql: &str, params: T) {
@@ -82,7 +109,7 @@ pub fn execute_write_sql<T: rusqlite::Params>(sql: &str, params: T) {
         .expect("Cannot execute write sql");
 }
 
-pub fn execute_read_sql<F, T>(sql: &str, row_closure: F) -> Vec<T>
+pub fn execute_read_sql<F, T, P: rusqlite::Params>(sql: &str, params: P, row_closure: F) -> Vec<T>
 where
     F: FnMut(&Row) -> Result<T, rusqlite::Error>,
 {
@@ -90,7 +117,7 @@ where
         .expect("Impossible to load connection")
         .prepare(sql)
         .expect("Cannot prepare query")
-        .query_map([], row_closure)
+        .query_map(params, row_closure)
         .expect("Cannot execute query_map")
         .into_iter()
         .flatten()

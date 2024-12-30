@@ -194,7 +194,7 @@ Stimulus.register("expense", class extends Controller {
             return;
         }
 
-        invoke("insert_new_expense", { title: this.titleTarget.value, description: this.descriptionTarget.value, rate: this.rateTarget.value, unitPrice: this.unitPriceTarget.value })
+        invoke("insert_new_expense", { title: this.titleTarget.value, description: this.descriptionTarget.value, rate: this.rateTarget.value, unitPrice: this.unitPriceTarget.value, sectionList: '[]' })
 
         this.titleTarget.value = ''
         this.descriptionTarget.value = ''

@@ -30,8 +30,15 @@ fn insert_new_section(title: &str, color: &str) {
 }
 
 #[tauri::command()]
-fn insert_new_expense(title: &str, description: &str, rate: &str, unit_price: &str) {
-    repository::insert_new_expense(title, description, rate, unit_price);
+fn insert_new_expense(
+    title: &str,
+    description: &str,
+    rate: &str,
+    unit_price: &str,
+    section_list: &str,
+) {
+    let vec_section_list: Vec<&str> = helper::json_to_vec(section_list);
+    repository::insert_new_expense(title, description, rate, unit_price, vec_section_list);
 }
 
 #[tauri::command()]
