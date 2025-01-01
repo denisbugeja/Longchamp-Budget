@@ -9,27 +9,49 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-#[tauri::command()]
+#[tauri::command]
 fn update_db_path(path: &str) {
     repository::update_db_file_path(path);
 }
 
-#[tauri::command()]
+// Section part
+
+#[tauri::command]
 fn section_list_load() -> String {
     helper::vec_to_json(repository::section_list())
 }
 
-#[tauri::command()]
-fn expense_list_load() -> String {
-    helper::vec_to_json(repository::expense_list())
-}
-
-#[tauri::command()]
+#[tauri::command]
 fn insert_new_section(title: &str, color: &str) {
     repository::insert_new_section(title, color);
 }
 
-#[tauri::command()]
+#[tauri::command]
+fn delete_section(uid: &str) {
+    if !is_allowed_to_delete_section(uid) {
+        return;
+    }
+    repository::delete_section(uid);
+}
+
+#[tauri::command]
+fn update_section(uid: &str, title: &str, color: &str) {
+    repository::update_section(uid, title, color);
+}
+
+#[tauri::command]
+fn is_allowed_to_delete_section(uid: &str) -> bool {
+    uid != "group"
+}
+
+// Expense part
+
+#[tauri::command]
+fn expense_list_load() -> String {
+    helper::vec_to_json(repository::expense_list())
+}
+
+#[tauri::command]
 fn insert_new_expense(
     title: &str,
     description: &str,
@@ -41,20 +63,7 @@ fn insert_new_expense(
     repository::insert_new_expense(title, description, rate, unit_price, vec_section_list);
 }
 
-#[tauri::command()]
-fn delete_section(uid: &str) {
-    if !is_allowed_to_delete_section(uid) {
-        return;
-    }
-    repository::delete_section(uid);
-}
-
-#[tauri::command()]
-fn update_section(uid: &str, title: &str, color: &str) {
-    repository::update_section(uid, title, color);
-}
-
-#[tauri::command()]
+#[tauri::command]
 fn update_expense(
     uid: &str,
     title: &str,
@@ -67,9 +76,12 @@ fn update_expense(
     repository::update_expense(uid, title, description, rate, unit_price, vec_section_list);
 }
 
-#[tauri::command()]
-fn is_allowed_to_delete_section(uid: &str) -> bool {
-    uid != "group"
+#[tauri::command]
+fn delete_expense(uid: &str) {
+    if repository::is_expense_used(uid) {
+        return;
+    }
+    repository::delete_expense(uid);
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

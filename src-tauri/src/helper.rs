@@ -18,6 +18,12 @@ pub struct Expense {
     pub position: i32,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SectionExpense {
+    pub uid_section: String,
+    pub uid_expense: String,
+}
+
 pub fn vec_to_json<T: Serialize>(vec_data: Vec<T>) -> String {
     serde_json::to_string(&vec_data).expect("Cannot serialize section list")
 }

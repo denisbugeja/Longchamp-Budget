@@ -1,4 +1,4 @@
-use crate::helper::{Expense, Section};
+use crate::helper::{Expense, Section, SectionExpense};
 use lazy_static::lazy_static;
 use rusqlite::{params, Connection, Result, Row};
 use std::sync::RwLock;
@@ -170,11 +170,43 @@ pub fn update_expense(
     }
 }
 
+pub fn delete_expense(uid: &str) {
+    execute_write_sql(
+        "DELETE FROM expense_section WHERE uid_expense = ?1",
+        params!(uid),
+    );
+    execute_write_sql("DELETE FROM expenses WHERE uid = ?1", params!(uid));
+}
+
 pub fn execute_write_sql<T: rusqlite::Params>(sql: &str, params: T) {
     get_connection()
         .expect("Impossible to load connection")
         .execute(sql, params)
         .expect("Cannot execute write sql");
+}
+
+pub fn is_expense_used(uid: &str) -> bool {
+    let count: i32 = execute_read_sql(
+        "SELECT COUNT(uid) FROM expenses_instances WHERE uid_expense = ?1",
+        params!(uid),
+        |row| Ok(row.get(0)?),
+    )
+    .pop()
+    .expect("Cannot get count");
+    count > 0
+}
+
+pub fn get_section_expense_from_expenses_instances(uid: &str) -> Vec<SectionExpense> {
+    execute_read_sql(
+        "SELECT uid_expense, uid_section FROM expenses_instances WHERE uid_expense = ?1",
+        params!(uid),
+        |row| {
+            Ok(SectionExpense {
+                uid_expense: row.get(0)?,
+                uid_section: row.get(1)?,
+            })
+        },
+    )
 }
 
 pub fn execute_read_sql<F, T, P: rusqlite::Params>(sql: &str, params: P, row_closure: F) -> Vec<T>
@@ -220,17 +252,20 @@ pub fn execute_migrations(conn: Connection) {
 );",
         "CREATE TABLE IF NOT EXISTS \"expenses_instances\" (
 	\"uid\"	TEXT NOT NULL UNIQUE,
-	\"expense_uid\"	TEXT NOT NULL,
-	\"section_uid\"	TEXT NOT NULL,
+	\"uid_expense\"	TEXT NOT NULL,
+	\"uid_section\"	TEXT NOT NULL,
 	\"units\"	INTEGER,
 	\"unit_price\"	NUMERIC,
 	\"rate\"	NUMERIC,
-	FOREIGN KEY(\"expense_uid\") REFERENCES \"expenses\"(\"uid\"),
-	FOREIGN KEY(\"expense_uid\") REFERENCES \"sections\"(\"uid\"),
+	FOREIGN KEY(\"uid_expense\") REFERENCES \"expenses\"(\"uid\"),
+	FOREIGN KEY(\"uid_section\") REFERENCES \"sections\"(\"uid\"),
 	PRIMARY KEY(\"uid\")
 );",
-        "
-INSERT INTO sections (uid, title, color, position)
+        "CREATE INDEX \"IX_EXPENSE_SECTION_UID_EXPENSE\" ON \"expense_section\" (\"uid_expense\");",
+        "CREATE INDEX \"IX_EXPENSE_SECTION_UID_SECTION\" ON \"expense_section\" (\"uid_section\");",
+        "CREATE INDEX \"IX_EXPENSES_INSTANCES_UID_SECTION\" ON \"expenses_instances\" (\"uid_section\");",
+        "CREATE INDEX \"IX_EXPENSES_INSTANCES_UID_EXPENSE\" ON \"expenses_instances\" (\"uid_expense\");",
+        "INSERT INTO sections (uid, title, color, position)
 SELECT 'group','Groupe','#403f6f',0
 WHERE NOT EXISTS(SELECT uid, title, color, position FROM sections WHERE uid = 'group');",
     ];
