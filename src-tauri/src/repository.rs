@@ -196,14 +196,19 @@ pub fn is_expense_used(uid: &str) -> bool {
     count > 0
 }
 
-pub fn get_section_expense_from_expenses_instances(uid: &str) -> Vec<SectionExpense> {
+pub fn get_section_expense_from_expenses_instances() -> Vec<SectionExpense> {
     execute_read_sql(
-        "SELECT uid_expense, uid_section FROM expenses_instances WHERE uid_expense = ?1",
-        params!(uid),
+        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense
+        FROM expenses_instances
+        INNER JOIN sections ON expenses_instances.uid_section = sections.uid
+        INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid",
+        [],
         |row| {
             Ok(SectionExpense {
-                uid_expense: row.get(0)?,
-                uid_section: row.get(1)?,
+                uid_section: row.get(0)?,
+                uid_expense: row.get(1)?,
+                title_section: row.get(2)?,
+                title_expense: row.get(3)?,
             })
         },
     )
@@ -261,10 +266,10 @@ pub fn execute_migrations(conn: Connection) {
 	FOREIGN KEY(\"uid_section\") REFERENCES \"sections\"(\"uid\"),
 	PRIMARY KEY(\"uid\")
 );",
-        "CREATE INDEX \"IX_EXPENSE_SECTION_UID_EXPENSE\" ON \"expense_section\" (\"uid_expense\");",
-        "CREATE INDEX \"IX_EXPENSE_SECTION_UID_SECTION\" ON \"expense_section\" (\"uid_section\");",
-        "CREATE INDEX \"IX_EXPENSES_INSTANCES_UID_SECTION\" ON \"expenses_instances\" (\"uid_section\");",
-        "CREATE INDEX \"IX_EXPENSES_INSTANCES_UID_EXPENSE\" ON \"expenses_instances\" (\"uid_expense\");",
+        "CREATE INDEX IF NOT EXISTS \"IX_EXPENSE_SECTION_UID_EXPENSE\" ON \"expense_section\" (\"uid_expense\");",
+        "CREATE INDEX IF NOT EXISTS \"IX_EXPENSE_SECTION_UID_SECTION\" ON \"expense_section\" (\"uid_section\");",
+        "CREATE INDEX IF NOT EXISTS \"IX_EXPENSES_INSTANCES_UID_SECTION\" ON \"expenses_instances\" (\"uid_section\");",
+        "CREATE INDEX IF NOT EXISTS \"IX_EXPENSES_INSTANCES_UID_EXPENSE\" ON \"expenses_instances\" (\"uid_expense\");",
         "INSERT INTO sections (uid, title, color, position)
 SELECT 'group','Groupe','#403f6f',0
 WHERE NOT EXISTS(SELECT uid, title, color, position FROM sections WHERE uid = 'group');",

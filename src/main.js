@@ -180,7 +180,13 @@ Stimulus.register("section-edit", class extends Controller {
 Stimulus.register("expense", class extends Controller {
     static targets = ['title', 'description', 'rate', 'unitPrice', 'expenseList']
 
+    usedSectionExpense = []
+
     connect() {
+    }
+
+    getUsedSectionExpense() {
+        return this.usedSectionExpense
     }
 
     expenseListTargetConnected(element) {
@@ -206,18 +212,30 @@ Stimulus.register("expense", class extends Controller {
 
     async expenseListLoad() {
         let expenseList = JSON.parse(await invoke("expense_list_load"))
+        let sectionList = JSON.parse(await invoke("section_list_load"))
+
+        this.usedSectionExpense = JSON.parse(await invoke("get_section_expense_from_expenses_instances"))
 
         if (!expenseList) {
             return
         }
+
+        sectionList = sectionList.map((section) => {
+            section.title = escapeHtmlAttribute(section.title)
+            return section
+        })
+
+        const sectionCheckboxListHtml = await generateFromFilePath('_parts/_components/_expense-edit-item-sections.html', sectionList)
 
         expenseList = expenseList.map((expense) => {
             expense.title = escapeHtmlAttribute(expense.title)
             expense.description = escapeHtmlAttribute(expense.description)
             expense.rate = escapeHtmlAttribute(expense.rate)
             expense.unit_price = escapeHtmlAttribute(expense.unit_price)
+            expense.section_list_html = sectionCheckboxListHtml
             return expense
         })
+
 
         this.expenseListTarget.innerHTML = await generateFromFilePath('_parts/_components/_expense-edit-item.html', expenseList)
     }
@@ -235,10 +253,24 @@ Stimulus.register("expense", class extends Controller {
 })
 
 Stimulus.register("expense-edit", class extends Controller {
-    static targets = ['title', 'description', 'rate', 'unitPrice']
+    static targets = ['title', 'description', 'rate', 'unitPrice', 'sectionList', 'section']
     static outlets = ["expense"]
     static values = {
         uid: String
+    }
+
+    sectionTargetConnected(element) {
+        const sectionUid = element.value
+        const expenseUid = this.uidValue
+
+        const used = 0 != this.expenseOutlet.getUsedSectionExpense()
+            .filter(
+                (sectionExpense) => sectionExpense.expense_uid == expenseUid && sectionExpense.section_uid == sectionUid
+            )
+            .length
+
+        element.disabled = used
+        element.checked = used
     }
 
     submit(e) {

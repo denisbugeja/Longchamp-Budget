@@ -22,6 +22,8 @@ pub struct Expense {
 pub struct SectionExpense {
     pub uid_section: String,
     pub uid_expense: String,
+    pub title_section: String,
+    pub title_expense: String,
 }
 
 pub fn vec_to_json<T: Serialize>(vec_data: Vec<T>) -> String {
