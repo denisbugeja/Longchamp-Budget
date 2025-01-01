@@ -4,6 +4,25 @@ use rusqlite::{params, Connection, Result, Row};
 use std::sync::RwLock;
 use uuid::Uuid;
 
+macro_rules! generate_vec_params {
+    ($section_list:expr) => {
+        $section_list
+            .iter()
+            .map(|&s| Box::new(s) as Box<dyn rusqlite::ToSql>)
+            .collect::<Vec<Box<dyn rusqlite::ToSql>>>()
+    };
+}
+
+macro_rules! vec_params_to_rustsqlite {
+    ($params:expr) => {
+        $params
+            .iter()
+            .map(|p| p.as_ref())
+            .collect::<Vec<&dyn rusqlite::ToSql>>()
+            .as_slice()
+    };
+}
+
 lazy_static! {
     static ref GLOBAL_FILE_PATH: RwLock<String> = RwLock::new(String::from(""));
 }
@@ -74,23 +93,8 @@ pub fn insert_new_expense(
     unitprice: &str,
     section_list: Vec<&str>,
 ) {
-    let params: Vec<Box<dyn rusqlite::ToSql>> = section_list
-        .iter()
-        .map(|&s| Box::new(s) as Box<dyn rusqlite::ToSql>)
-        .collect();
-
-    let get_count_sections: Vec<i32> = execute_read_sql(
-        "SELECT COUNT(uid) AS cnt FROM sections WHERE uid IN (?1)",
-        params
-            .iter()
-            .map(|p| p.as_ref())
-            .collect::<Vec<&dyn rusqlite::ToSql>>()
-            .as_slice(),
-        |row: &Row| -> Result<i32, rusqlite::Error> { row.get(0) },
-    );
-
-    let count: &i32 = get_count_sections.get(0).unwrap();
-    if 0 == *count {
+    let sections_in_db = section_list_from_uid_vec(section_list);
+    if sections_in_db.len() == 0 {
         return;
     }
 
@@ -103,10 +107,65 @@ pub fn insert_new_expense(
         params!(uid_expense, title, description, rate_f32, unitprice_f32),
     );
 
-    for section in section_list {
+    for section in sections_in_db {
         execute_write_sql(
             "INSERT INTO expense_section (uid_expense, uid_section) VALUES (?1, ?2)",
-            params!(uid_expense, section),
+            params!(uid_expense, section.uid),
+        );
+    }
+}
+
+fn section_list_from_uid_vec(section_list: Vec<&str>) -> Vec<Section> {
+    let params = generate_vec_params!(section_list);
+    execute_read_sql(
+        "SELECT uid, title, color AS cnt FROM sections WHERE uid IN (?1)",
+        vec_params_to_rustsqlite!(params),
+        |row| {
+            Ok(Section {
+                uid: row.get(0)?,
+                title: row.get(1)?,
+                color: row.get(2)?,
+            })
+        },
+    )
+}
+
+pub fn update_expense(
+    uid: &str,
+    title: &str,
+    description: &str,
+    rate: &str,
+    unitprice: &str,
+    section_list: Vec<&str>,
+) {
+    let sections_in_db = section_list_from_uid_vec(section_list);
+    if sections_in_db.len() == 0 {
+        return;
+    }
+
+    //TODO Now we check if we have no missing associated expenses
+
+    //if OK
+
+    let rate_f32: f32 = rate.parse().expect("Failed to parse rate as f32");
+    let unitprice_f32: f32 = unitprice
+        .parse()
+        .expect("Failed to parse unit_price as f32");
+
+    execute_write_sql(
+        "UPDATE expenses set title = ?1, description = ?2, rate = ?3, unit_price = ?4, position = ?5 WHERE uid = ?6",
+        params!(title, description, rate_f32, unitprice_f32, 0, uid),
+    );
+
+    execute_write_sql(
+        "DELETE FROM expense_section WHERE uid_expense = ?1",
+        params!(uid),
+    );
+
+    for section in sections_in_db {
+        execute_write_sql(
+            "INSERT INTO expense_section (uid_expense, uid_section) VALUES (?1, ?2)",
+            params!(uid, section.uid),
         );
     }
 }

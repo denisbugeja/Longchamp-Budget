@@ -194,7 +194,7 @@ Stimulus.register("expense", class extends Controller {
             return;
         }
 
-        invoke("insert_new_expense", { title: this.titleTarget.value, description: this.descriptionTarget.value, rate: this.rateTarget.value, unitPrice: this.unitPriceTarget.value, sectionList: '[]' })
+        invoke("insert_new_expense", { title: this.titleTarget.value, description: this.descriptionTarget.value, rate: this.rateTarget.value, unitPrice: this.unitPriceTarget.value, sectionList: '["group"]' })
 
         this.titleTarget.value = ''
         this.descriptionTarget.value = ''
@@ -226,12 +226,11 @@ Stimulus.register("expense", class extends Controller {
         return '' !== this.titleTarget.value.trim()
 
             && '' !== this.rateTarget.value.trim()
-            && parseFloat(this.rateTarget.value) > 0
+            && parseFloat(this.rateTarget.value) >= 0
             && parseFloat(this.rateTarget.value) <= 100
 
             && "" !== this.unitPriceTarget.value.trim()
-            && parseFloat(this.unitPriceTarget.value) > 0
-            && parseFloat(this.unitPriceTarget.value) <= 100
+            && parseFloat(this.unitPriceTarget.value) >= 0
     }
 })
 
@@ -250,7 +249,7 @@ Stimulus.register("expense-edit", class extends Controller {
         if (!this.validate()) {
             return
         }
-        invoke("update_expense", { uid: this.uidValue, title: this.titleTarget.value, description: this.descriptionTarget.value, rate: this.rateTarget.value, unitPrice: this.unitPriceTarget.value })
+        invoke("update_expense", { uid: this.uidValue, title: this.titleTarget.value, description: this.descriptionTarget.value, rate: this.rateTarget.value, unitPrice: this.unitPriceTarget.value, sectionList: '["group"]' })
     }
 
     async delete(e) {
@@ -266,11 +265,10 @@ Stimulus.register("expense-edit", class extends Controller {
         return '' !== this.titleTarget.value.trim()
 
             && '' !== this.rateTarget.value.trim()
-            && parseFloat(this.rateTarget.value) > 0
+            && parseFloat(this.rateTarget.value) >= 0
             && parseFloat(this.rateTarget.value) <= 100
 
             && "" !== this.unitPriceTarget.value.trim()
-            && parseFloat(this.unitPriceTarget.value) > 0
-            && parseFloat(this.unitPriceTarget.value) <= 100
+            && parseFloat(this.unitPriceTarget.value) >= 0
     }
 })

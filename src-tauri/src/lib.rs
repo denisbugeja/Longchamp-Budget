@@ -55,6 +55,19 @@ fn update_section(uid: &str, title: &str, color: &str) {
 }
 
 #[tauri::command()]
+fn update_expense(
+    uid: &str,
+    title: &str,
+    description: &str,
+    rate: &str,
+    unit_price: &str,
+    section_list: &str,
+) {
+    let vec_section_list: Vec<&str> = helper::json_to_vec(section_list);
+    repository::update_expense(uid, title, description, rate, unit_price, vec_section_list);
+}
+
+#[tauri::command()]
 fn is_allowed_to_delete_section(uid: &str) -> bool {
     uid != "group"
 }
@@ -74,6 +87,7 @@ pub fn run() {
             is_allowed_to_delete_section,
             expense_list_load,
             insert_new_expense,
+            update_expense,
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");

@@ -24,6 +24,9 @@
         data-expense-edit-target="rate"
         value="{{ rate }}"
         data-action="change->expense-edit#update"
+        min="0"
+        max="100"
+        step=".01"
     />
     <br />
     <input
@@ -31,6 +34,8 @@
         data-expense-edit-target="unitPrice"
         value="{{ unit_price }}"
         data-action="change->expense-edit#update"
+        min="0"
+        step=".01"
     />
     <br />
 </form>
