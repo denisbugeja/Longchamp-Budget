@@ -185,10 +185,11 @@ pub fn delete_expense(uid: &str) {
 }
 
 pub fn execute_write_sql<T: rusqlite::Params>(sql: &str, params: T) {
-    get_connection()
-        .expect("Impossible to load connection")
-        .execute(sql, params)
-        .expect("Cannot execute write sql");
+    let connection = get_connection().expect("Impossible to load connection");
+    let mut statement = connection
+        .prepare_cached(sql)
+        .expect("Cannot prepare statement");
+    statement.execute(params).expect("Cannot execute write sql");
 }
 
 pub fn is_expense_used(uid: &str) -> bool {
@@ -244,7 +245,7 @@ where
 {
     let data_iter: Vec<T> = self::get_connection()
         .expect("Impossible to load connection")
-        .prepare(sql)
+        .prepare_cached(sql)
         .expect("Cannot prepare query")
         .query_map(params, row_closure)
         .expect("Cannot execute query_map")
