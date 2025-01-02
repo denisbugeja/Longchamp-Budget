@@ -306,7 +306,6 @@ Stimulus.register("expense-edit", class extends Controller {
         this.expenseOutlet.expenseListLoad()
     }
 
-
     isRateTargetValid() {
         return '' !== this.rateTarget.value.trim()
             && parseFloat(this.rateTarget.value) >= 0
