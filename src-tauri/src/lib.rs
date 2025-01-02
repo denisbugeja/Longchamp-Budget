@@ -82,6 +82,11 @@ fn get_section_expense_from_expenses_instances() -> String {
 }
 
 #[tauri::command]
+fn get_section_expense() -> String {
+    helper::vec_to_json(repository::get_section_expense())
+}
+
+#[tauri::command]
 fn delete_expense(uid: &str) {
     if repository::is_expense_used(uid) {
         return;
@@ -105,7 +110,8 @@ pub fn run() {
             expense_list_load,
             insert_new_expense,
             update_expense,
-            get_section_expense_from_expenses_instances
+            get_section_expense_from_expenses_instances,
+            get_section_expense
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");

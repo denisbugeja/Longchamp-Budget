@@ -2,7 +2,6 @@
 const { invoke } = window.__TAURI__.core
 const { open, save } = window.__TAURI__.dialog;
 
-
 // JS import
 import { Application, Controller } from "/stimulus.min.js"
 
@@ -181,12 +180,17 @@ Stimulus.register("expense", class extends Controller {
     static targets = ['title', 'description', 'rate', 'unitPrice', 'expenseList']
 
     usedSectionExpense = []
+    associatedSectionExpense = []
 
     connect() {
     }
 
     getUsedSectionExpense() {
         return this.usedSectionExpense
+    }
+
+    getAssociatedSectionExpense() {
+        return this.associatedSectionExpense
     }
 
     expenseListTargetConnected(element) {
@@ -211,10 +215,11 @@ Stimulus.register("expense", class extends Controller {
     }
 
     async expenseListLoad() {
+        this.usedSectionExpense = JSON.parse(await invoke("get_section_expense_from_expenses_instances"))
+        this.associatedSectionExpense = JSON.parse(await invoke("get_section_expense"))
+
         let expenseList = JSON.parse(await invoke("expense_list_load"))
         let sectionList = JSON.parse(await invoke("section_list_load"))
-
-        this.usedSectionExpense = JSON.parse(await invoke("get_section_expense_from_expenses_instances"))
 
         if (!expenseList) {
             return
@@ -260,17 +265,13 @@ Stimulus.register("expense-edit", class extends Controller {
     }
 
     sectionTargetConnected(element) {
-        const sectionUid = element.value
-        const expenseUid = this.uidValue
-
-        const used = 0 != this.expenseOutlet.getUsedSectionExpense()
-            .filter(
-                (sectionExpense) => sectionExpense.expense_uid == expenseUid && sectionExpense.section_uid == sectionUid
-            )
-            .length
+        const sectionUid = element.value,
+            expenseUid = this.uidValue,
+            getCorrespondingSectionExpense = (sectionExpense) => sectionExpense.uid_expense == expenseUid && sectionExpense.uid_section == sectionUid,
+            used = 0 != this.expenseOutlet.getUsedSectionExpense().filter(getCorrespondingSectionExpense).length
 
         element.disabled = used
-        element.checked = used
+        element.checked = used || 0 != this.expenseOutlet.getAssociatedSectionExpense().filter(getCorrespondingSectionExpense).length
     }
 
     submit(e) {
@@ -279,9 +280,21 @@ Stimulus.register("expense-edit", class extends Controller {
 
     update(e) {
         if (!this.validate()) {
+            if (!this.hasAtLeastOneSectionChecked()) {
+                this.sectionListTarget.classList.add('invalid')
+            }
             return
         }
-        invoke("update_expense", { uid: this.uidValue, title: this.titleTarget.value, description: this.descriptionTarget.value, rate: this.rateTarget.value, unitPrice: this.unitPriceTarget.value, sectionList: '["group"]' })
+
+        this.sectionListTarget.classList.remove('invalid')
+
+        const sectioncheckboxList = JSON.stringify(Array.from(
+            this.sectionTargets
+                .filter((section) => section.checked)
+                .map((section) => section.value)
+        ))
+
+        invoke("update_expense", { uid: this.uidValue, title: this.titleTarget.value, description: this.descriptionTarget.value, rate: this.rateTarget.value, unitPrice: this.unitPriceTarget.value, sectionList: sectioncheckboxList })
     }
 
     async delete(e) {
@@ -293,14 +306,30 @@ Stimulus.register("expense-edit", class extends Controller {
         this.expenseOutlet.expenseListLoad()
     }
 
-    validate() {
-        return '' !== this.titleTarget.value.trim()
 
-            && '' !== this.rateTarget.value.trim()
+    isRateTargetValid() {
+        return '' !== this.rateTarget.value.trim()
             && parseFloat(this.rateTarget.value) >= 0
             && parseFloat(this.rateTarget.value) <= 100
+    }
 
-            && "" !== this.unitPriceTarget.value.trim()
+    isTitleTargetValid() {
+        return '' !== this.titleTarget.value.trim()
+    }
+
+    isUnitPriceTargetValid() {
+        return "" !== this.unitPriceTarget.value.trim()
             && parseFloat(this.unitPriceTarget.value) >= 0
+    }
+
+    hasAtLeastOneSectionChecked() {
+        return 0 != this.sectionTargets.filter((section) => section.checked).length
+    }
+
+    validate() {
+        return this.isTitleTargetValid()
+            && this.isRateTargetValid()
+            && this.isUnitPriceTargetValid()
+            && this.hasAtLeastOneSectionChecked()
     }
 })

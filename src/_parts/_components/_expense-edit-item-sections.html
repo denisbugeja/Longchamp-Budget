@@ -1,2 +1,7 @@
-<input data-expense-edit-target="section" type="checkbox" value="{{ uid }}" />
+<input
+    data-action="change->expense-edit#update"
+    data-expense-edit-target="section"
+    type="checkbox"
+    value="{{ uid }}"
+/>
 {{ title }}

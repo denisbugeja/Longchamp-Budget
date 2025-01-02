@@ -116,18 +116,24 @@ pub fn insert_new_expense(
 }
 
 fn section_list_from_uid_vec(section_list: Vec<&str>) -> Vec<Section> {
-    let params = generate_vec_params!(section_list);
-    execute_read_sql(
-        "SELECT uid, title, color AS cnt FROM sections WHERE uid IN (?1)",
-        vec_params_to_rustsqlite!(params),
-        |row| {
-            Ok(Section {
-                uid: row.get(0)?,
-                title: row.get(1)?,
-                color: row.get(2)?,
-            })
-        },
-    )
+    let mut section_list_vec: Vec<Section> = vec![];
+    for section in section_list {
+        let mut sections_in_db = execute_read_sql(
+            "SELECT uid, title, color FROM sections WHERE uid = ?1",
+            params!(section),
+            |row| {
+                Ok(Section {
+                    uid: row.get(0)?,
+                    title: row.get(1)?,
+                    color: row.get(2)?,
+                })
+            },
+        );
+        if sections_in_db.len() > 0 {
+            section_list_vec.push(sections_in_db.pop().expect("Impossible to pop section"));
+        }
+    }
+    section_list_vec
 }
 
 pub fn update_expense(
@@ -194,6 +200,24 @@ pub fn is_expense_used(uid: &str) -> bool {
     .pop()
     .expect("Cannot get count");
     count > 0
+}
+
+pub fn get_section_expense() -> Vec<SectionExpense> {
+    execute_read_sql(
+        "SELECT expense_section.uid_section, expense_section.uid_expense, sections.title AS title_section, expenses.title AS title_expense
+        FROM expense_section
+        INNER JOIN sections ON expense_section.uid_section = sections.uid
+        INNER JOIN expenses ON expense_section.uid_expense = expenses.uid",
+        [],
+        |row| {
+            Ok(SectionExpense {
+                uid_section: row.get(0)?,
+                uid_expense: row.get(1)?,
+                title_section: row.get(2)?,
+                title_expense: row.get(3)?,
+            })
+        },
+    )
 }
 
 pub fn get_section_expense_from_expenses_instances() -> Vec<SectionExpense> {

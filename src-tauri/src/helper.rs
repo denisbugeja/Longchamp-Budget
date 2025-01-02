@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Section {
     pub uid: String,
     pub title: String,
