@@ -34,6 +34,14 @@ pub fn get_connection() -> Result<Connection, rusqlite::Error> {
     Connection::open(String::from(file_path.clone()))
 }
 
+pub fn get_connection_as_mutable() -> Result<Connection, rusqlite::Error> {
+    let file_path = GLOBAL_FILE_PATH
+        .read()
+        .expect("Impossible to read file path variable");
+    let mut conn = Connection::open(String::from(file_path.clone()));
+    conn
+}
+
 pub fn update_db_file_path(path: &str) {
     let mut file_path = GLOBAL_FILE_PATH.write().unwrap();
     *file_path = String::from(path);
@@ -106,7 +114,7 @@ pub fn insert_new_expense(
     unitprice: &str,
     section_list: Vec<&str>,
 ) {
-    let conn = get_connection().expect("Cannot get connection");
+    let mut conn = get_connection_as_mutable().expect("Cannot get connection");
     let sections_in_db = section_list_from_uid_vec(section_list, &conn);
     if sections_in_db.len() == 0 {
         return;
@@ -116,19 +124,24 @@ pub fn insert_new_expense(
     let unitprice_f32: f32 = unitprice.parse().expect("Failed to parse unitprice as f32");
     let uid_expense = Uuid::new_v4().to_string();
 
-    execute_write_sql(
+    let tx = conn
+        .transaction()
+        .expect("Impossible to create transaction");
+
+    tx.execute(
         "INSERT INTO expenses (uid, title, description, rate, unit_price, position) VALUES (?1, ?2, ?3, ?4, ?5, 0)",
         params!(uid_expense, title, description, rate_f32, unitprice_f32),
-        &conn
-    );
+    ).expect("Failed to add query to transaction");
 
     for section in sections_in_db {
-        execute_write_sql(
+        tx.execute(
             "INSERT INTO expense_section (uid_expense, uid_section) VALUES (?1, ?2)",
             params!(uid_expense, section.uid),
-            &conn,
-        );
+        )
+        .expect("Failed to add query to transaction");
     }
+
+    let _ = tx.commit().expect("Failed to commit transaction");
 }
 
 fn section_list_from_uid_vec(section_list: Vec<&str>, conn: &Connection) -> Vec<Section> {
@@ -161,7 +174,7 @@ pub fn update_expense(
     unitprice: &str,
     section_list: Vec<&str>,
 ) {
-    let conn = get_connection().expect("Cannot get connection");
+    let mut conn = get_connection_as_mutable().expect("Cannot get connection");
     let sections_in_db = section_list_from_uid_vec(section_list, &conn);
     if sections_in_db.len() == 0 {
         return;
@@ -176,25 +189,30 @@ pub fn update_expense(
         .parse()
         .expect("Failed to parse unit_price as f32");
 
-    execute_write_sql(
-        "UPDATE expenses set title = ?1, description = ?2, rate = ?3, unit_price = ?4, position = ?5 WHERE uid = ?6",
-        params!(title, description, rate_f32, unitprice_f32, 0, uid),
-        &conn
-    );
+    let tx = conn
+        .transaction()
+        .expect("Impossible to create transaction");
 
-    execute_write_sql(
+    tx.execute(
+            "UPDATE expenses set title = ?1, description = ?2, rate = ?3, unit_price = ?4, position = ?5 WHERE uid = ?6",
+            params!(title, description, rate_f32, unitprice_f32, 0, uid)
+        ).expect("Failed to add query to transaction");
+
+    tx.execute(
         "DELETE FROM expense_section WHERE uid_expense = ?1",
         params!(uid),
-        &conn,
-    );
+    )
+    .expect("Failed to add query to transaction");
 
     for section in sections_in_db {
-        execute_write_sql(
+        tx.execute(
             "INSERT INTO expense_section (uid_expense, uid_section) VALUES (?1, ?2)",
             params!(uid, section.uid),
-            &conn,
-        );
+        )
+        .expect("Failed to add query to transaction");
     }
+
+    let _ = tx.commit().expect("Failed to commit transaction");
 }
 
 pub fn delete_expense(uid: &str) {

@@ -5,7 +5,6 @@
             action=""
             id="expense-add-form"
             data-action="submit->expense#create"
-            class="was-validated"
         >
             <div class="input-group">
                 <span class="input-group-text">Nom</span>
@@ -56,6 +55,11 @@
                     min="0"
                 />
             </div>
+
+            <div
+                data-expense-target="sectionList"
+                class="with-validation"
+            ></div>
 
             <button
                 type="submit"

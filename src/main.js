@@ -108,12 +108,12 @@ Stimulus.register("section", class extends Controller {
         this.sectionListLoad()
     }
 
-    create(e) {
+    async create(e) {
         e.preventDefault()
         if (!this.validateSection()) {
             return;
         }
-        invoke("insert_new_section", { title: this.titleTarget.value, color: this.colorTarget.value })
+        await invoke("insert_new_section", { title: this.titleTarget.value, color: this.colorTarget.value })
         this.titleTarget.value = ''
         this.colorTarget.value = ''
         this.sectionListLoad()
@@ -177,55 +177,85 @@ Stimulus.register("section-edit", class extends Controller {
 })
 
 Stimulus.register("expense", class extends Controller {
-    static targets = ['title', 'description', 'rate', 'unitPrice', 'expenseList']
+    static targets = ['title', 'description', 'rate', 'unitPrice', 'expenseList', 'sectionList', 'section']
 
-    usedSectionExpense = []
-    associatedSectionExpense = []
+    usedSectionExpense = null
+    associatedSectionExpense = null
+    sectionList = null
 
-    connect() {
-    }
-
-    getUsedSectionExpense() {
+    async getUsedSectionExpense() {
+        if (null === this.usedSectionExpense) {
+            this.usedSectionExpense = JSON.parse(await invoke("get_section_expense_from_expenses_instances"))
+        }
         return this.usedSectionExpense
     }
 
-    getAssociatedSectionExpense() {
+    async getAssociatedSectionExpense() {
+        if (null === this.associatedSectionExpense) {
+            this.associatedSectionExpense = JSON.parse(await invoke("get_section_expense"))
+        }
         return this.associatedSectionExpense
+    }
+
+    async getSectionList() {
+        if (null === this.sectionList) {
+            this.sectionList = JSON.parse(await invoke("section_list_load"))
+        }
+        return this.sectionList
     }
 
     expenseListTargetConnected(element) {
         this.expenseListLoad()
     }
 
-    create(e) {
+    async create(e) {
         e.preventDefault()
+
         if (!this.validate()) {
-            alert('Les champs ne sont pas correctement remplis.')
-            return;
+            if (!this.hasAtLeastOneSectionChecked()) {
+                this.sectionListTarget.classList.add('invalid')
+            }
+            return
         }
 
-        invoke("insert_new_expense", { title: this.titleTarget.value, description: this.descriptionTarget.value, rate: this.rateTarget.value, unitPrice: this.unitPriceTarget.value, sectionList: '["group"]' })
+        this.sectionListTarget.classList.remove('invalid')
+
+        const sectioncheckboxList = JSON.stringify(Array.from(
+            this.sectionTargets
+                .filter((section) => section.checked)
+                .map((section) => section.value)
+        ))
+
+
+        await invoke("insert_new_expense", { title: this.titleTarget.value, description: this.descriptionTarget.value, rate: this.rateTarget.value, unitPrice: this.unitPriceTarget.value, sectionList: sectioncheckboxList })
+
+        // force reload or relationship from database
+        this.associatedSectionExpense = null
+        this.usedSectionExpense = null
 
         this.titleTarget.value = ''
         this.descriptionTarget.value = ''
         this.rateTarget.value = ''
         this.unitPriceTarget.value = ''
+        this.sectionTargets.forEach((section) => section.checked = false)
 
         this.expenseListLoad()
     }
 
+    async sectionListTargetConnected(element) {
+        const sectionList = await this.getSectionList()
+        element.innerHTML = await generateFromFilePath('_parts/_components/_expense-create-item-sections.html', sectionList)
+    }
+
     async expenseListLoad() {
-        this.usedSectionExpense = JSON.parse(await invoke("get_section_expense_from_expenses_instances"))
-        this.associatedSectionExpense = JSON.parse(await invoke("get_section_expense"))
 
         let expenseList = JSON.parse(await invoke("expense_list_load"))
-        let sectionList = JSON.parse(await invoke("section_list_load"))
 
         if (!expenseList) {
             return
         }
 
-        sectionList = sectionList.map((section) => {
+        let sectionList = (await this.getSectionList()).map((section) => {
             section.title = escapeHtmlAttribute(section.title)
             return section
         })
@@ -241,19 +271,33 @@ Stimulus.register("expense", class extends Controller {
             return expense
         })
 
-
         this.expenseListTarget.innerHTML = await generateFromFilePath('_parts/_components/_expense-edit-item.html', expenseList)
     }
 
-    validate() {
-        return '' !== this.titleTarget.value.trim()
+    hasAtLeastOneSectionChecked() {
+        return 0 != this.sectionTargets.filter((section) => section.checked).length
+    }
 
-            && '' !== this.rateTarget.value.trim()
+    isRateTargetValid() {
+        return '' !== this.rateTarget.value.trim()
             && parseFloat(this.rateTarget.value) >= 0
             && parseFloat(this.rateTarget.value) <= 100
+    }
 
-            && "" !== this.unitPriceTarget.value.trim()
+    isTitleTargetValid() {
+        return '' !== this.titleTarget.value.trim()
+    }
+
+    isUnitPriceTargetValid() {
+        return "" !== this.unitPriceTarget.value.trim()
             && parseFloat(this.unitPriceTarget.value) >= 0
+    }
+
+    validate() {
+        return this.isTitleTargetValid()
+            && this.isRateTargetValid()
+            && this.isUnitPriceTargetValid()
+            && this.hasAtLeastOneSectionChecked()
     }
 })
 
@@ -264,14 +308,16 @@ Stimulus.register("expense-edit", class extends Controller {
         uid: String
     }
 
-    sectionTargetConnected(element) {
+    async sectionTargetConnected(element) {
         const sectionUid = element.value,
             expenseUid = this.uidValue,
             getCorrespondingSectionExpense = (sectionExpense) => sectionExpense.uid_expense == expenseUid && sectionExpense.uid_section == sectionUid,
-            used = 0 != this.expenseOutlet.getUsedSectionExpense().filter(getCorrespondingSectionExpense).length
+            usedSectionExpense = await this.expenseOutlet.getUsedSectionExpense(),
+            associatedSectionExpense = await this.expenseOutlet.getAssociatedSectionExpense(),
+            used = 0 != (usedSectionExpense).filter(getCorrespondingSectionExpense).length
 
         element.disabled = used
-        element.checked = used || 0 != this.expenseOutlet.getAssociatedSectionExpense().filter(getCorrespondingSectionExpense).length
+        element.checked = used || 0 != associatedSectionExpense.filter(getCorrespondingSectionExpense).length
     }
 
     submit(e) {
