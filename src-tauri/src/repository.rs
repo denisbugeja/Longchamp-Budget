@@ -42,23 +42,32 @@ pub fn update_db_file_path(path: &str) {
 }
 
 pub fn insert_new_section(title: &str, color: &str) {
+    let conn = get_connection().expect("Cannot get connection");
     execute_write_sql(
         "INSERT INTO sections (uid, title, color, position) VALUES (?1, ?2, ?3, 0)",
         params!(Uuid::new_v4().to_string(), title, color),
+        &conn,
     );
 }
 
 pub fn section_list() -> Vec<Section> {
-    execute_read_sql("SELECT uid, title, color FROM sections", [], |row| {
-        Ok(Section {
-            uid: row.get(0)?,
-            title: row.get(1)?,
-            color: row.get(2)?,
-        })
-    })
+    let conn = get_connection().expect("Cannot get connection");
+    execute_read_sql(
+        "SELECT uid, title, color FROM sections",
+        [],
+        |row| {
+            Ok(Section {
+                uid: row.get(0)?,
+                title: row.get(1)?,
+                color: row.get(2)?,
+            })
+        },
+        &conn,
+    )
 }
 
 pub fn expense_list() -> Vec<Expense> {
+    let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
         "SELECT uid, title, description, rate, unit_price, position  FROM expenses",
         [],
@@ -72,17 +81,21 @@ pub fn expense_list() -> Vec<Expense> {
                 position: row.get(5)?,
             })
         },
+        &conn,
     )
 }
 
 pub fn delete_section(uid: &str) {
-    execute_write_sql("DELETE FROM sections WHERE uid = ?1", params!(uid));
+    let conn = get_connection().expect("Cannot get connection");
+    execute_write_sql("DELETE FROM sections WHERE uid = ?1", params!(uid), &conn);
 }
 
 pub fn update_section(uid: &str, title: &str, color: &str) {
+    let conn = get_connection().expect("Cannot get connection");
     execute_write_sql(
         "UPDATE sections SET title = ?1, color = ?2 WHERE uid = ?3",
         params!(title, color, uid),
+        &conn,
     );
 }
 
@@ -93,7 +106,8 @@ pub fn insert_new_expense(
     unitprice: &str,
     section_list: Vec<&str>,
 ) {
-    let sections_in_db = section_list_from_uid_vec(section_list);
+    let conn = get_connection().expect("Cannot get connection");
+    let sections_in_db = section_list_from_uid_vec(section_list, &conn);
     if sections_in_db.len() == 0 {
         return;
     }
@@ -105,17 +119,19 @@ pub fn insert_new_expense(
     execute_write_sql(
         "INSERT INTO expenses (uid, title, description, rate, unit_price, position) VALUES (?1, ?2, ?3, ?4, ?5, 0)",
         params!(uid_expense, title, description, rate_f32, unitprice_f32),
+        &conn
     );
 
     for section in sections_in_db {
         execute_write_sql(
             "INSERT INTO expense_section (uid_expense, uid_section) VALUES (?1, ?2)",
             params!(uid_expense, section.uid),
+            &conn,
         );
     }
 }
 
-fn section_list_from_uid_vec(section_list: Vec<&str>) -> Vec<Section> {
+fn section_list_from_uid_vec(section_list: Vec<&str>, conn: &Connection) -> Vec<Section> {
     let mut section_list_vec: Vec<Section> = vec![];
     for section in section_list {
         let mut sections_in_db = execute_read_sql(
@@ -128,6 +144,7 @@ fn section_list_from_uid_vec(section_list: Vec<&str>) -> Vec<Section> {
                     color: row.get(2)?,
                 })
             },
+            conn,
         );
         if sections_in_db.len() > 0 {
             section_list_vec.push(sections_in_db.pop().expect("Impossible to pop section"));
@@ -144,7 +161,8 @@ pub fn update_expense(
     unitprice: &str,
     section_list: Vec<&str>,
 ) {
-    let sections_in_db = section_list_from_uid_vec(section_list);
+    let conn = get_connection().expect("Cannot get connection");
+    let sections_in_db = section_list_from_uid_vec(section_list, &conn);
     if sections_in_db.len() == 0 {
         return;
     }
@@ -161,42 +179,46 @@ pub fn update_expense(
     execute_write_sql(
         "UPDATE expenses set title = ?1, description = ?2, rate = ?3, unit_price = ?4, position = ?5 WHERE uid = ?6",
         params!(title, description, rate_f32, unitprice_f32, 0, uid),
+        &conn
     );
 
     execute_write_sql(
         "DELETE FROM expense_section WHERE uid_expense = ?1",
         params!(uid),
+        &conn,
     );
 
     for section in sections_in_db {
         execute_write_sql(
             "INSERT INTO expense_section (uid_expense, uid_section) VALUES (?1, ?2)",
             params!(uid, section.uid),
+            &conn,
         );
     }
 }
 
 pub fn delete_expense(uid: &str) {
+    let conn = get_connection().expect("Cannot get connection");
     execute_write_sql(
         "DELETE FROM expense_section WHERE uid_expense = ?1",
         params!(uid),
+        &conn,
     );
-    execute_write_sql("DELETE FROM expenses WHERE uid = ?1", params!(uid));
+    execute_write_sql("DELETE FROM expenses WHERE uid = ?1", params!(uid), &conn);
 }
 
-pub fn execute_write_sql<T: rusqlite::Params>(sql: &str, params: T) {
-    let connection = get_connection().expect("Impossible to load connection");
-    let mut statement = connection
-        .prepare_cached(sql)
-        .expect("Cannot prepare statement");
+pub fn execute_write_sql<T: rusqlite::Params>(sql: &str, params: T, conn: &Connection) {
+    let mut statement = conn.prepare_cached(sql).expect("Cannot prepare statement");
     statement.execute(params).expect("Cannot execute write sql");
 }
 
 pub fn is_expense_used(uid: &str) -> bool {
+    let conn = get_connection().expect("Cannot get connection");
     let count: i32 = execute_read_sql(
         "SELECT COUNT(uid) FROM expenses_instances WHERE uid_expense = ?1",
         params!(uid),
         |row| Ok(row.get(0)?),
+        &conn,
     )
     .pop()
     .expect("Cannot get count");
@@ -204,6 +226,7 @@ pub fn is_expense_used(uid: &str) -> bool {
 }
 
 pub fn get_section_expense() -> Vec<SectionExpense> {
+    let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
         "SELECT expense_section.uid_section, expense_section.uid_expense, sections.title AS title_section, expenses.title AS title_expense
         FROM expense_section
@@ -218,10 +241,12 @@ pub fn get_section_expense() -> Vec<SectionExpense> {
                 title_expense: row.get(3)?,
             })
         },
+        &conn
     )
 }
 
 pub fn get_section_expense_from_expenses_instances() -> Vec<SectionExpense> {
+    let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
         "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense
         FROM expenses_instances
@@ -236,15 +261,20 @@ pub fn get_section_expense_from_expenses_instances() -> Vec<SectionExpense> {
                 title_expense: row.get(3)?,
             })
         },
+        &conn
     )
 }
 
-pub fn execute_read_sql<F, T, P: rusqlite::Params>(sql: &str, params: P, row_closure: F) -> Vec<T>
+pub fn execute_read_sql<F, T, P: rusqlite::Params>(
+    sql: &str,
+    params: P,
+    row_closure: F,
+    conn: &Connection,
+) -> Vec<T>
 where
     F: FnMut(&Row) -> Result<T, rusqlite::Error>,
 {
-    let data_iter: Vec<T> = self::get_connection()
-        .expect("Impossible to load connection")
+    let data_iter: Vec<T> = conn
         .prepare_cached(sql)
         .expect("Cannot prepare query")
         .query_map(params, row_closure)
