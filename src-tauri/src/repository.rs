@@ -4,25 +4,6 @@ use rusqlite::{params, Connection, Result, Row};
 use std::sync::RwLock;
 use uuid::Uuid;
 
-macro_rules! generate_vec_params {
-    ($section_list:expr) => {
-        $section_list
-            .iter()
-            .map(|&s| Box::new(s) as Box<dyn rusqlite::ToSql>)
-            .collect::<Vec<Box<dyn rusqlite::ToSql>>>()
-    };
-}
-
-macro_rules! vec_params_to_rustsqlite {
-    ($params:expr) => {
-        $params
-            .iter()
-            .map(|p| p.as_ref())
-            .collect::<Vec<&dyn rusqlite::ToSql>>()
-            .as_slice()
-    };
-}
-
 lazy_static! {
     static ref GLOBAL_FILE_PATH: RwLock<String> = RwLock::new(String::from(""));
 }
@@ -32,14 +13,6 @@ pub fn get_connection() -> Result<Connection, rusqlite::Error> {
         .read()
         .expect("Impossible to read file path variable");
     Connection::open(String::from(file_path.clone()))
-}
-
-pub fn get_connection_as_mutable() -> Result<Connection, rusqlite::Error> {
-    let file_path = GLOBAL_FILE_PATH
-        .read()
-        .expect("Impossible to read file path variable");
-    let mut conn = Connection::open(String::from(file_path.clone()));
-    conn
 }
 
 pub fn update_db_file_path(path: &str) {
@@ -114,7 +87,7 @@ pub fn insert_new_expense(
     unitprice: &str,
     section_list: Vec<&str>,
 ) {
-    let mut conn = get_connection_as_mutable().expect("Cannot get connection");
+    let mut conn = get_connection().expect("Cannot get connection");
     let sections_in_db = section_list_from_uid_vec(section_list, &conn);
     if sections_in_db.len() == 0 {
         return;
@@ -174,7 +147,7 @@ pub fn update_expense(
     unitprice: &str,
     section_list: Vec<&str>,
 ) {
-    let mut conn = get_connection_as_mutable().expect("Cannot get connection");
+    let mut conn = get_connection().expect("Cannot get connection");
     let sections_in_db = section_list_from_uid_vec(section_list, &conn);
     if sections_in_db.len() == 0 {
         return;
@@ -216,13 +189,21 @@ pub fn update_expense(
 }
 
 pub fn delete_expense(uid: &str) {
-    let conn = get_connection().expect("Cannot get connection");
-    execute_write_sql(
+    let mut conn = get_connection().expect("Cannot get connection");
+    let tx = conn
+        .transaction()
+        .expect("Impossible to create transaction");
+
+    tx.execute(
         "DELETE FROM expense_section WHERE uid_expense = ?1",
         params!(uid),
-        &conn,
-    );
-    execute_write_sql("DELETE FROM expenses WHERE uid = ?1", params!(uid), &conn);
+    )
+    .expect("Failed to add query to transaction");
+
+    tx.execute("DELETE FROM expenses WHERE uid = ?1", params!(uid))
+        .expect("Failed to add query to transaction");
+
+    let _ = tx.commit().expect("Failed to commit transaction");
 }
 
 pub fn execute_write_sql<T: rusqlite::Params>(sql: &str, params: T, conn: &Connection) {
