@@ -64,16 +64,14 @@ fn insert_new_expense(
 }
 
 #[tauri::command]
-fn update_expense(
-    uid: &str,
-    title: &str,
-    description: &str,
-    rate: &str,
-    unit_price: &str,
-    section_list: &str,
-) {
+fn update_expense(uid: &str, title: &str, description: &str, rate: &str, unit_price: &str) {
+    repository::update_expense(uid, title, description, rate, unit_price);
+}
+
+#[tauri::command]
+fn update_expense_section_association(uid: &str, section_list: &str) {
     let vec_section_list: Vec<&str> = helper::json_to_vec(section_list);
-    repository::update_expense(uid, title, description, rate, unit_price, vec_section_list);
+    repository::update_expense_section_association(uid, vec_section_list);
 }
 
 #[tauri::command]
@@ -109,9 +107,10 @@ pub fn run() {
             is_allowed_to_delete_section,
             expense_list_load,
             insert_new_expense,
-            update_expense,
             get_section_expense_from_expenses_instances,
-            get_section_expense
+            get_section_expense,
+            update_expense_section_association,
+            update_expense,
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");

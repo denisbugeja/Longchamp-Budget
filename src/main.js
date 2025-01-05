@@ -326,9 +326,16 @@ Stimulus.register("expense-edit", class extends Controller {
 
     update(e) {
         if (!this.validate()) {
-            if (!this.hasAtLeastOneSectionChecked()) {
-                this.sectionListTarget.classList.add('invalid')
-            }
+            return
+        }
+
+        invoke("update_expense", { uid: this.uidValue, title: this.titleTarget.value, description: this.descriptionTarget.value, rate: this.rateTarget.value, unitPrice: this.unitPriceTarget.value })
+    }
+
+
+    updateAssociation(e) {
+        if (!this.hasAtLeastOneSectionChecked()) {
+            this.sectionListTarget.classList.add('invalid')
             return
         }
 
@@ -340,7 +347,9 @@ Stimulus.register("expense-edit", class extends Controller {
                 .map((section) => section.value)
         ))
 
-        invoke("update_expense", { uid: this.uidValue, title: this.titleTarget.value, description: this.descriptionTarget.value, rate: this.rateTarget.value, unitPrice: this.unitPriceTarget.value, sectionList: sectioncheckboxList })
+        alert('coucou')
+
+        invoke("update_expense_section_association", { uid: this.uidValue, sectionList: sectioncheckboxList })
     }
 
     async delete(e) {
@@ -375,6 +384,5 @@ Stimulus.register("expense-edit", class extends Controller {
         return this.isTitleTargetValid()
             && this.isRateTargetValid()
             && this.isUnitPriceTargetValid()
-            && this.hasAtLeastOneSectionChecked()
     }
 })

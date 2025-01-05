@@ -144,49 +144,71 @@ pub fn update_expense(
     title: &str,
     description: &str,
     rate: &str,
-    unitprice: &str,
-    section_list: Vec<&str>,
+    unitprice: &str
 ) {
-    let mut conn = get_connection().expect("Cannot get connection");
-    let sections_in_db = section_list_from_uid_vec(section_list, &conn);
-    if sections_in_db.len() == 0 {
-        return;
-    }
-
-    //TODO Now we check if we have no missing associated expenses
-
-    //if OK
-
+    let conn = get_connection().expect("Cannot get connection");
+    
     let rate_f32: f32 = rate.parse().expect("Failed to parse rate as f32");
     let unitprice_f32: f32 = unitprice
         .parse()
         .expect("Failed to parse unit_price as f32");
 
-    let tx = conn
-        .transaction()
-        .expect("Impossible to create transaction");
+    execute_write_sql(
+        "UPDATE expenses set title = ?1, description = ?2, rate = ?3, unit_price = ?4, position = ?5 WHERE uid = ?6",
+        params!(title, description, rate_f32, unitprice_f32, 0, uid), 
+        &conn
+    );
+}
 
-    tx.execute(
-            "UPDATE expenses set title = ?1, description = ?2, rate = ?3, unit_price = ?4, position = ?5 WHERE uid = ?6",
-            params!(title, description, rate_f32, unitprice_f32, 0, uid)
-        ).expect("Failed to add query to transaction");
+
+pub fn update_expense_section_association(uid_expense: &str, section_list: Vec<&str>) {
+    let mut conn = get_connection().expect("Cannot get connection");
+    let sections_used_as_instances: Vec<SectionExpense> =
+        get_section_expense_from_expense(uid_expense, &conn);
+    let sections_in_db: Vec<Section> = section_list_from_uid_vec(section_list, &conn);
+    if sections_in_db.len() == 0 {
+        return;
+    }
+
+    let sections_used: Vec<&str> = sections_used_as_instances
+        .iter()
+        .map(|s: &SectionExpense| -> &str { s.uid_section.as_str() })
+        .collect();
+
+    let sections_in_update: Vec<&str> = sections_in_db
+        .iter()
+        .map(|s: &Section| -> &str { s.uid.as_str() })
+        .collect();
+
+    let diff: Vec<&str> = sections_used
+        .iter()
+        .filter(|x| !sections_in_update.contains(x))
+        .cloned()
+        .collect();
+
+    if diff.len() != 0 {
+        return;
+    }
+
+    let tx = conn.transaction().expect("Impossible to create transaction");
 
     tx.execute(
         "DELETE FROM expense_section WHERE uid_expense = ?1",
-        params!(uid),
+        params!(uid_expense),
     )
     .expect("Failed to add query to transaction");
 
     for section in sections_in_db {
         tx.execute(
             "INSERT INTO expense_section (uid_expense, uid_section) VALUES (?1, ?2)",
-            params!(uid, section.uid),
+            params!(uid_expense, section.uid),
         )
         .expect("Failed to add query to transaction");
     }
 
     let _ = tx.commit().expect("Failed to commit transaction");
 }
+
 
 pub fn delete_expense(uid: &str) {
     let mut conn = get_connection().expect("Cannot get connection");
@@ -232,6 +254,26 @@ pub fn get_section_expense() -> Vec<SectionExpense> {
         INNER JOIN sections ON expense_section.uid_section = sections.uid
         INNER JOIN expenses ON expense_section.uid_expense = expenses.uid",
         [],
+        |row| {
+            Ok(SectionExpense {
+                uid_section: row.get(0)?,
+                uid_expense: row.get(1)?,
+                title_section: row.get(2)?,
+                title_expense: row.get(3)?,
+            })
+        },
+        &conn
+    )
+}
+
+pub fn get_section_expense_from_expense(uid: &str, conn: &Connection) -> Vec<SectionExpense> {
+    execute_read_sql(
+        "SELECT expense_section.uid_section, expense_section.uid_expense, sections.title AS title_section, expenses.title AS title_expense
+        FROM expense_section
+        INNER JOIN sections ON expense_section.uid_section = sections.uid
+        INNER JOIN expenses ON expense_section.uid_expense = expenses.uid
+        WHERE expenses.uid = ?1",
+        params!(uid),
         |row| {
             Ok(SectionExpense {
                 uid_section: row.get(0)?,
