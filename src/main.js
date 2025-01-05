@@ -347,8 +347,6 @@ Stimulus.register("expense-edit", class extends Controller {
                 .map((section) => section.value)
         ))
 
-        alert('coucou')
-
         invoke("update_expense_section_association", { uid: this.uidValue, sectionList: sectioncheckboxList })
     }
 
