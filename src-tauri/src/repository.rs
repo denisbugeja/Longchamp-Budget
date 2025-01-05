@@ -164,7 +164,7 @@ pub fn update_expense(
 pub fn update_expense_section_association(uid_expense: &str, section_list: Vec<&str>) {
     let mut conn = get_connection().expect("Cannot get connection");
     let sections_used_as_instances: Vec<SectionExpense> =
-        get_section_expense_from_expense(uid_expense, &conn);
+        get_section_expense_from_instances(uid_expense, &conn);
     let sections_in_db: Vec<Section> = section_list_from_uid_vec(section_list, &conn);
     if sections_in_db.len() == 0 {
         return;
@@ -266,12 +266,12 @@ pub fn get_section_expense() -> Vec<SectionExpense> {
     )
 }
 
-pub fn get_section_expense_from_expense(uid: &str, conn: &Connection) -> Vec<SectionExpense> {
+pub fn get_section_expense_from_instances(uid: &str, conn: &Connection) -> Vec<SectionExpense> {
     execute_read_sql(
-        "SELECT expense_section.uid_section, expense_section.uid_expense, sections.title AS title_section, expenses.title AS title_expense
-        FROM expense_section
-        INNER JOIN sections ON expense_section.uid_section = sections.uid
-        INNER JOIN expenses ON expense_section.uid_expense = expenses.uid
+        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense
+        FROM expenses_instances
+        INNER JOIN sections ON expenses_instances.uid_section = sections.uid
+        INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
         WHERE expenses.uid = ?1",
         params!(uid),
         |row| {
