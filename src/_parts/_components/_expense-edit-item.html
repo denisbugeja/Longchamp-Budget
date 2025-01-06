@@ -40,4 +40,13 @@
     <div data-expense-edit-target="sectionList" class="with-validation">
         {{ section_list_html }}
     </div>
+    <button
+        type="button"
+        class="btn btn-outline-danger text-align-center px-1"
+        title="Supprimer"
+        data-action="expense-edit#delete"
+        data-expense-edit-target="delete"
+    >
+        <i class="bi bi-trash"></i>
+    </button>
 </form>

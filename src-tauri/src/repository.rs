@@ -67,8 +67,35 @@ pub fn expense_list() -> Vec<Expense> {
 }
 
 pub fn delete_section(uid: &str) {
-    let conn = get_connection().expect("Cannot get connection");
-    execute_write_sql("DELETE FROM sections WHERE uid = ?1", params!(uid), &conn);
+    let mut conn = get_connection().expect("Cannot get connection");
+
+    let count: i32 = execute_read_sql(
+        "SELECT COUNT(uid) FROM expenses_instances WHERE uid_section = ?1",
+        params!(uid),
+        |row| Ok(row.get(0)?),
+        &conn,
+    )
+    .pop()
+    .expect("Cannot get count");
+    if count > 0 {
+        return;
+    }
+
+    let tx = conn.transaction().expect("Impossible to create transaction");
+
+    tx.execute(
+        "DELETE FROM expense_section WHERE uid_section = ?1",
+        params!(uid),
+    )
+    .expect("Failed to add query to transaction");
+
+    tx.execute(
+        "DELETE FROM sections WHERE uid = ?1",
+        params!(uid),
+    )
+    .expect("Failed to add query to transaction");
+
+    let _ = tx.commit().expect("Failed to commit transaction");
 }
 
 pub fn update_section(uid: &str, title: &str, color: &str) {
@@ -212,6 +239,19 @@ pub fn update_expense_section_association(uid_expense: &str, section_list: Vec<&
 
 pub fn delete_expense(uid: &str) {
     let mut conn = get_connection().expect("Cannot get connection");
+
+    let count: i32 = execute_read_sql(
+        "SELECT COUNT(uid) FROM expenses_instances WHERE uid_expense = ?1",
+        params!(uid),
+        |row| Ok(row.get(0)?),
+        &conn,
+    )
+    .pop()
+    .expect("Cannot get count");
+    if count > 0 {
+        return;
+    }
+
     let tx = conn
         .transaction()
         .expect("Impossible to create transaction");
@@ -231,19 +271,6 @@ pub fn delete_expense(uid: &str) {
 pub fn execute_write_sql<T: rusqlite::Params>(sql: &str, params: T, conn: &Connection) {
     let mut statement = conn.prepare_cached(sql).expect("Cannot prepare statement");
     statement.execute(params).expect("Cannot execute write sql");
-}
-
-pub fn is_expense_used(uid: &str) -> bool {
-    let conn = get_connection().expect("Cannot get connection");
-    let count: i32 = execute_read_sql(
-        "SELECT COUNT(uid) FROM expenses_instances WHERE uid_expense = ?1",
-        params!(uid),
-        |row| Ok(row.get(0)?),
-        &conn,
-    )
-    .pop()
-    .expect("Cannot get count");
-    count > 0
 }
 
 pub fn get_section_expense() -> Vec<SectionExpense> {

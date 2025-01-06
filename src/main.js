@@ -108,6 +108,15 @@ Stimulus.register("section", class extends Controller {
         this.sectionListLoad()
     }
 
+    usedSectionExpense = null
+
+    async getUsedSectionExpense() {
+        if (null === this.usedSectionExpense) {
+            this.usedSectionExpense = JSON.parse(await invoke("get_section_expense_from_expenses_instances"))
+        }
+        return this.usedSectionExpense
+    }
+
     async create(e) {
         e.preventDefault()
         if (!this.validateSection()) {
@@ -147,8 +156,21 @@ Stimulus.register("section-edit", class extends Controller {
         uid: String
     }
 
-    connect() {
-        this.deleteTarget.disabled = this.uidValue == 'group'
+    used = null
+
+    async connect() {
+        this.deleteTarget.disabled = this.uidValue == 'group' || await this.isUsed()
+    }
+
+    async isUsed() {
+        if (null === this.used) {
+            const usedSectionExpense = await this.sectionOutlet.getUsedSectionExpense(),
+                sectionUid = this.uidValue,
+                usedSectionList = (usedSectionExpense).filter((sectionExpense) => sectionExpense.uid_section == sectionUid)
+
+            this.used = 0 !== usedSectionList.length
+        }
+        return this.used
     }
 
     submit(e) {
@@ -163,7 +185,7 @@ Stimulus.register("section-edit", class extends Controller {
     }
 
     async delete(e) {
-        if (!await invoke("is_allowed_to_delete_section", { uid: this.uidValue })) {
+        if (await this.isUsed()) {
             alert("Tu ne peux pas supprimer cette section.\nElle est déja utilisée à une dépense.")
             return
         }
@@ -302,22 +324,35 @@ Stimulus.register("expense", class extends Controller {
 })
 
 Stimulus.register("expense-edit", class extends Controller {
-    static targets = ['title', 'description', 'rate', 'unitPrice', 'sectionList', 'section']
+    static targets = ['title', 'description', 'rate', 'unitPrice', 'sectionList', 'section', 'delete']
     static outlets = ["expense"]
     static values = {
         uid: String
     }
 
+    used = null
+
     async sectionTargetConnected(element) {
         const sectionUid = element.value,
             expenseUid = this.uidValue,
-            getCorrespondingSectionExpense = (sectionExpense) => sectionExpense.uid_expense == expenseUid && sectionExpense.uid_section == sectionUid,
-            usedSectionExpense = await this.expenseOutlet.getUsedSectionExpense(),
             associatedSectionExpense = await this.expenseOutlet.getAssociatedSectionExpense(),
-            used = 0 != (usedSectionExpense).filter(getCorrespondingSectionExpense).length
+            used = await this.isUsed()
 
         element.disabled = used
-        element.checked = used || 0 != associatedSectionExpense.filter(getCorrespondingSectionExpense).length
+        element.checked = used || 0 != associatedSectionExpense
+            .filter((sectionExpense) => sectionExpense.uid_expense == expenseUid && sectionExpense.uid_section == sectionUid)
+            .length
+    }
+
+    async isUsed() {
+        if (null === this.used) {
+            const usedSectionExpense = await this.expenseOutlet.getUsedSectionExpense(),
+                expenseUid = this.uidValue,
+                usedSectionList = (usedSectionExpense).filter((sectionExpense) => sectionExpense.uid_expense == expenseUid)
+
+            this.used = 0 !== usedSectionList.length
+        }
+        return this.used
     }
 
     submit(e) {
@@ -332,6 +367,9 @@ Stimulus.register("expense-edit", class extends Controller {
         invoke("update_expense", { uid: this.uidValue, title: this.titleTarget.value, description: this.descriptionTarget.value, rate: this.rateTarget.value, unitPrice: this.unitPriceTarget.value })
     }
 
+    async deleteTargetConnected(element) {
+        element.disabled = await this.isUsed()
+    }
 
     updateAssociation(e) {
         if (!this.hasAtLeastOneSectionChecked()) {
@@ -351,7 +389,7 @@ Stimulus.register("expense-edit", class extends Controller {
     }
 
     async delete(e) {
-        if (!await invoke("is_allowed_to_delete_expense", { uid: this.uidValue })) {
+        if (await this.isUsed()) {
             alert("Tu ne peux pas supprimer cette dépense.\nElle est déja utilisée à par une section.")
             return
         }

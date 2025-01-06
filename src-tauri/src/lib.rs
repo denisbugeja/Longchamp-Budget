@@ -28,20 +28,12 @@ fn insert_new_section(title: &str, color: &str) {
 
 #[tauri::command]
 fn delete_section(uid: &str) {
-    if !is_allowed_to_delete_section(uid) {
-        return;
-    }
     repository::delete_section(uid);
 }
 
 #[tauri::command]
 fn update_section(uid: &str, title: &str, color: &str) {
     repository::update_section(uid, title, color);
-}
-
-#[tauri::command]
-fn is_allowed_to_delete_section(uid: &str) -> bool {
-    uid != "group"
 }
 
 // Expense part
@@ -86,9 +78,6 @@ fn get_section_expense() -> String {
 
 #[tauri::command]
 fn delete_expense(uid: &str) {
-    if repository::is_expense_used(uid) {
-        return;
-    }
     repository::delete_expense(uid);
 }
 
@@ -104,13 +93,13 @@ pub fn run() {
             insert_new_section,
             delete_section,
             update_section,
-            is_allowed_to_delete_section,
             expense_list_load,
             insert_new_expense,
             get_section_expense_from_expenses_instances,
             get_section_expense,
             update_expense_section_association,
             update_expense,
+            delete_expense,
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");
