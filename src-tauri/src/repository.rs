@@ -359,6 +359,7 @@ pub fn execute_migrations(conn: Connection) {
 	\"uid\"	TEXT NOT NULL UNIQUE,
 	\"title\"	TEXT NOT NULL,
 	\"color\"	TEXT,
+    \"members_count\" INTEGER,
 	\"position\"	INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY(\"uid\")
 );",
@@ -382,6 +383,7 @@ pub fn execute_migrations(conn: Connection) {
 	\"uid\"	TEXT NOT NULL UNIQUE,
 	\"uid_expense\"	TEXT NOT NULL,
 	\"uid_section\"	TEXT NOT NULL,
+    \"comments\" TEXT,
 	\"units\"	INTEGER,
 	\"unit_price\"	NUMERIC,
 	\"rate\"	NUMERIC,
@@ -396,6 +398,50 @@ pub fn execute_migrations(conn: Connection) {
         "INSERT INTO sections (uid, title, color, position)
 SELECT 'group','Groupe','#403f6f',0
 WHERE NOT EXISTS(SELECT uid, title, color, position FROM sections WHERE uid = 'group');",
+"CREATE VIEW IF NOT EXISTS \"view_expenses_sections_instances\" AS
+SELECT 
+expenses_instances.uid_section, 
+expenses_instances.uid_expense, 
+sections.title AS title_section, 
+expenses.title AS title_expense,
+expenses_instances.comments AS comments,
+sections.color AS section_color,
+
+sections.members_count AS expenses_units,
+expenses.unit_price AS expenses_unit_price,
+expenses.rate AS expenses_rate,
+
+expenses_instances.units AS expenses_instances_units,
+expenses_instances.unit_price AS expenses_instances_unit_price,
+expenses_instances.rate AS expenses_instances_rate,
+
+CASE WHEN expenses_instances.units IS NOT NULL AND TRIM(expenses_instances.units,\" \") != \"\"
+    THEN expenses_instances.units
+    ELSE sections.members_count
+END AS live_units,
+
+CASE WHEN expenses_instances.unit_price IS NOT NULL AND TRIM(expenses_instances.unit_price ,\" \") != \"\"
+    THEN CAST(expenses_instances.unit_price AS REAL)
+    ELSE CAST(expenses.unit_price AS REAL)
+END AS live_unit_price,
+
+CASE WHEN expenses_instances.rate  IS NOT NULL AND TRIM(expenses_instances.rate,\" \") != \"\"
+    THEN CAST(expenses_instances.rate AS REAL)
+    ELSE CAST(expenses.rate AS REAL)
+END AS live_rate
+
+FROM expenses_instances
+INNER JOIN sections ON expenses_instances.uid_section = sections.uid
+INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid",
+"CREATE VIEW IF NOT EXISTS \"view_calculated_expenses_sections_instances\" AS
+SELECT view_expenses_sections_instances.* ,
+(100 - view_expenses_sections_instances.live_rate) AS group_rate,
+ROUND(view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100), 2) as applyed_price,
+ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100), 2) as total_applyed_price,
+ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price, 2) AS total_inital_price,
+ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price - view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100),2) AS group_applyed_total_price
+FROM view_expenses_sections_instances"
+
     ];
 
     for sql in arr_sql {
