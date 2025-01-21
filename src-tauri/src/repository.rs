@@ -1,4 +1,4 @@
-use crate::helper::{Expense, Section, SectionExpense};
+use crate::helper::{Expense, Section, SectionExpense, CalculatedExpense};
 use lazy_static::lazy_static;
 use rusqlite::{params, Connection, Result, Row};
 use std::sync::RwLock;
@@ -333,6 +333,47 @@ pub fn get_section_expense_from_expenses_instances() -> Vec<SectionExpense> {
     )
 }
 
+pub fn get_calculated_expenses_from_sections(section: &str)-> Vec<CalculatedExpense> {
+    let conn = get_connection().expect("Cannot get connection");
+    execute_read_sql("SELECT uid_section, uid_expense, title_section, title_expense, comments, section_color, expenses_units,
+expenses_unit_price, expenses_rate, expenses_instances_units, expenses_instances_unit_price, expenses_instances_rate,
+live_units, live_unit_price, live_rate,
+(100 - view_expenses_sections_instances.live_rate) AS group_rate,
+ROUND(view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100), 2) AS applyed_price,
+ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100), 2) AS total_applyed_price,
+ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price, 2) AS total_inital_price,
+ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price - view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100),2) AS group_applyed_total_price
+FROM view_expenses_sections_instances
+WHERE uid_section = ?1",
+        params!(section),
+        |row| {
+            Ok(CalculatedExpense {
+                uid_section: row.get(0)?,
+                uid_expense: row.get(1)?,
+                title_section: row.get(2)?,
+                title_expense: row.get(3)?,
+                comments: row.get(4)?,
+                section_color: row.get(5)?,
+                expenses_units: row.get(6)?,
+                expenses_unit_price: row.get(7)?,
+                expenses_rate: row.get(8)?,
+                expenses_instances_units: row.get(9)?,
+                expenses_instances_unit_price: row.get(10)?,
+                expenses_instances_rate: row.get(11)?,
+                live_units: row.get(12)?,
+                live_unit_price: row.get(13)?,
+                live_rate: row.get(14)?,
+                group_rate: row.get(15)?,
+                applyed_price: row.get(16)?,
+                total_applyed_price: row.get(17)?,
+                total_inital_price: row.get(18)?,
+                group_applyed_total_price: row.get(19)?,
+            })
+        },
+        &conn
+    )
+}
+
 pub fn execute_read_sql<F, T, P: rusqlite::Params>(
     sql: &str,
     params: P,
@@ -359,7 +400,7 @@ pub fn execute_migrations(conn: Connection) {
 	\"uid\"	TEXT NOT NULL UNIQUE,
 	\"title\"	TEXT NOT NULL,
 	\"color\"	TEXT,
-    \"members_count\" INTEGER,
+    \"members_count\" INTEGER NOT NULL DEFAULT 0,
 	\"position\"	INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY(\"uid\")
 );",
@@ -440,8 +481,31 @@ ROUND(view_expenses_sections_instances.live_unit_price * (view_expenses_sections
 ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100), 2) as total_applyed_price,
 ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price, 2) AS total_inital_price,
 ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price - view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100),2) AS group_applyed_total_price
-FROM view_expenses_sections_instances"
-
+FROM view_expenses_sections_instances",
+"CREATE TRIGGER IF NOT EXISTS update_group_members_count_after_update
+AFTER UPDATE OF members_count ON sections
+FOR EACH ROW WHEN OLD.uid != 'group'
+BEGIN
+    UPDATE sections
+    SET members_count = (SELECT SUM(members_count) FROM sections WHERE uid != 'group')
+    WHERE uid = 'group';
+END;",
+"CREATE TRIGGER IF NOT EXISTS update_group_members_count_after_insert
+AFTER INSERT ON sections
+FOR EACH ROW
+BEGIN
+    UPDATE sections
+    SET members_count = (SELECT SUM(members_count) FROM sections WHERE uid != 'group')
+    WHERE uid = 'group';
+END;",
+"CREATE TRIGGER IF NOT EXISTS update_group_members_count_after_delete
+AFTER DELETE ON sections
+FOR EACH ROW
+BEGIN
+    UPDATE sections
+    SET members_count = (SELECT SUM(members_count) FROM sections WHERE uid != 'group')
+    WHERE uid = 'group';
+END;",
     ];
 
     for sql in arr_sql {
