@@ -95,6 +95,10 @@ Stimulus.register("budget", class extends Controller {
     loadSections(e) {
         loadPart('_parts/_windows/_sections.html', this.mainTarget)
     }
+
+    loadMatrix(e) {
+        loadPart('_parts/_windows/_matrix.html', this.mainTarget)
+    }
 })
 
 
@@ -420,5 +424,32 @@ Stimulus.register("expense-edit", class extends Controller {
         return this.isTitleTargetValid()
             && this.isRateTargetValid()
             && this.isUnitPriceTargetValid()
+    }
+})
+
+Stimulus.register("matrix", class extends Controller {
+    static targets = ['sectionList']
+
+    connect() {
+    }
+
+    sectionListTargetConnected(element) {
+        this.sectionListLoad()
+    }
+
+    async sectionListLoad() {
+        let sectionList = JSON.parse(await invoke("section_list_load"))
+
+        if (!sectionList) {
+            return
+        }
+
+        sectionList = sectionList.map((section) => {
+            section.title = escapeHtmlAttribute(section.title)
+            section.color = escapeHtmlAttribute(section.color)
+            return section
+        })
+
+        this.sectionListTarget.innerHTML = await generateFromFilePath('_parts/_components/_matrix_section.html', sectionList)
     }
 })
