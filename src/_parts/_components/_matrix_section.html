@@ -1,4 +1,9 @@
-<div class="accordion-item">
+<div
+    class="accordion-item"
+    data-controller="matrix-section"
+    data-matrix-section-uid-value="{{ uid }}"
+    data-matrix-section-matrix-outlet="[data-controller='matrix']"
+>
     <h2 class="accordion-header" id="heading-section-{{ uid }}">
         <button
             class="accordion-button"
@@ -18,8 +23,23 @@
     >
         <div class="accordion-body">
             <div class="row">
-                <div class="col-4">{{ title }}</div>
-                <div class="col-8">{{ title }}</div>
+                <div
+                    class="col-4"
+                    data-matrix-section-target="expenseList"
+                ></div>
+                <div class="col-8">
+                    <div>
+                        <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            name="section-member-count-{{ uid }}"
+                            data-matrix-section-target="sectionMemberCount"
+                            data-action="change->matrix-section#updateMemberCount"
+                        />
+                    </div>
+                    <div data-matrix-section-target="expenseInstanceList"></div>
+                </div>
             </div>
         </div>
     </div>

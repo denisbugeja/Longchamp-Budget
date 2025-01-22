@@ -430,6 +430,15 @@ Stimulus.register("expense-edit", class extends Controller {
 Stimulus.register("matrix", class extends Controller {
     static targets = ['sectionList']
 
+    sectionList = null
+
+    async getsectionList() {
+        if (null === this.sectionList) {
+            this.sectionList = JSON.parse(await invoke("section_list_load"))
+        }
+        return this.sectionList
+    }
+
     connect() {
     }
 
@@ -438,7 +447,7 @@ Stimulus.register("matrix", class extends Controller {
     }
 
     async sectionListLoad() {
-        let sectionList = JSON.parse(await invoke("section_list_load"))
+        let sectionList = await this.getsectionList()
 
         if (!sectionList) {
             return
@@ -452,4 +461,44 @@ Stimulus.register("matrix", class extends Controller {
 
         this.sectionListTarget.innerHTML = await generateFromFilePath('_parts/_components/_matrix_section.html', sectionList)
     }
+})
+
+Stimulus.register("matrix-section", class extends Controller {
+    static targets = ['expenseList', 'expenseInstanceList', 'sectionMemberCount']
+    static outlets = ["matrix"]
+    static values = {
+        uid: String
+    }
+
+    async expenseListTargetConnected() {
+        let expenseList = JSON.parse(await invoke("get_section_expense_from_section_uid", { uid: this.uidValue }))
+        this.expenseListTarget.innerHTML = await generateFromFilePath('_parts/_components/_matrix_section_expense.html', expenseList)
+    }
+
+    async expenseInstanceListTargetConnected() {
+
+    }
+
+    async sectionMemberCountTargetConnected() {
+        let sectionList = await this.matrixOutlet.getsectionList(),
+            targetSection = sectionList.find((section) => section.uid === this.uidValue)
+        this.sectionMemberCountTarget.value = targetSection.members_count
+    }
+
+    async addExpenseInstance(e) {
+        console.log(e.target.getAttribute('data-expense-id'))
+    }
+
+    async updateMemberCount(e) {
+        let targetValue = e.target.value
+        if (!this.validateMemberCount(targetValue)) {
+            return;
+        }
+        await invoke("update_members_count", { uid: this.uidValue, membersCount: targetValue })
+    }
+
+    validateMemberCount(targetValue) {
+        return !isNaN(targetValue) && targetValue >= 0
+    }
+
 })

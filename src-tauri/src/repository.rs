@@ -34,13 +34,14 @@ pub fn insert_new_section(title: &str, color: &str) {
 pub fn section_list() -> Vec<Section> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT uid, title, color FROM sections",
+        "SELECT uid, title, color, members_count FROM sections",
         [],
         |row| {
             Ok(Section {
                 uid: row.get(0)?,
                 title: row.get(1)?,
                 color: row.get(2)?,
+                members_count: row.get(3)?,
             })
         },
         &conn,
@@ -107,6 +108,17 @@ pub fn update_section(uid: &str, title: &str, color: &str) {
     );
 }
 
+pub fn update_members_count(uid: &str, members_count: &str) {
+    let conn = get_connection().expect("Cannot get connection");
+    let members_count_i32: i32 = members_count.parse().expect("Failed to parse rate as i32");
+    execute_write_sql(
+        "UPDATE sections SET members_count = ?1 WHERE uid = ?2",
+        params!(members_count_i32, uid),
+        &conn,
+    );
+}
+
+
 pub fn insert_new_expense(
     title: &str,
     description: &str,
@@ -148,13 +160,14 @@ fn section_list_from_uid_vec(section_list: Vec<&str>, conn: &Connection) -> Vec<
     let mut section_list_vec: Vec<Section> = vec![];
     for section in section_list {
         let mut sections_in_db = execute_read_sql(
-            "SELECT uid, title, color FROM sections WHERE uid = ?1",
+            "SELECT uid, title, color, members_count FROM sections WHERE uid = ?1",
             params!(section),
             |row| {
                 Ok(Section {
                     uid: row.get(0)?,
                     title: row.get(1)?,
                     color: row.get(2)?,
+                    members_count: row.get(3)?,
                 })
             },
             conn,
@@ -292,6 +305,28 @@ pub fn get_section_expense() -> Vec<SectionExpense> {
         &conn
     )
 }
+
+pub fn get_section_expense_from_section_uid(uid: &str) -> Vec<SectionExpense> {
+    let conn = get_connection().expect("Cannot get connection");
+    execute_read_sql(
+        "SELECT expense_section.uid_section, expense_section.uid_expense, sections.title AS title_section, expenses.title AS title_expense
+        FROM expense_section
+        INNER JOIN sections ON expense_section.uid_section = sections.uid
+        INNER JOIN expenses ON expense_section.uid_expense = expenses.uid
+        WHERE sections.uid = ?1",
+        params!(uid),
+        |row| {
+            Ok(SectionExpense {
+                uid_section: row.get(0)?,
+                uid_expense: row.get(1)?,
+                title_section: row.get(2)?,
+                title_expense: row.get(3)?,
+            })
+        },
+        &conn
+    )
+}
+
 
 pub fn get_section_expense_from_instances(uid: &str, conn: &Connection) -> Vec<SectionExpense> {
     execute_read_sql(

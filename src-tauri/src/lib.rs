@@ -76,8 +76,18 @@ fn get_section_expense() -> String {
 }
 
 #[tauri::command]
+fn get_section_expense_from_section_uid(uid: &str) -> String {
+    helper::vec_to_json(repository::get_section_expense_from_section_uid(uid))
+}
+
+#[tauri::command]
 fn delete_expense(uid: &str) {
     repository::delete_expense(uid);
+}
+
+#[tauri::command]
+fn update_members_count(uid: &str, members_count: &str) {
+    repository::update_members_count(uid, members_count);
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -99,6 +109,8 @@ pub fn run() {
             update_expense_section_association,
             update_expense,
             delete_expense,
+            get_section_expense_from_section_uid,
+            update_members_count
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");
