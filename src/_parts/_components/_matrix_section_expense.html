@@ -1,6 +1,10 @@
-<div
-    data-expense-id="{{ uid_expense }}"
-    data-action="click->matrix-section#addExpenseInstance"
->
-    {{ title_expense }}
+<div class="row">
+    <div
+        data-expense-id="{{ uid_expense }}"
+        data-action="click->matrix-section#addExpenseInstance"
+        class="col-10"
+    >
+        {{ title_expense }}
+    </div>
+    <div class="col-2">{{ used }}</div>
 </div>

@@ -306,28 +306,6 @@ pub fn get_section_expense() -> Vec<SectionExpense> {
     )
 }
 
-pub fn get_section_expense_from_section_uid(uid: &str) -> Vec<SectionExpense> {
-    let conn = get_connection().expect("Cannot get connection");
-    execute_read_sql(
-        "SELECT expense_section.uid_section, expense_section.uid_expense, sections.title AS title_section, expenses.title AS title_expense
-        FROM expense_section
-        INNER JOIN sections ON expense_section.uid_section = sections.uid
-        INNER JOIN expenses ON expense_section.uid_expense = expenses.uid
-        WHERE sections.uid = ?1",
-        params!(uid),
-        |row| {
-            Ok(SectionExpense {
-                uid_section: row.get(0)?,
-                uid_expense: row.get(1)?,
-                title_section: row.get(2)?,
-                title_expense: row.get(3)?,
-            })
-        },
-        &conn
-    )
-}
-
-
 pub fn get_section_expense_from_instances(uid: &str, conn: &Connection) -> Vec<SectionExpense> {
     execute_read_sql(
         "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense
@@ -368,9 +346,9 @@ pub fn get_section_expense_from_expenses_instances() -> Vec<SectionExpense> {
     )
 }
 
-pub fn get_calculated_expenses_from_sections(section: &str)-> Vec<CalculatedExpense> {
+pub fn get_calculated_expenses()-> Vec<CalculatedExpense> {
     let conn = get_connection().expect("Cannot get connection");
-    execute_read_sql("SELECT uid_section, uid_expense, title_section, title_expense, comments, section_color, expenses_units,
+    execute_read_sql("SELECT uid_expense_instance, uid_section, uid_expense, title_section, title_expense, comments, section_color, expenses_units,
 expenses_unit_price, expenses_rate, expenses_instances_units, expenses_instances_unit_price, expenses_instances_rate,
 live_units, live_unit_price, live_rate,
 (100 - view_expenses_sections_instances.live_rate) AS group_rate,
@@ -378,35 +356,44 @@ ROUND(view_expenses_sections_instances.live_unit_price * (view_expenses_sections
 ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100), 2) AS total_applyed_price,
 ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price, 2) AS total_inital_price,
 ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price - view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100),2) AS group_applyed_total_price
-FROM view_expenses_sections_instances
-WHERE uid_section = ?1",
-        params!(section),
+FROM view_expenses_sections_instances",
+        [],
         |row| {
             Ok(CalculatedExpense {
-                uid_section: row.get(0)?,
-                uid_expense: row.get(1)?,
-                title_section: row.get(2)?,
-                title_expense: row.get(3)?,
-                comments: row.get(4)?,
-                section_color: row.get(5)?,
-                expenses_units: row.get(6)?,
-                expenses_unit_price: row.get(7)?,
-                expenses_rate: row.get(8)?,
-                expenses_instances_units: row.get(9)?,
-                expenses_instances_unit_price: row.get(10)?,
-                expenses_instances_rate: row.get(11)?,
-                live_units: row.get(12)?,
-                live_unit_price: row.get(13)?,
-                live_rate: row.get(14)?,
-                group_rate: row.get(15)?,
-                applyed_price: row.get(16)?,
-                total_applyed_price: row.get(17)?,
-                total_inital_price: row.get(18)?,
-                group_applyed_total_price: row.get(19)?,
+                uid_expense_instance: row.get(0)?,
+                uid_section: row.get(1)?,
+                uid_expense: row.get(2)?,
+                title_section: row.get(3)?,
+                title_expense: row.get(4)?,
+                comments: row.get(5)?,
+                section_color: row.get(6)?,
+                expenses_units: row.get(7)?,
+                expenses_unit_price: row.get(8)?,
+                expenses_rate: row.get(9)?,
+                expenses_instances_units: row.get(10)?,
+                expenses_instances_unit_price: row.get(11)?,
+                expenses_instances_rate: row.get(12)?,
+                live_units: row.get(13)?,
+                live_unit_price: row.get(14)?,
+                live_rate: row.get(15)?,
+                group_rate: row.get(16)?,
+                applyed_price: row.get(17)?,
+                total_applyed_price: row.get(18)?,
+                total_inital_price: row.get(19)?,
+                group_applyed_total_price: row.get(20)?,
             })
         },
         &conn
     )
+}
+
+pub fn add_expense_instance(section_uid: &str, expense_id: &str) {
+    let conn = get_connection().expect("Cannot get connection");
+    execute_write_sql(
+        "INSERT INTO expenses_instances (uid, uid_section, uid_expense) VALUES (?1, ?2, ?3)",
+        params!(Uuid::new_v4().to_string(), section_uid, expense_id),
+        &conn,
+    );
 }
 
 pub fn execute_read_sql<F, T, P: rusqlite::Params>(
@@ -476,6 +463,7 @@ SELECT 'group','Groupe','#403f6f',0
 WHERE NOT EXISTS(SELECT uid, title, color, position FROM sections WHERE uid = 'group');",
 "CREATE VIEW IF NOT EXISTS \"view_expenses_sections_instances\" AS
 SELECT 
+expenses_instances.uid AS uid_expense_instance,
 expenses_instances.uid_section, 
 expenses_instances.uid_expense, 
 sections.title AS title_section, 
@@ -519,7 +507,7 @@ ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_insta
 FROM view_expenses_sections_instances",
 "CREATE TRIGGER IF NOT EXISTS update_group_members_count_after_update
 AFTER UPDATE OF members_count ON sections
-FOR EACH ROW WHEN OLD.uid != 'group'
+FOR EACH ROW
 BEGIN
     UPDATE sections
     SET members_count = (SELECT SUM(members_count) FROM sections WHERE uid != 'group')

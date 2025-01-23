@@ -29,6 +29,7 @@ pub struct SectionExpense {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CalculatedExpense {
+    pub uid_expense_instance: String,
     pub uid_section: String,
     pub uid_expense: String,
     pub title_section: String,
