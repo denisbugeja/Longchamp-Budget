@@ -363,8 +363,6 @@ pub fn get_expenses_sections_instances() -> Vec<SectionExpense> {
     )
 }
 
-
-
 pub fn get_calculated_expenses()-> Vec<CalculatedExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql("SELECT uid_expense_instance, uid_section, uid_expense, title_section, title_expense, comments, section_color, expenses_units,
@@ -516,14 +514,6 @@ END AS live_rate
 FROM expenses_instances
 INNER JOIN sections ON expenses_instances.uid_section = sections.uid
 INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid",
-"CREATE VIEW IF NOT EXISTS \"view_calculated_expenses_sections_instances\" AS
-SELECT view_expenses_sections_instances.* ,
-(100 - view_expenses_sections_instances.live_rate) AS group_rate,
-ROUND(view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100), 2) as applyed_price,
-ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100), 2) as total_applyed_price,
-ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price, 2) AS total_inital_price,
-ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price - view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100),2) AS group_applyed_total_price
-FROM view_expenses_sections_instances",
 "CREATE TRIGGER IF NOT EXISTS update_group_members_count_after_update
 AFTER UPDATE OF members_count ON sections
 FOR EACH ROW
