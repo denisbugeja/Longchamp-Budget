@@ -346,6 +346,25 @@ pub fn get_section_expense_from_expenses_instances() -> Vec<SectionExpense> {
     )
 }
 
+pub fn get_expenses_sections_instances() -> Vec<SectionExpense> {
+    let conn = get_connection().expect("Cannot get connection");
+    execute_read_sql(
+        "SELECT uid_section, uid_expense, title_section, title_expense FROM view_expenses_sections_instances",
+        [],
+        |row| {
+            Ok(SectionExpense {
+                uid_section: row.get(0)?,
+                uid_expense: row.get(1)?,
+                title_section: row.get(2)?,
+                title_expense: row.get(3)?,
+            })
+        },
+        &conn,
+    )
+}
+
+
+
 pub fn get_calculated_expenses()-> Vec<CalculatedExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql("SELECT uid_expense_instance, uid_section, uid_expense, title_section, title_expense, comments, section_color, expenses_units,

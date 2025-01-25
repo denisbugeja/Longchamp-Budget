@@ -92,7 +92,8 @@ fn add_expense_instance(section_uid: &str, expense_id: &str) {
 
 #[tauri::command]
 fn get_calculated_expenses() -> String {
-    helper::vec_to_json(repository::get_calculated_expenses())
+    // go to calculated_expenses in a view
+    helper::vec_to_json(repository::get_expenses_sections_instances())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
