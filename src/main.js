@@ -525,13 +525,18 @@ Stimulus.register("matrix-section", class extends Controller {
         return this.usedExpenseList
     }
 
-    async expenseInstanceListTargetConnected() {
+    async expenseListTargetConnected() {
         await this.expenseListLoad()
     }
 
     async sectionMemberCountTargetConnected() {
         await this.updateSectionMembersCount()
     }
+
+    async expenseInstanceListTargetConnected() {
+        await this.expenseInstanceListLoad()
+    }
+
 
     async expenseListLoad() {
         let expenseList = await this.getExpenseList()
@@ -542,6 +547,11 @@ Stimulus.register("matrix-section", class extends Controller {
         let sectionList = await this.matrixOutlet.getSectionList(),
             targetSection = sectionList.find((section) => section.uid === this.uidValue)
         this.sectionMemberCountTarget.value = targetSection.members_count
+    }
+
+    async expenseInstanceListLoad() {
+        let expenseInstanceList = await this.getUsedExpenseList()
+        this.expenseInstanceListTarget.innerHTML = await generateFromFilePath('_parts/_components/_matrix_section_expense_instance.html', expenseInstanceList)
     }
 
     async addExpenseInstance(e) {
@@ -565,7 +575,7 @@ Stimulus.register("matrix-section", class extends Controller {
     async triggerGlobalRefresh() {
         this.expenseList = null
         this.usedExpenseList = null
-        this.matrixOutlet.refreshAllData()
+        await this.matrixOutlet.refreshAllData()
     }
 
     sectionRefresh() {
