@@ -71,6 +71,13 @@ fn get_section_expense_from_expenses_instances() -> String {
 }
 
 #[tauri::command]
+fn get_section_expense_from_expenses_instances_section(section_uid: &str) -> String {
+    helper::vec_to_json(
+        repository::get_section_expense_from_expenses_instances_section(section_uid),
+    )
+}
+
+#[tauri::command]
 fn get_section_expense() -> String {
     helper::vec_to_json(repository::get_section_expense())
 }
@@ -91,8 +98,13 @@ fn add_expense_instance(section_uid: &str, expense_id: &str) {
 }
 
 #[tauri::command]
-fn get_calculated_expenses() -> String {
-    helper::vec_to_json(repository::get_calculated_expenses())
+fn get_calculated_expenses(section_uid: &str) -> String {
+    helper::vec_to_json(repository::get_calculated_expenses(section_uid))
+}
+
+#[tauri::command]
+fn get_members_count(section_uid: &str) -> i32 {
+    repository::get_members_count(section_uid)
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -116,7 +128,9 @@ pub fn run() {
             delete_expense,
             update_members_count,
             add_expense_instance,
-            get_calculated_expenses
+            get_calculated_expenses,
+            get_section_expense_from_expenses_instances_section,
+            get_members_count
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");

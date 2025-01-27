@@ -431,23 +431,7 @@ Stimulus.register("matrix", class extends Controller {
     static targets = ['sectionList']
     static outlets = ["matrix-section"]
 
-    usedSectionExpense = null
-    associatedSectionExpense = null
     sectionList = null
-
-    async getUsedSectionExpense() {
-        if (null === this.usedSectionExpense) {
-            this.usedSectionExpense = JSON.parse(await invoke("get_calculated_expenses"))
-        }
-        return this.usedSectionExpense
-    }
-
-    async getAssociatedSectionExpense() {
-        if (null === this.associatedSectionExpense) {
-            this.associatedSectionExpense = JSON.parse(await invoke("get_section_expense"))
-        }
-        return this.associatedSectionExpense
-    }
 
     async getSectionList() {
         if (null === this.sectionList) {
@@ -481,13 +465,7 @@ Stimulus.register("matrix", class extends Controller {
 
     async refreshAllData() {
         this.sectionList = null
-        this.associatedSectionExpense = null
-        this.usedSectionExpense = null
-
         await this.getSectionList()
-        await this.getAssociatedSectionExpense()
-        await this.getUsedSectionExpense()
-
         this.matrixSectionOutlets.forEach((outlet) => { outlet.sectionRefresh() })
     }
 })
@@ -504,25 +482,20 @@ Stimulus.register("matrix-section", class extends Controller {
 
     async getExpenseList() {
         if (null === this.expenseList) {
-            let allExpenseList = await this.matrixOutlet.getAssociatedSectionExpense()
-            let usedExpenseList = await this.getUsedExpenseList(),
-                expenseList = allExpenseList
-                    .filter((item) => item.uid_section === this.uidValue)
-                    .map((item) => {
-                        item.used = usedExpenseList.filter((elem) => elem.uid_expense === item.uid_expense).length
-                        return item
-                    })
-            this.expenseList = expenseList
+            this.expenseList = JSON.parse(await invoke("get_section_expense_from_expenses_instances_section", { sectionUid: this.uidValue }))
         }
         return this.expenseList
     }
 
     async getUsedExpenseList() {
         if (null === this.usedExpenseList) {
-            let allUsedExpenseList = await this.matrixOutlet.getUsedSectionExpense()
-            this.usedExpenseList = allUsedExpenseList.filter((item) => item.uid_section === this.uidValue)
+            this.usedExpenseList = JSON.parse(await invoke("get_calculated_expenses", { sectionUid: this.uidValue }))
         }
         return this.usedExpenseList
+    }
+
+    async getMembersCount() {
+        return await invoke("get_members_count", { sectionUid: this.uidValue })
     }
 
     async expenseListTargetConnected() {
@@ -530,23 +503,20 @@ Stimulus.register("matrix-section", class extends Controller {
     }
 
     async sectionMemberCountTargetConnected() {
-        await this.updateSectionMembersCount()
+        await this.loadSectionMembersCount()
     }
 
     async expenseInstanceListTargetConnected() {
         await this.expenseInstanceListLoad()
     }
 
-
     async expenseListLoad() {
         let expenseList = await this.getExpenseList()
         this.expenseListTarget.innerHTML = await generateFromFilePath('_parts/_components/_matrix_section_expense.html', expenseList)
     }
 
-    async updateSectionMembersCount() {
-        let sectionList = await this.matrixOutlet.getSectionList(),
-            targetSection = sectionList.find((section) => section.uid === this.uidValue)
-        this.sectionMemberCountTarget.value = targetSection.members_count
+    async loadSectionMembersCount() {
+        this.sectionMemberCountTarget.value = await this.getMembersCount()
     }
 
     async expenseInstanceListLoad() {
@@ -579,8 +549,9 @@ Stimulus.register("matrix-section", class extends Controller {
     }
 
     sectionRefresh() {
-        this.updateSectionMembersCount()
+        this.loadSectionMembersCount()
         this.expenseListLoad()
+        this.expenseInstanceListLoad()
     }
 
 })

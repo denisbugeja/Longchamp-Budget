@@ -25,6 +25,7 @@ pub struct SectionExpense {
     pub uid_expense: String,
     pub title_section: String,
     pub title_expense: String,
+    pub count: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
