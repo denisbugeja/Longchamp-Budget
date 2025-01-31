@@ -600,8 +600,8 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
         return '' === this.rateTarget.value.trim()
             || (
                 !isNaN(this.rateTarget.value)
-                && parseInt(this.rateTarget.value) > 0
-                && parseInt(this.rateTarget.value) < 100
+                && parseInt(this.rateTarget.value) >= 0
+                && parseInt(this.rateTarget.value) <= 100
             )
     }
 
