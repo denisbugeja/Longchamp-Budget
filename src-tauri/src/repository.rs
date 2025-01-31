@@ -200,12 +200,16 @@ pub fn update_expense(
     );
 }
 
+fn parse_or_none(s: &str) -> Option<f32> {
+    s.trim().parse().ok()
+}
+
 pub fn update_expense_instance(uid_expense_instance: &str, unit_price: &str, units: &str, rate: &str) {
     let conn = get_connection().expect("Cannot get connection");
 
-    let unit_price_f32: Option<f32> = Some(unit_price.parse().expect("Failed to parse unit_price as f32"));
-    let units_f32: Option<f32> = Some(units.parse().expect("Failed to parse units as f32"));
-    let rate_f32: Option<f32> = Some(rate.parse().expect("Failed to parse rate as f32"));
+    let unit_price_f32 = parse_or_none(unit_price);
+    let units_f32 = parse_or_none(units);
+    let rate_f32 = parse_or_none(rate);
 
     execute_write_sql(
         "UPDATE expenses_instances SET units = ?1, unit_price = ?2, rate = ?3 WHERE uid = ?4",
