@@ -7,38 +7,45 @@
     <div data-expense-instance-id="{{ uid_expense_instance }}">
         {{ title_expense }}
     </div>
-    Prix unitaire:
-    <input
-        type="number"
-        placeholder="{{ expenses_unit_price }}"
-        value="{{ expenses_instances_unit_price }}"
-        min="0"
-        data-matrix-expense-instance-target="unitPrice"
-        step=".01"
-        data-action="change->matrix-expense-instance#updateExpenseInstance"
-    />
-
-    Quantité:
-    <input
-        type="number"
-        placeholder="{{ expenses_units }}"
-        value="{{ expenses_instances_units }}"
-        min="0"
-        data-matrix-expense-instance-target="units"
-        step=".01"
-        data-action="change->matrix-expense-instance#updateExpenseInstance"
-    />
-
-    Ratio:
-    <input
-        type="number"
-        placeholder="{{ expenses_rate }}"
-        value="{{ expenses_instances_rate }}"
-        min="0"
-        max="100"
-        data-matrix-expense-instance-target="rate"
-        step=".01"
-        data-action="change->matrix-expense-instance#updateExpenseInstance"
-    />
-    <div>{{ total_applyed_price }}</div>
+    <div class="col-3">
+        Prix unitaire:<br />
+        <input
+            type="number"
+            placeholder="{{ expenses_unit_price }}"
+            value="{{ expenses_instances_unit_price }}"
+            min="0"
+            data-matrix-expense-instance-target="unitPrice"
+            step=".01"
+            data-action="change->matrix-expense-instance#updateExpenseInstance"
+        />
+    </div>
+    <div class="col-3">
+        Quantité:<br />
+        <input
+            type="number"
+            placeholder="{{ expenses_units }}"
+            value="{{ expenses_instances_units }}"
+            min="0"
+            data-matrix-expense-instance-target="units"
+            step=".01"
+            data-action="change->matrix-expense-instance#updateExpenseInstance"
+        />
+    </div>
+    <div class="col-3">
+        Ratio:<br />
+        <input
+            type="number"
+            placeholder="{{ expenses_rate }}"
+            value="{{ expenses_instances_rate }}"
+            min="0"
+            max="100"
+            data-matrix-expense-instance-target="rate"
+            step=".01"
+            data-action="change->matrix-expense-instance#updateExpenseInstance"
+        />
+    </div>
+    <div class="col-3">
+        Total:<br />
+        <strong>{{ total_applyed_price }}</strong>
+    </div>
 </div>
