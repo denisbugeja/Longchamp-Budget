@@ -107,6 +107,11 @@ fn get_members_count(section_uid: &str) -> i32 {
     repository::get_members_count(section_uid)
 }
 
+#[tauri::command]
+fn update_expense_instance(uid_expense_instance: &str, unit_price: &str, units: &str, rate: &str) {
+    repository::update_expense_instance(uid_expense_instance, unit_price, units, rate);
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -130,7 +135,8 @@ pub fn run() {
             add_expense_instance,
             get_calculated_expenses,
             get_section_expense_from_expenses_instances_section,
-            get_members_count
+            get_members_count,
+            update_expense_instance
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");

@@ -306,6 +306,7 @@ Stimulus.register("expense", class extends Controller {
 
     isRateTargetValid() {
         return '' !== this.rateTarget.value.trim()
+            && !isNaN(this.rateTarget.value)
             && parseFloat(this.rateTarget.value) >= 0
             && parseFloat(this.rateTarget.value) <= 100
     }
@@ -316,6 +317,7 @@ Stimulus.register("expense", class extends Controller {
 
     isUnitPriceTargetValid() {
         return "" !== this.unitPriceTarget.value.trim()
+            && !isNaN(this.unitPriceTarget.value)
             && parseFloat(this.unitPriceTarget.value) >= 0
     }
 
@@ -403,6 +405,7 @@ Stimulus.register("expense-edit", class extends Controller {
 
     isRateTargetValid() {
         return '' !== this.rateTarget.value.trim()
+            && !isNaN(this.rateTarget.value)
             && parseFloat(this.rateTarget.value) >= 0
             && parseFloat(this.rateTarget.value) <= 100
     }
@@ -413,6 +416,7 @@ Stimulus.register("expense-edit", class extends Controller {
 
     isUnitPriceTargetValid() {
         return "" !== this.unitPriceTarget.value.trim()
+            && !isNaN(this.unitPriceTarget.value)
             && parseFloat(this.unitPriceTarget.value) >= 0
     }
 
@@ -554,4 +558,56 @@ Stimulus.register("matrix-section", class extends Controller {
         this.expenseInstanceListLoad()
     }
 
+})
+
+Stimulus.register("matrix-expense-instance", class extends Controller {
+    static targets = ["unitPrice", "units", "rate"]
+    static outlets = ["matrix-section"]
+    static values = {
+        uid: String
+    }
+
+    async updateExpenseInstance() {
+        if (!this.validate()) {
+            return;
+        }
+        await invoke("update_expense_instance", {
+            uidExpenseInstance: this.uidValue,
+            unitPrice: this.unitPriceTarget.value,
+            units: this.unitsTarget.value,
+            rate: this.rateTarget.value,
+        })
+        await this.matrixSectionOutlet.triggerGlobalRefresh()
+    }
+
+    unitPriceValid() {
+        return '' === this.unitPriceTarget.value.trim()
+            || (
+                !isNaN(this.unitPriceTarget.value)
+                && parseFloat(this.unitPriceTarget.value) > 0
+            )
+    }
+
+    unitsValid() {
+        return '' === this.unitsTarget.value.trim()
+            || (
+                !isNaN(this.unitsTarget.value)
+                && parseInt(this.unitsTarget.value) > 0
+            )
+    }
+
+    rateValid() {
+        return '' === this.rateTarget.value.trim()
+            || (
+                !isNaN(this.rateTarget.value)
+                && parseInt(this.rateTarget.value) > 0
+                && parseInt(this.rateTarget.value) < 100
+            )
+    }
+
+    validate() {
+        return this.unitPriceValid()
+            && this.unitsValid()
+            && this.rateValid()
+    }
 })

@@ -1,3 +1,44 @@
-<div class="row">
-    <div data-expense-instance-id="{{ uid_expense }}">{{ title_expense }}</div>
+<div
+    class="row"
+    data-controller="matrix-expense-instance"
+    data-matrix-expense-instance-uid-value="{{ uid_expense_instance }}"
+    data-matrix-expense-instance-matrix-section-outlet="[data-matrix-section-uid-value='{{ uid_section }}']"
+>
+    <div data-expense-instance-id="{{ uid_expense_instance }}">
+        {{ title_expense }}
+    </div>
+    Prix unitaire:
+    <input
+        type="number"
+        placeholder="{{ expenses_unit_price }}"
+        value="{{ expenses_instances_unit_price }}"
+        min="0"
+        data-matrix-expense-instance-target="unitPrice"
+        step=".01"
+        data-action="change->matrix-expense-instance#updateExpenseInstance"
+    />
+
+    Quantité:
+    <input
+        type="number"
+        placeholder="{{ expenses_units }}"
+        value="{{ expenses_instances_units }}"
+        min="0"
+        data-matrix-expense-instance-target="units"
+        step=".01"
+        data-action="change->matrix-expense-instance#updateExpenseInstance"
+    />
+
+    Ratio:
+    <input
+        type="number"
+        placeholder="{{ expenses_rate }}"
+        value="{{ expenses_instances_rate }}"
+        min="0"
+        max="100"
+        data-matrix-expense-instance-target="rate"
+        step=".01"
+        data-action="change->matrix-expense-instance#updateExpenseInstance"
+    />
+    <div>{{ total_applyed_price }}</div>
 </div>

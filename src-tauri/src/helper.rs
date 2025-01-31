@@ -51,6 +51,7 @@ pub struct CalculatedExpense {
     pub total_applyed_price: Option<f32>,
     pub total_inital_price: Option<f32>,
     pub group_applyed_total_price: Option<f32>,
+    pub group_applyed_unit_price: Option<f32>,
 }
 
 pub fn vec_to_json<T: Serialize>(vec_data: Vec<T>) -> String {
