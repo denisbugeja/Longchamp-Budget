@@ -50,7 +50,7 @@ jobs:
         if: matrix.platform == 'windows-latest'
         with:
           name: app-windows
-          path: src-tauri\target\release\budget.exe
+          path: D:\a\longchamp.budget\longchamp.budget\src-tauri\target\release\budget.exe
 
       - name: Create Release
         id: create_release
