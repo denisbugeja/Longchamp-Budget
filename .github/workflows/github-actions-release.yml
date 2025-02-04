@@ -45,13 +45,41 @@ jobs:
         with:
           workspaces: "./src-tauri -> target"
 
-      - uses: tauri-apps/tauri-action@v0
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v3
+        if: matrix.platform == 'windows-latest'
+        with:
+          name: app-windows
+          path: src-tauri\target\release\budget.exe
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
-          releaseName: "App v__VERSION__"
-          releaseBody: "See the assets to download this version and install."
-          releaseDraft: true
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
           prerelease: false
-          args: ${{ matrix.args }}
+
+      - name: Upload Windows Release Asset
+        uses: actions/upload-release-asset@v1
+        if: matrix.platform == 'windows-latest'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: src-tauri\target\release\budget.exe
+          asset_name: budget.exe
+          asset_content_type: application/octet-stream
+
+      # - name: Upload Linux Release Asset
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: src-tauri/target/x86_64-unknown-linux-gnu/release/app
+      #     asset_name: app-linux
+      #     asset_content_type: application/octet-stream
