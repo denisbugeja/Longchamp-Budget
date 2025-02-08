@@ -200,20 +200,31 @@ pub fn update_expense(
     );
 }
 
-fn parse_or_none(s: &str) -> Option<f32> {
+fn parse_f_or_none(s: &str) -> Option<f32> {
     s.trim().parse().ok()
+}
+
+fn parse_i_or_none(s: &str) -> Option<i32> {
+    if let Ok(value) = s.trim().parse::<i32>() {
+        return Some(value);
+    }
+
+    match parse_f_or_none(s) {
+        Some(value) => Some(value.floor() as i32),
+        None => None,
+    }
 }
 
 pub fn update_expense_instance(uid_expense_instance: &str, unit_price: &str, units: &str, rate: &str) {
     let conn = get_connection().expect("Cannot get connection");
 
-    let unit_price_f32 = parse_or_none(unit_price);
-    let units_f32 = parse_or_none(units);
-    let rate_f32 = parse_or_none(rate);
+    let unit_price_f32 = parse_f_or_none(unit_price);
+    let units_i32 = parse_i_or_none(units).and_then(|value| if 0 == value { None } else { Some(value) });
+    let rate_f32 = parse_f_or_none(rate);
 
     execute_write_sql(
         "UPDATE expenses_instances SET units = ?1, unit_price = ?2, rate = ?3 WHERE uid = ?4",
-        params!(units_f32, unit_price_f32, rate_f32, uid_expense_instance), 
+        params!(units_i32, unit_price_f32, rate_f32, uid_expense_instance), 
         &conn
     );
 }
