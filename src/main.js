@@ -541,7 +541,10 @@ Stimulus.register("matrix-section", class extends Controller {
     }
 
     async expenseGroupInstanceListLoad() {
-        // mettre un if group ici 
+        if ('group' != this.uidValue) {
+            return
+        }
+
         let groupExpenseInstanceList = await this.getGroupUsedExpenseList()
         this.expenseGroupInstanceListTarget.innerHTML = await generateFromFilePath('_parts/_components/_matrix_section_group_expense_instance.html', groupExpenseInstanceList)
     }
@@ -567,7 +570,7 @@ Stimulus.register("matrix-section", class extends Controller {
     async triggerGlobalRefresh() {
         this.expenseList = null
         this.usedExpenseList = null
-        this.useGroupExpenseList = null
+        this.usedGroupExpenseList = null
         await this.matrixOutlet.refreshAllData()
     }
 
