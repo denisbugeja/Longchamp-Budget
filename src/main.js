@@ -500,10 +500,7 @@ Stimulus.register("matrix-section", class extends Controller {
     }
 
     async getGroupUsedExpenseList() {
-        if (null === this.usedGroupExpenseList) {
-            this.usedGroupExpenseList = JSON.parse(await invoke("get_group_calculated_expenses", {}))
-        }
-        return this.usedGroupExpenseList
+        return JSON.parse(await invoke("get_group_calculated_expenses", {}))
     }
 
     async getMembersCount() {
