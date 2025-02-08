@@ -475,7 +475,7 @@ Stimulus.register("matrix", class extends Controller {
 })
 
 Stimulus.register("matrix-section", class extends Controller {
-    static targets = ['expenseList', 'expenseInstanceList', 'sectionMemberCount']
+    static targets = ['expenseList', 'expenseInstanceList', 'expenseGroupInstanceList', 'sectionMemberCount']
     static outlets = ["matrix"]
     static values = {
         uid: String
@@ -483,6 +483,7 @@ Stimulus.register("matrix-section", class extends Controller {
 
     expenseList = null
     usedExpenseList = null
+    usedGroupExpenseList = null
 
     async getExpenseList() {
         if (null === this.expenseList) {
@@ -496,6 +497,13 @@ Stimulus.register("matrix-section", class extends Controller {
             this.usedExpenseList = JSON.parse(await invoke("get_calculated_expenses", { sectionUid: this.uidValue }))
         }
         return this.usedExpenseList
+    }
+
+    async getGroupUsedExpenseList() {
+        if (null === this.usedGroupExpenseList) {
+            this.usedGroupExpenseList = JSON.parse(await invoke("get_group_calculated_expenses", {}))
+        }
+        return this.usedGroupExpenseList
     }
 
     async getMembersCount() {
@@ -514,6 +522,10 @@ Stimulus.register("matrix-section", class extends Controller {
         await this.expenseInstanceListLoad()
     }
 
+    async expenseGroupInstanceListTargetConnected() {
+        await this.expenseGroupInstanceListLoad()
+    }
+
     async expenseListLoad() {
         let expenseList = await this.getExpenseList()
         this.expenseListTarget.innerHTML = await generateFromFilePath('_parts/_components/_matrix_section_expense.html', expenseList)
@@ -526,6 +538,12 @@ Stimulus.register("matrix-section", class extends Controller {
     async expenseInstanceListLoad() {
         let expenseInstanceList = await this.getUsedExpenseList()
         this.expenseInstanceListTarget.innerHTML = await generateFromFilePath('_parts/_components/_matrix_section_expense_instance.html', expenseInstanceList)
+    }
+
+    async expenseGroupInstanceListLoad() {
+        // mettre un if group ici 
+        let groupExpenseInstanceList = await this.getGroupUsedExpenseList()
+        this.expenseGroupInstanceListTarget.innerHTML = await generateFromFilePath('_parts/_components/_matrix_section_group_expense_instance.html', groupExpenseInstanceList)
     }
 
     async addExpenseInstance(e) {
@@ -549,6 +567,7 @@ Stimulus.register("matrix-section", class extends Controller {
     async triggerGlobalRefresh() {
         this.expenseList = null
         this.usedExpenseList = null
+        this.useGroupExpenseList = null
         await this.matrixOutlet.refreshAllData()
     }
 
@@ -556,8 +575,8 @@ Stimulus.register("matrix-section", class extends Controller {
         this.loadSectionMembersCount()
         this.expenseListLoad()
         this.expenseInstanceListLoad()
+        this.expenseGroupInstanceListLoad()
     }
-
 })
 
 Stimulus.register("matrix-expense-instance", class extends Controller {

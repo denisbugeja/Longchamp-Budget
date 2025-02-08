@@ -1,0 +1,21 @@
+<div class="row">
+    <div data-expense-instance-id="{{ uid_expense_instance }}">
+        {{ title_expense }}
+    </div>
+    <div class="col-3">
+        Prix unitaire:<br />
+        {{ expenses_instances_unit_price }}
+    </div>
+    <div class="col-3">
+        Quantité:<br />
+        {{ expenses_instances_units }}
+    </div>
+    <div class="col-3">
+        Ratio:<br />
+        {{ expenses_instances_rate }}
+    </div>
+    <div class="col-3">
+        Total:<br />
+        <strong>{{ total_applyed_price }}</strong>
+    </div>
+</div>

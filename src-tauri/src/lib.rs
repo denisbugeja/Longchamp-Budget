@@ -112,6 +112,12 @@ fn update_expense_instance(uid_expense_instance: &str, unit_price: &str, units: 
     repository::update_expense_instance(uid_expense_instance, unit_price, units, rate);
 }
 
+#[tauri::command]
+fn get_group_calculated_expenses() -> String {
+    let aa = helper::vec_to_json(repository::get_group_calculated_expenses());
+    aa
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -136,7 +142,8 @@ pub fn run() {
             get_calculated_expenses,
             get_section_expense_from_expenses_instances_section,
             get_members_count,
-            update_expense_instance
+            update_expense_instance,
+            get_group_calculated_expenses
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");
