@@ -590,10 +590,7 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
 
     unitsValid() {
         return '' === this.unitsTarget.value.trim()
-            || (
-                !isNaN(this.unitsTarget.value)
-                && parseInt(this.unitsTarget.value) > 0
-            )
+            || !isNaN(this.unitsTarget.value)
     }
 
     rateValid() {
