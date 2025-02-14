@@ -435,13 +435,8 @@ Stimulus.register("matrix", class extends Controller {
     static targets = ['sectionList']
     static outlets = ["matrix-section"]
 
-    sectionList = null
-
     async getSectionList() {
-        if (null === this.sectionList) {
-            this.sectionList = JSON.parse(await invoke("section_list_load"))
-        }
-        return this.sectionList
+        return JSON.parse(await invoke("section_list_load"))
     }
 
     connect() {
@@ -468,8 +463,6 @@ Stimulus.register("matrix", class extends Controller {
     }
 
     async refreshAllData() {
-        this.sectionList = null
-        await this.getSectionList()
         this.matrixSectionOutlets.forEach((outlet) => { outlet.sectionRefresh() })
     }
 })
@@ -481,22 +474,12 @@ Stimulus.register("matrix-section", class extends Controller {
         uid: String
     }
 
-    expenseList = null
-    usedExpenseList = null
-    usedGroupExpenseList = null
-
     async getExpenseList() {
-        if (null === this.expenseList) {
-            this.expenseList = JSON.parse(await invoke("get_section_expense_from_expenses_instances_section", { sectionUid: this.uidValue }))
-        }
-        return this.expenseList
+        return JSON.parse(await invoke("get_section_expense_from_expenses_instances_section", { sectionUid: this.uidValue }))
     }
 
     async getUsedExpenseList() {
-        if (null === this.usedExpenseList) {
-            this.usedExpenseList = JSON.parse(await invoke("get_calculated_expenses", { sectionUid: this.uidValue }))
-        }
-        return this.usedExpenseList
+        return JSON.parse(await invoke("get_calculated_expenses", { sectionUid: this.uidValue }))
     }
 
     async getGroupUsedExpenseList() {
@@ -565,9 +548,6 @@ Stimulus.register("matrix-section", class extends Controller {
     }
 
     async triggerGlobalRefresh() {
-        this.expenseList = null
-        this.usedExpenseList = null
-        this.usedGroupExpenseList = null
         await this.matrixOutlet.refreshAllData()
     }
 

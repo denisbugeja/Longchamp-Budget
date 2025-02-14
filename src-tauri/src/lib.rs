@@ -114,8 +114,7 @@ fn update_expense_instance(uid_expense_instance: &str, unit_price: &str, units: 
 
 #[tauri::command]
 fn get_group_calculated_expenses() -> String {
-    let aa = helper::vec_to_json(repository::get_group_calculated_expenses());
-    aa
+    helper::vec_to_json(repository::get_group_calculated_expenses())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
