@@ -1,4 +1,4 @@
-use crate::helper::{Expense, Section, SectionExpense, CalculatedExpense};
+use crate::helper::{CalculatedExpense, Expense, Section, SectionExpense, SumExpenseInstance};
 use lazy_static::lazy_static;
 use rusqlite::{params, Connection, Result, Row};
 use std::sync::RwLock;
@@ -455,6 +455,40 @@ WHERE uid_section = ?1
         },
         &conn
     )
+}
+
+pub fn get_sum_calculated_expenses(section_uid: &str) -> SumExpenseInstance {
+    let conn = get_connection().expect("Cannot get connection");
+    let results : Vec <SumExpenseInstance> = execute_read_sql("SELECT SUM(group_applyed_unit_price) AS sum_group_applyed_unit_price, SUM(group_applyed_total_price) AS sum_group_applyed_total_price
+    FROM view_calculated_expenses_sections_instances
+    WHERE uid_section = ?1", params!(section_uid), |row| {
+        Ok(SumExpenseInstance{
+            sum_unit: row.get(0)?,
+            sum_total: row.get(1)?,
+        })
+    }, &conn);
+    sum_expense_instance_from_vec(results)
+}
+
+pub fn get_group_sum_calculated_expenses() -> SumExpenseInstance {
+    let conn = get_connection().expect("Cannot get connection");
+    let results : Vec <SumExpenseInstance> = execute_read_sql("SELECT SUM(group_applyed_unit_price) AS sum_group_applyed_unit_price, SUM(group_applyed_total_price) AS sum_group_applyed_total_price
+    FROM view_calculated_expenses_sections_instances
+    WHERE group_rate <> 0", [], |row| {
+        Ok(SumExpenseInstance{
+            sum_unit: row.get(0)?,
+            sum_total: row.get(1)?,
+        })
+    }, &conn);
+    sum_expense_instance_from_vec(results)
+}
+
+fn sum_expense_instance_from_vec(vec : Vec<SumExpenseInstance>) -> SumExpenseInstance {
+    if let Some(item) = vec.into_iter().next() {
+        item
+    } else {
+        SumExpenseInstance{sum_unit: 0 as f32, sum_total: 0 as f32}
+    }
 }
 
 pub fn get_group_calculated_expenses() -> Vec<CalculatedExpense> {

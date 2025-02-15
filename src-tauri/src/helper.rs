@@ -54,8 +54,18 @@ pub struct CalculatedExpense {
     pub group_applyed_unit_price: Option<f32>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SumExpenseInstance {
+    pub sum_unit: f32,
+    pub sum_total: f32,
+}
+
 pub fn vec_to_json<T: Serialize>(vec_data: Vec<T>) -> String {
     serde_json::to_string(&vec_data).expect("Cannot serialize section list")
+}
+
+pub fn struct_to_json<T: Serialize>(struct_data: T) -> String {
+    serde_json::to_string(&struct_data).expect("Cannot serialize struct list")
 }
 
 pub fn json_to_vec(json_data: &str) -> Vec<&str> {
