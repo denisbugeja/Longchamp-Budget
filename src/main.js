@@ -1,6 +1,7 @@
 // System import
 const { invoke } = window.__TAURI__.core
 const { open, save } = window.__TAURI__.dialog;
+const GROUP_ID = 'group'
 
 // JS import
 import { Application, Controller } from "/stimulus.min.js"
@@ -198,7 +199,7 @@ Stimulus.register("section-edit", class extends Controller {
     used = null
 
     async connect() {
-        this.deleteTarget.disabled = this.uidValue == 'group' || await this.isUsed()
+        this.deleteTarget.disabled = this.uidValue == GROUP_ID || await this.isUsed()
     }
 
     async isUsed() {
@@ -581,7 +582,7 @@ Stimulus.register("matrix-section", class extends Controller {
     }
 
     async expenseGroupInstanceListLoad() {
-        if ('group' != this.uidValue) {
+        if (GROUP_ID != this.uidValue) {
             return
         }
 
