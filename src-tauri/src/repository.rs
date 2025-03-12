@@ -602,7 +602,8 @@ pub fn execute_migrations(conn: Connection) {
         "INSERT INTO sections (uid, title, color, position)
 SELECT 'group','Groupe','#403f6f',0
 WHERE NOT EXISTS(SELECT uid, title, color, position FROM sections WHERE uid = 'group');",
-"CREATE VIEW IF NOT EXISTS \"view_expenses_sections_instances\" AS
+"DROP VIEW IF EXISTS \"view_expenses_sections_instances\";",
+"CREATE VIEW \"view_expenses_sections_instances\" AS
 SELECT 
 expenses_instances.uid AS uid_expense_instance,
 expenses_instances.uid_section, 
@@ -642,7 +643,8 @@ FROM sections AS group_sections, expenses_instances
 INNER JOIN sections ON expenses_instances.uid_section = sections.uid
 INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
 WHERE group_sections.uid = 'group'",
-"CREATE VIEW IF NOT EXISTS \"view_calculated_expenses_sections_instances\" AS
+"DROP VIEW IF EXISTS \"view_calculated_expenses_sections_instances\";",
+"CREATE VIEW \"view_calculated_expenses_sections_instances\" AS
 SELECT uid_expense_instance, uid_section, uid_expense, title_section, title_expense, comments, section_color, expenses_units,
 expenses_unit_price, expenses_rate, expenses_instances_units, expenses_instances_unit_price, expenses_instances_rate,
 live_units, live_unit_price, live_rate,
