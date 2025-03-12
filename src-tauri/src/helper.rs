@@ -52,6 +52,7 @@ pub struct CalculatedExpense {
     pub total_inital_price: Option<f32>,
     pub group_applyed_total_price: Option<f32>,
     pub group_applyed_unit_price: Option<f32>,
+    pub group_members_count: Option<f32>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
