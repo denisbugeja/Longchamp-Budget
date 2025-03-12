@@ -472,6 +472,7 @@ pub fn get_sum_calculated_expenses(section_uid: &str) -> SumExpenseInstance {
 }
 
 pub fn get_group_sum_calculated_expenses() -> SumExpenseInstance {
+    // TODO refacto ,renvoyer ici le total groupe + total réparti par débord
     let conn = get_connection().expect("Cannot get connection");
     let results : Vec <SumExpenseInstance> = execute_read_sql("SELECT SUM(group_applyed_unit_price) AS sum_group_applyed_unit_price, SUM(group_applyed_total_price) AS sum_group_applyed_total_price
     FROM view_calculated_expenses_sections_instances
