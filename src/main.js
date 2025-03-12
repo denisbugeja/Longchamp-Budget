@@ -12,6 +12,41 @@ function renderTemplate(templateString, data) {
     });
 }
 
+function getSelector(element) {
+    if (!(element instanceof Element)) return
+
+    const path = []
+    while (element && Node.ELEMENT_NODE === element.nodeType) {
+        let selector = element.nodeName.toLowerCase()
+        if (element.id) {
+            selector += `#${element.id}`
+            path.unshift(selector)
+
+            return path.join(" > ")
+        } else {
+            let sibling = element,
+                nth = 1
+            while (sibling.previousElementSibling) {
+                sibling = sibling.previousElementSibling
+                if (sibling.nodeName.toLowerCase() === selector) nth++
+            }
+            if (nth !== 1) selector += `:nth-of-type(${nth})`
+        }
+        path.unshift(selector)
+        element = element.parentNode
+    }
+    return path.join(" > ")
+}
+
+function renderElement(element, content) {
+    var focusedElement = document.activeElement,
+        focusedElementString = (focusedElement) ? getSelector(focusedElement) : ''
+    element.innerHTML = content
+    if ('' !== focusedElementString) {
+        document.querySelector(focusedElementString).focus()
+    }
+}
+
 async function fetchPart(htmlPart) {
     var result
     await fetch(htmlPart)
@@ -30,7 +65,7 @@ async function generateFromFilePath(filePathString, data) {
 }
 
 async function loadPart(htmlPart, target) {
-    target.innerHTML = await fetchPart(htmlPart)
+    renderElement(target, await fetchPart(htmlPart))
 }
 
 function escapeHtmlAttribute(str) {
@@ -85,7 +120,7 @@ Stimulus.register("budget", class extends Controller {
 
     async formSubmit(e) {
         e.preventDefault()
-        this.messageTarget.innerHTML = await invoke("greet", { name: this.textInputTarget.value })
+        renderElement(this.messageTarget, await invoke("greet", { name: this.textInputTarget.value }))
     }
 
     loadExpenses(e) {
@@ -145,7 +180,7 @@ Stimulus.register("section", class extends Controller {
             return section
         })
 
-        this.sectionListTarget.innerHTML = await generateFromFilePath('_parts/_components/_section-edit-item.html', sectionList)
+        renderElement(this.sectionListTarget, await generateFromFilePath('_parts/_components/_section-edit-item.html', sectionList))
     }
 
     validateSection() {
@@ -270,7 +305,7 @@ Stimulus.register("expense", class extends Controller {
 
     async sectionListTargetConnected(element) {
         const sectionList = await this.getSectionList()
-        element.innerHTML = await generateFromFilePath('_parts/_components/_expense-create-item-sections.html', sectionList)
+        renderElement(element, await generateFromFilePath('_parts/_components/_expense-create-item-sections.html', sectionList))
     }
 
     async expenseListLoad() {
@@ -296,8 +331,7 @@ Stimulus.register("expense", class extends Controller {
             expense.section_list_html = sectionCheckboxListHtml
             return expense
         })
-
-        this.expenseListTarget.innerHTML = await generateFromFilePath('_parts/_components/_expense-edit-item.html', expenseList)
+        renderElement(this.expenseListTarget, await generateFromFilePath('_parts/_components/_expense-edit-item.html', expenseList))
     }
 
     hasAtLeastOneSectionChecked() {
@@ -459,7 +493,7 @@ Stimulus.register("matrix", class extends Controller {
             return section
         })
 
-        this.sectionListTarget.innerHTML = await generateFromFilePath('_parts/_components/_matrix_section.html', sectionList)
+        renderElement(this.sectionListTarget, await generateFromFilePath('_parts/_components/_matrix_section.html', sectionList))
     }
 
     async refreshAllData() {
@@ -524,7 +558,7 @@ Stimulus.register("matrix-section", class extends Controller {
 
     async expenseListLoad() {
         let expenseList = await this.getExpenseList()
-        this.expenseListTarget.innerHTML = await generateFromFilePath('_parts/_components/_matrix_section_expense.html', expenseList)
+        renderElement(this.expenseListTarget, await generateFromFilePath('_parts/_components/_matrix_section_expense.html', expenseList))
     }
 
     async loadSectionMembersCount() {
@@ -533,17 +567,17 @@ Stimulus.register("matrix-section", class extends Controller {
 
     async expenseInstanceListLoad() {
         let expenseInstanceList = await this.getUsedExpenseList()
-        this.expenseInstanceListTarget.innerHTML = await generateFromFilePath('_parts/_components/_matrix_section_expense_instance.html', expenseInstanceList)
+        renderElement(this.expenseInstanceListTarget, await generateFromFilePath('_parts/_components/_matrix_section_expense_instance.html', expenseInstanceList))
     }
 
     async expenseInstanceGroupTotalLoad() {
         let total = await this.getGroupTotal()
-        this.expenseInstanceGroupTotalTarget.innerHTML = await generateFromFilePath('_parts/_components/_matrix_section_group_total.html', total)
+        renderElement(this.expenseInstanceGroupTotalTarget, await generateFromFilePath('_parts/_components/_matrix_section_group_total.html', total))
     }
 
     async expenseInstanceTotalLoad() {
         let total = await this.getTotal()
-        this.expenseInstanceTotalTarget.innerHTML = await generateFromFilePath('_parts/_components/_matrix_section_total.html', total)
+        renderElement(this.expenseInstanceTotalTarget, await generateFromFilePath('_parts/_components/_matrix_section_total.html', total))
     }
 
     async expenseGroupInstanceListLoad() {
@@ -552,7 +586,7 @@ Stimulus.register("matrix-section", class extends Controller {
         }
 
         let groupExpenseInstanceList = await this.getGroupUsedExpenseList()
-        this.expenseGroupInstanceListTarget.innerHTML = await generateFromFilePath('_parts/_components/_matrix_section_group_expense_instance.html', groupExpenseInstanceList)
+        renderElement(this.expenseGroupInstanceListTarget, await generateFromFilePath('_parts/_components/_matrix_section_group_expense_instance.html', groupExpenseInstanceList))
     }
 
     async addExpenseInstance(e) {
