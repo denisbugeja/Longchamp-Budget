@@ -123,6 +123,11 @@ fn get_group_sum_calculated_expenses() -> String {
 }
 
 #[tauri::command]
+fn get_group_only_sum_calculated_expenses() -> String {
+    helper::struct_to_json(repository::get_group_only_sum_calculated_expenses())
+}
+
+#[tauri::command]
 fn get_sum_calculated_expenses(section_uid: &str) -> String {
     helper::struct_to_json(repository::get_sum_calculated_expenses(section_uid))
 }
@@ -154,6 +159,7 @@ pub fn run() {
             update_expense_instance,
             get_group_calculated_expenses,
             get_group_sum_calculated_expenses,
+            get_group_only_sum_calculated_expenses,
             get_sum_calculated_expenses
         ])
         .run(tauri::generate_context!())
