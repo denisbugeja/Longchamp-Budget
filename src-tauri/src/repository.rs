@@ -458,6 +458,31 @@ WHERE uid_section = ?1
     )
 }
 
+pub fn get_total_per_member(section_uid: &str) -> SumExpenseInstance {
+    let conn = get_connection().expect("Cannot get connection");
+    let results : Vec <SumExpenseInstance> = execute_read_sql("SELECT ROUND(SUM(sum_group_applyed_unit_price),2) AS sum_group_applyed_unit_price, ROUND(SUM(sum_group_applyed_total_price),2) AS sum_group_applyed_total_price FROM 
+(
+    SELECT SUM(total_applyed_price / expenses_units) AS sum_group_applyed_unit_price, ROUND(SUM(total_applyed_price),2) AS sum_group_applyed_total_price
+    FROM view_calculated_expenses_sections_instances
+    WHERE uid_section = ?1
+UNION ALL    
+    SELECT SUM(group_applyed_unit_price) AS sum_group_applyed_unit_price, SUM(group_applyed_total_price) AS sum_group_applyed_total_price
+    FROM view_calculated_expenses_sections_instances
+    WHERE group_rate <> 0
+UNION ALL
+    SELECT SUM(total_applyed_price / group_members_count) AS sum_group_applyed_unit_price, SUM(total_applyed_price) AS sum_group_applyed_total_price
+    FROM view_calculated_expenses_sections_instances
+    WHERE uid_section = 'group'
+)", params!(section_uid), |row| {
+        Ok(SumExpenseInstance{
+            sum_unit: row.get(0)?,
+            sum_total: row.get(1)?,
+        })
+    }, &conn);
+    sum_expense_instance_from_vec(results)
+}
+
+
 pub fn get_sum_calculated_expenses(section_uid: &str) -> SumExpenseInstance {
     let conn = get_connection().expect("Cannot get connection");
     let results : Vec <SumExpenseInstance> = execute_read_sql("SELECT ROUND(SUM(total_applyed_price / expenses_units),2) AS applyed_price, ROUND(SUM(total_applyed_price),2) AS total_applyed_price

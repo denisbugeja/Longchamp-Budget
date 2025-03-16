@@ -132,6 +132,11 @@ fn get_sum_calculated_expenses(section_uid: &str) -> String {
     helper::struct_to_json(repository::get_sum_calculated_expenses(section_uid))
 }
 
+#[tauri::command]
+fn get_total_per_member(section_uid: &str) -> String {
+    helper::struct_to_json(repository::get_total_per_member(section_uid))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -160,7 +165,8 @@ pub fn run() {
             get_group_calculated_expenses,
             get_group_sum_calculated_expenses,
             get_group_only_sum_calculated_expenses,
-            get_sum_calculated_expenses
+            get_sum_calculated_expenses,
+            get_total_per_member
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");

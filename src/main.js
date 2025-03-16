@@ -503,7 +503,7 @@ Stimulus.register("matrix", class extends Controller {
 })
 
 Stimulus.register("matrix-section", class extends Controller {
-    static targets = ['expenseList', 'expenseInstanceList', 'expenseGroupInstanceList', 'sectionMemberCount', 'expenseInstanceGroupTotal', 'expenseInstanceTotal']
+    static targets = ['expenseList', 'expenseInstanceList', 'expenseGroupInstanceList', 'sectionMemberCount', 'expenseInstanceGroupTotal', 'expenseInstanceTotal', 'expenseInstanceMemberTotal']
     static outlets = ["matrix"]
     static values = {
         uid: String
@@ -527,6 +527,10 @@ Stimulus.register("matrix-section", class extends Controller {
 
     async getTotal() {
         return JSON.parse(await invoke("get_sum_calculated_expenses", { sectionUid: this.uidValue }))
+    }
+
+    async getMemberTotal() {
+        return JSON.parse(await invoke("get_total_per_member", { sectionUid: this.uidValue }))
     }
 
     async getGroupTotal() {
@@ -558,6 +562,10 @@ Stimulus.register("matrix-section", class extends Controller {
         await this.expenseInstanceTotalLoad()
     }
 
+    async expenseInstanceMemberTotalTargetConnected() {
+        await this.expenseInstanceMemberTotalLoad()
+    }
+
     async expenseListLoad() {
         let expenseList = await this.getExpenseList()
         renderElement(this.expenseListTarget, await generateFromFilePath('_parts/_components/_matrix_section_expense.html', expenseList))
@@ -581,6 +589,14 @@ Stimulus.register("matrix-section", class extends Controller {
     async expenseInstanceTotalLoad() {
         let total = await this.getTotal()
         renderElement(this.expenseInstanceTotalTarget, await generateFromFilePath('_parts/_components/_matrix_section_total.html', total))
+    }
+
+    async expenseInstanceMemberTotalLoad() {
+        if (GROUP_ID === this.uidValue) {
+            return
+        }
+        let total = await this.getMemberTotal()
+        renderElement(this.expenseInstanceMemberTotalTarget, await generateFromFilePath('_parts/_components/_matrix_section_total_per_member.html', total))
     }
 
     async expenseGroupInstanceListLoad() {
@@ -622,6 +638,7 @@ Stimulus.register("matrix-section", class extends Controller {
         this.expenseGroupInstanceListLoad()
         this.expenseInstanceGroupTotalLoad()
         this.expenseInstanceTotalLoad()
+        this.expenseInstanceMemberTotalLoad()
     }
 })
 
