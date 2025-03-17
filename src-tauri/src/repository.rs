@@ -200,6 +200,10 @@ pub fn update_expense(
     );
 }
 
+fn parse_s_or_none(s: &str) -> Option<String> {
+    s.trim().parse().ok()
+}
+
 fn parse_f_or_none(s: &str) -> Option<f32> {
     s.trim().parse().ok()
 }
@@ -215,16 +219,19 @@ fn parse_i_or_none(s: &str) -> Option<i32> {
     }
 }
 
-pub fn update_expense_instance(uid_expense_instance: &str, unit_price: &str, units: &str, rate: &str) {
+pub fn update_expense_instance(uid_expense_instance: &str, unit_price: &str, units: &str, rate: &str, comments: &str) {
     let conn = get_connection().expect("Cannot get connection");
 
     let unit_price_f32 = parse_f_or_none(unit_price);
     let units_i32 = parse_i_or_none(units).and_then(|value| if 0 == value { None } else { Some(value) });
     let rate_f32 = parse_f_or_none(rate);
+    let comments_s = parse_s_or_none(comments);
+
+    println!("{}", comments);
 
     execute_write_sql(
-        "UPDATE expenses_instances SET units = ?1, unit_price = ?2, rate = ?3 WHERE uid = ?4",
-        params!(units_i32, unit_price_f32, rate_f32, uid_expense_instance), 
+        "UPDATE expenses_instances SET units = ?1, unit_price = ?2, rate = ?3, comments=?4 WHERE uid = ?5",
+        params!(units_i32, unit_price_f32, rate_f32, comments_s, uid_expense_instance), 
         &conn
     );
 }
@@ -462,7 +469,7 @@ pub fn get_total_per_member(section_uid: &str) -> SumExpenseInstance {
     let conn = get_connection().expect("Cannot get connection");
     let results : Vec <SumExpenseInstance> = execute_read_sql("SELECT ROUND(SUM(sum_group_applyed_unit_price),2) AS sum_group_applyed_unit_price, ROUND(SUM(sum_group_applyed_total_price),2) AS sum_group_applyed_total_price FROM 
 (
-    SELECT SUM(total_applyed_price / expenses_units) AS sum_group_applyed_unit_price, ROUND(SUM(total_applyed_price),2) AS sum_group_applyed_total_price
+    SELECT SUM(total_applyed_price / expenses_units) AS sum_group_applyed_unit_price, SUM(total_applyed_price) AS sum_group_applyed_total_price
     FROM view_calculated_expenses_sections_instances
     WHERE uid_section = ?1
 UNION ALL    

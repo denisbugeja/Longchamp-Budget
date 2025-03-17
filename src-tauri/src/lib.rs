@@ -108,8 +108,14 @@ fn get_members_count(section_uid: &str) -> i32 {
 }
 
 #[tauri::command]
-fn update_expense_instance(uid_expense_instance: &str, unit_price: &str, units: &str, rate: &str) {
-    repository::update_expense_instance(uid_expense_instance, unit_price, units, rate);
+fn update_expense_instance(
+    uid_expense_instance: &str,
+    unit_price: &str,
+    units: &str,
+    rate: &str,
+    comments: &str,
+) {
+    repository::update_expense_instance(uid_expense_instance, unit_price, units, rate, comments);
 }
 
 #[tauri::command]

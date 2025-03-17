@@ -48,4 +48,14 @@
         Total:<br />
         <strong>{{ total_applyed_price }}</strong>
     </div>
+    <div class="w-100">
+        Commentaires<br />
+        <textarea
+            class="w-100"
+            data-action="change->matrix-expense-instance#updateExpenseInstance"
+            data-matrix-expense-instance-target="comments"
+        >
+{{ comments }}</textarea
+        >
+    </div>
 </div>

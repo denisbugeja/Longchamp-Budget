@@ -9,7 +9,7 @@ import { Application, Controller } from "/stimulus.min.js"
 function renderTemplate(templateString, data) {
     return templateString.replace(/{{(.*?)}}/g, (match, p1) => {
         const key = p1.trim()
-        return data[key] !== undefined ? data[key] : match
+        return data[key] !== undefined ? data[key] ?? '' : match
     });
 }
 
@@ -643,7 +643,7 @@ Stimulus.register("matrix-section", class extends Controller {
 })
 
 Stimulus.register("matrix-expense-instance", class extends Controller {
-    static targets = ["unitPrice", "units", "rate"]
+    static targets = ["unitPrice", "units", "rate", "comments"]
     static outlets = ["matrix-section"]
     static values = {
         uid: String
@@ -653,11 +653,15 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
         if (!this.validate()) {
             return;
         }
+
+        console.log(this.commentsTarget)
+
         await invoke("update_expense_instance", {
             uidExpenseInstance: this.uidValue,
             unitPrice: this.unitPriceTarget.value,
             units: this.unitsTarget.value,
             rate: this.rateTarget.value,
+            comments: this.commentsTarget.value,
         })
         await this.matrixSectionOutlet.triggerGlobalRefresh()
     }
