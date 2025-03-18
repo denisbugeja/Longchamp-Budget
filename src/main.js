@@ -605,7 +605,6 @@ Stimulus.register("matrix-section", class extends Controller {
         }
 
         let groupExpenseInstanceList = await this.getGroupUsedExpenseList()
-        console.log(groupExpenseInstanceList)
         renderElement(this.expenseGroupInstanceListTarget, await generateFromFilePath('_parts/_components/_matrix_section_group_expense_instance.html', groupExpenseInstanceList))
     }
 
@@ -653,8 +652,6 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
         if (!this.validate()) {
             return;
         }
-
-        console.log(this.commentsTarget)
 
         await invoke("update_expense_instance", {
             uidExpenseInstance: this.uidValue,
