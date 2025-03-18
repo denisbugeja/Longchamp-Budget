@@ -226,9 +226,7 @@ pub fn update_expense_instance(uid_expense_instance: &str, unit_price: &str, uni
     let units_i32 = parse_i_or_none(units).and_then(|value| if 0 == value { None } else { Some(value) });
     let rate_f32 = parse_f_or_none(rate);
     let comments_s = parse_s_or_none(comments);
-
-    println!("{}", comments);
-
+    
     execute_write_sql(
         "UPDATE expenses_instances SET units = ?1, unit_price = ?2, rate = ?3, comments=?4 WHERE uid = ?5",
         params!(units_i32, unit_price_f32, rate_f32, comments_s, uid_expense_instance), 
