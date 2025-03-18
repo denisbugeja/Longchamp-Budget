@@ -3,12 +3,6 @@ mod helper;
 mod repository;
 
 #[tauri::command]
-fn greet(name: &str) -> String {
-    println!("Message from Rust: {}", name);
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
-#[tauri::command]
 fn update_db_path(path: &str) {
     repository::update_db_file_path(path);
 }
@@ -149,7 +143,6 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
-            greet,
             update_db_path,
             section_list_load,
             insert_new_section,

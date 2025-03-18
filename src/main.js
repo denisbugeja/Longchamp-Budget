@@ -1,6 +1,6 @@
 // System import
 const { invoke } = window.__TAURI__.core
-const { open, save } = window.__TAURI__.dialog;
+const { open, save } = window.__TAURI__.dialog
 const GROUP_ID = 'group'
 
 // JS import
@@ -9,8 +9,8 @@ import { Application, Controller } from "/stimulus.min.js"
 function renderTemplate(templateString, data) {
     return templateString.replace(/{{(.*?)}}/g, (match, p1) => {
         const key = p1.trim()
-        return data[key] !== undefined ? data[key] ?? '' : match
-    });
+        return data[key] ?? ''
+    })
 }
 
 function getSelector(element) {
@@ -73,19 +73,19 @@ function escapeHtmlAttribute(str) {
     return str.toString().replace(/["'&<>]/g, function (char) {
         switch (char) {
             case '"':
-                return '&quot;';
+                return '&quot;'
             case "'":
-                return '&#39;';
+                return '&#39;'
             case '&':
-                return '&amp;';
+                return '&amp;'
             case '<':
-                return '&lt;';
+                return '&lt;'
             case '>':
-                return '&gt;';
+                return '&gt;'
             default:
-                return char;
+                return char
         }
-    });
+    })
 }
 
 window.Stimulus = Application.start()
@@ -117,11 +117,6 @@ Stimulus.register("budget", class extends Controller {
         if (file) {
             await invoke("update_db_path", { path: file })
         }
-    }
-
-    async formSubmit(e) {
-        e.preventDefault()
-        renderElement(this.messageTarget, await invoke("greet", { name: this.textInputTarget.value }))
     }
 
     loadExpenses(e) {
@@ -160,7 +155,7 @@ Stimulus.register("section", class extends Controller {
     async create(e) {
         e.preventDefault()
         if (!this.validateSection()) {
-            return;
+            return
         }
         await invoke("insert_new_section", { title: this.titleTarget.value, color: this.colorTarget.value })
         this.titleTarget.value = ''
@@ -616,7 +611,7 @@ Stimulus.register("matrix-section", class extends Controller {
     async updateMemberCount(e) {
         let targetValue = e.target.value
         if (!this.validateMemberCount(targetValue)) {
-            return;
+            return
         }
         await invoke("update_members_count", { uid: this.uidValue, membersCount: targetValue })
         this.triggerGlobalRefresh()
@@ -650,7 +645,7 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
 
     async updateExpenseInstance() {
         if (!this.validate()) {
-            return;
+            return
         }
 
         await invoke("update_expense_instance", {
