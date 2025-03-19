@@ -1,4 +1,7 @@
-<div data-controller="section">
+<div
+    data-controller="section"
+    data-section-budget-outlet="[data-controller='budget']"
+>
     <div data-section-target="sectionList" class="py-4"></div>
     <div>
         <form
@@ -7,7 +10,7 @@
             data-action="submit->section#create"
         >
             <div class="row p-4">
-                <div class="col-8">
+                <div class="col-5">
                     <div class="input-group">
                         <span class="input-group-text">Nom</span>
                         <input
@@ -16,6 +19,20 @@
                             placeholder="Saisis ici le nom de la section/pôle/section"
                             title="Tu dois saisir le nom de la section/pôle/section"
                             data-section-target="title"
+                            required="required"
+                        />
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="input-group">
+                        <span class="input-group-text">Membres</span>
+                        <input
+                            class="form-control text-end"
+                            type="number"
+                            min="0"
+                            step="1"
+                            data-section-target="sectionMembersCount"
+                            value="0"
                             required="required"
                         />
                     </div>

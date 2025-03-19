@@ -15,8 +15,8 @@ fn section_list_load() -> String {
 }
 
 #[tauri::command]
-fn insert_new_section(title: &str, color: &str) {
-    repository::insert_new_section(title, color);
+fn insert_new_section(title: &str, color: &str, members_count: i32) {
+    repository::insert_new_section(title, color, members_count);
 }
 
 #[tauri::command]
@@ -25,8 +25,8 @@ fn delete_section(uid: &str) {
 }
 
 #[tauri::command]
-fn update_section(uid: &str, title: &str, color: &str) {
-    repository::update_section(uid, title, color);
+fn update_section(uid: &str, title: &str, color: &str, members_count: i32) {
+    repository::update_section(uid, title, color, members_count);
 }
 
 // Expense part
@@ -113,6 +113,12 @@ fn update_expense_instance(
 }
 
 #[tauri::command]
+fn delete_expense_instance(uid_expense_instance: &str) {
+    repository::delete_expense_instance(uid_expense_instance);
+}
+
+
+#[tauri::command]
 fn get_group_calculated_expenses() -> String {
     helper::vec_to_json(repository::get_group_calculated_expenses())
 }
@@ -161,6 +167,7 @@ pub fn run() {
             get_section_expense_from_expenses_instances_section,
             get_members_count,
             update_expense_instance,
+            delete_expense_instance,
             get_group_calculated_expenses,
             get_group_sum_calculated_expenses,
             get_group_only_sum_calculated_expenses,

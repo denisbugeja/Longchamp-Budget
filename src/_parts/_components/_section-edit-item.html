@@ -6,7 +6,7 @@
     data-section-edit-section-outlet="[data-controller='section']"
 >
     <div class="row px-4 py-1">
-        <div class="col-8">
+        <div class="col-5">
             <div class="input-group">
                 <span class="input-group-text">Nom</span>
                 <input
@@ -18,6 +18,21 @@
                     required="required"
                     value="{{ title }}"
                     data-action="change->section-edit#update"
+                />
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="input-group">
+                <span class="input-group-text">Membres</span>
+                <input
+                    class="form-control text-end"
+                    type="number"
+                    min="0"
+                    step="1"
+                    data-section-edit-target="sectionMembersCount"
+                    data-action="change->section-edit#update"
+                    value="{{ members_count }}"
+                    required="required"
                 />
             </div>
         </div>

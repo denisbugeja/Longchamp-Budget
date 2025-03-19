@@ -6,10 +6,10 @@ const GROUP_ID = 'group'
 // JS import
 import { Application, Controller } from "/stimulus.min.js"
 
-function renderTemplate(templateString, data) {
+function renderTemplate(templateString, data, raw = false) {
     return templateString.replace(/{{(.*?)}}/g, (match, p1) => {
         const key = p1.trim()
-        return data[key] ?? ''
+        return raw ? data[key] ?? '' : escapeHtmlAttribute(data[key] ?? '')
     })
 }
 
@@ -58,11 +58,11 @@ async function fetchPart(htmlPart) {
     return result
 }
 
-async function generateFromFilePath(filePathString, data) {
+async function generateFromFilePath(filePathString, data, raw = false) {
     let strPrototype = await fetchPart(filePathString)
     return Array.isArray(data) ?
-        data.map((obj) => renderTemplate(strPrototype, obj)).join('') :
-        renderTemplate(strPrototype, data)
+        data.map((obj) => renderTemplate(strPrototype, obj, raw)).join('') :
+        renderTemplate(strPrototype, data, raw)
 }
 
 async function loadPart(htmlPart, target) {
@@ -119,22 +119,23 @@ Stimulus.register("budget", class extends Controller {
         }
     }
 
-    loadExpenses(e) {
+    loadExpenses() {
         loadPart('_parts/_windows/_expenses.html', this.mainTarget)
     }
 
-    loadSections(e) {
+    loadSections() {
         loadPart('_parts/_windows/_sections.html', this.mainTarget)
     }
 
-    loadMatrix(e) {
+    loadMatrix() {
         loadPart('_parts/_windows/_matrix.html', this.mainTarget)
     }
 })
 
 
 Stimulus.register("section", class extends Controller {
-    static targets = ['title', 'color', 'sectionList']
+    static targets = ['title', 'color', 'sectionList', 'sectionMembersCount']
+    static outlets = ["budget"]
 
     connect() {
     }
@@ -154,13 +155,11 @@ Stimulus.register("section", class extends Controller {
 
     async create(e) {
         e.preventDefault()
-        if (!this.validateSection()) {
+        if (!this.validate()) {
             return
         }
-        await invoke("insert_new_section", { title: this.titleTarget.value, color: this.colorTarget.value })
-        this.titleTarget.value = ''
-        this.colorTarget.value = ''
-        this.sectionListLoad()
+        await invoke("insert_new_section", { title: this.titleTarget.value, color: this.colorTarget.value, membersCount: parseInt(this.sectionMembersCountTarget.value) })
+        this.budgetOutlet.loadSections()
     }
 
     async sectionListLoad() {
@@ -170,32 +169,37 @@ Stimulus.register("section", class extends Controller {
             return
         }
 
-        sectionList = sectionList.map((section) => {
-            section.title = escapeHtmlAttribute(section.title)
-            section.color = escapeHtmlAttribute(section.color)
-            return section
-        })
-
         renderElement(this.sectionListTarget, await generateFromFilePath('_parts/_components/_section-edit-item.html', sectionList))
     }
 
-    validateSection() {
-        return '' !== this.titleTarget.value.trim() && '' !== this.colorTarget.value.trim()
+    validateTitle() {
+        return '' !== this.titleTarget.value.trim()
+    }
+
+    validateColor() {
+        return '' !== this.colorTarget.value.trim()
+    }
+
+    validateMembers() {
+        return '' !== this.sectionMembersCountTarget.value.trim()
+            && !isNaN(this.sectionMembersCountTarget.value)
+    }
+
+    validate() {
+        return this.validateTitle()
+            && this.validateColor()
+            && this.validateMembers()
     }
 })
 
 Stimulus.register("section-edit", class extends Controller {
-    static targets = ['title', 'color', 'delete']
+    static targets = ['title', 'color', 'delete', 'sectionMembersCount']
     static outlets = ["section"]
     static values = {
         uid: String
     }
 
     used = null
-
-    async connect() {
-        this.deleteTarget.disabled = this.uidValue == GROUP_ID || await this.isUsed()
-    }
 
     async isUsed() {
         if (null === this.used) {
@@ -208,6 +212,16 @@ Stimulus.register("section-edit", class extends Controller {
         return this.used
     }
 
+    async deleteTargetConnected() {
+        this.deleteTarget.disabled = this.uidValue == GROUP_ID || await this.isUsed()
+    }
+
+    sectionMembersCountTargetConnected() {
+        if (GROUP_ID === this.uidValue) {
+            this.sectionMembersCountTarget.setAttribute('readonly', 'readonly')
+        }
+    }
+
     submit(e) {
         e.preventDefault()
     }
@@ -216,7 +230,8 @@ Stimulus.register("section-edit", class extends Controller {
         if (!this.validate()) {
             return
         }
-        invoke("update_section", { uid: this.uidValue, title: this.titleTarget.value.trim(), color: this.colorTarget.value.trim() })
+        invoke("update_section", { uid: this.uidValue, title: this.titleTarget.value.trim(), color: this.colorTarget.value.trim(), membersCount: parseInt(this.sectionMembersCountTarget.value) })
+        this.sectionOutlet.sectionListLoad()
     }
 
     async delete(e) {
@@ -228,8 +243,23 @@ Stimulus.register("section-edit", class extends Controller {
         this.sectionOutlet.sectionListLoad()
     }
 
+    validateTitle() {
+        return '' !== this.titleTarget.value.trim()
+    }
+
+    validateColor() {
+        return '' !== this.colorTarget.value.trim()
+    }
+
+    validateMembers() {
+        return '' !== this.sectionMembersCountTarget.value.trim()
+            && !isNaN(this.sectionMembersCountTarget.value)
+    }
+
     validate() {
-        return '' !== this.titleTarget.value.trim() && '' !== this.colorTarget.value.trim()
+        return this.validateTitle()
+            && this.validateColor()
+            && this.validateMembers()
     }
 })
 
@@ -312,22 +342,16 @@ Stimulus.register("expense", class extends Controller {
             return
         }
 
-        let sectionList = (await this.getSectionList()).map((section) => {
-            section.title = escapeHtmlAttribute(section.title)
-            return section
-        })
+        let sectionList = await this.getSectionList()
 
         const sectionCheckboxListHtml = await generateFromFilePath('_parts/_components/_expense-edit-item-sections.html', sectionList)
 
         expenseList = expenseList.map((expense) => {
-            expense.title = escapeHtmlAttribute(expense.title)
-            expense.description = escapeHtmlAttribute(expense.description)
-            expense.rate = escapeHtmlAttribute(expense.rate)
-            expense.unit_price = escapeHtmlAttribute(expense.unit_price)
             expense.section_list_html = sectionCheckboxListHtml
             return expense
         })
-        renderElement(this.expenseListTarget, await generateFromFilePath('_parts/_components/_expense-edit-item.html', expenseList))
+
+        renderElement(this.expenseListTarget, await generateFromFilePath('_parts/_components/_expense-edit-item.html', expenseList, true))
     }
 
     hasAtLeastOneSectionChecked() {
@@ -483,12 +507,6 @@ Stimulus.register("matrix", class extends Controller {
             return
         }
 
-        sectionList = sectionList.map((section) => {
-            section.title = escapeHtmlAttribute(section.title)
-            section.color = escapeHtmlAttribute(section.color)
-            return section
-        })
-
         renderElement(this.sectionListTarget, await generateFromFilePath('_parts/_components/_matrix_section.html', sectionList))
     }
 
@@ -568,6 +586,9 @@ Stimulus.register("matrix-section", class extends Controller {
 
     async loadSectionMembersCount() {
         this.sectionMemberCountTarget.value = await this.getMembersCount()
+        if (GROUP_ID === this.uidValue) {
+            this.sectionMemberCountTarget.setAttribute('readonly', 'readonly')
+        }
     }
 
     async expenseInstanceListLoad() {
@@ -641,6 +662,11 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
     static outlets = ["matrix-section"]
     static values = {
         uid: String
+    }
+
+    deleteExpenseInstance() {
+        invoke("delete_expense_instance", { uidExpenseInstance: this.uidValue })
+        this.matrixSectionOutlet.triggerGlobalRefresh()
     }
 
     async updateExpenseInstance() {

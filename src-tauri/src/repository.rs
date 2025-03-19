@@ -1,8 +1,9 @@
 use crate::helper::{CalculatedExpense, Expense, Section, SectionExpense, SumExpenseInstance};
 use lazy_static::lazy_static;
 use rusqlite::{params, Connection, Result, Row};
-use std::sync::RwLock;
+use std::{path::absolute, sync::RwLock};
 use uuid::Uuid;
+use std::num;
 
 lazy_static! {
     static ref GLOBAL_FILE_PATH: RwLock<String> = RwLock::new(String::from(""));
@@ -22,11 +23,11 @@ pub fn update_db_file_path(path: &str) {
     execute_migrations(conn);
 }
 
-pub fn insert_new_section(title: &str, color: &str) {
+pub fn insert_new_section(title: &str, color: &str, members_count: i32) {
     let conn = get_connection().expect("Cannot get connection");
     execute_write_sql(
-        "INSERT INTO sections (uid, title, color, position) VALUES (?1, ?2, ?3, 0)",
-        params!(Uuid::new_v4().to_string(), title, color),
+        "INSERT INTO sections (uid, title, color, members_count, position) VALUES (?1, ?2, ?3, ?4, 0)",
+        params!(Uuid::new_v4().to_string(), title, color, members_count.abs()),
         &conn,
     );
 }
@@ -99,11 +100,11 @@ pub fn delete_section(uid: &str) {
     let _ = tx.commit().expect("Failed to commit transaction");
 }
 
-pub fn update_section(uid: &str, title: &str, color: &str) {
+pub fn update_section(uid: &str, title: &str, color: &str, members_count: i32) {
     let conn = get_connection().expect("Cannot get connection");
     execute_write_sql(
-        "UPDATE sections SET title = ?1, color = ?2 WHERE uid = ?3",
-        params!(title, color, uid),
+        "UPDATE sections SET title = ?1, color = ?2, members_count=?3 WHERE uid = ?4",
+        params!(title, color, members_count.abs(), uid),
         &conn,
     );
 }
@@ -113,7 +114,7 @@ pub fn update_members_count(uid: &str, members_count: &str) {
     let members_count_i32: i32 = members_count.parse().expect("Failed to parse rate as i32");
     execute_write_sql(
         "UPDATE sections SET members_count = ?1 WHERE uid = ?2",
-        params!(members_count_i32, uid),
+        params!(members_count_i32.abs(), uid),
         &conn,
     );
 }
@@ -230,6 +231,16 @@ pub fn update_expense_instance(uid_expense_instance: &str, unit_price: &str, uni
     execute_write_sql(
         "UPDATE expenses_instances SET units = ?1, unit_price = ?2, rate = ?3, comments=?4 WHERE uid = ?5",
         params!(units_i32, unit_price_f32, rate_f32, comments_s, uid_expense_instance), 
+        &conn
+    );
+}
+
+pub fn delete_expense_instance(uid_expense_instance: &str) {
+    let conn = get_connection().expect("Cannot get connection");
+    
+    execute_write_sql(
+        "DELETE FROM expenses_instances WHERE uid = ?1",
+        params!(uid_expense_instance), 
         &conn
     );
 }
