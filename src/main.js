@@ -518,7 +518,7 @@ Stimulus.register("matrix", class extends Controller {
 })
 
 Stimulus.register("matrix-section", class extends Controller {
-    static targets = ['expenseList', 'expenseInstanceList', 'expenseGroupInstanceList', 'sectionMemberCount', 'expenseInstanceGroupTotal', 'expenseInstanceTotal', 'expenseInstanceMemberTotal']
+    static targets = ['expenseList', 'expenseInstanceList', 'expenseGroupInstanceList', 'sectionMembersCount', 'expenseInstanceGroupTotal', 'expenseInstanceTotal', 'expenseInstanceMemberTotal']
     static outlets = ["matrix"]
     static values = {
         uid: String
@@ -557,7 +557,7 @@ Stimulus.register("matrix-section", class extends Controller {
         await this.expenseListLoad()
     }
 
-    async sectionMemberCountTargetConnected() {
+    async sectionMembersCountTargetConnected() {
         await this.loadSectionMembersCount()
     }
 
@@ -587,9 +587,9 @@ Stimulus.register("matrix-section", class extends Controller {
     }
 
     async loadSectionMembersCount() {
-        this.sectionMemberCountTarget.value = await this.getMembersCount()
+        this.sectionMembersCountTarget.value = await this.getMembersCount()
         if (GROUP_ID === this.uidValue) {
-            this.sectionMemberCountTarget.setAttribute('readonly', 'readonly')
+            this.sectionMembersCountTarget.setAttribute('readonly', 'readonly')
         }
     }
 
@@ -631,17 +631,18 @@ Stimulus.register("matrix-section", class extends Controller {
         this.triggerGlobalRefresh()
     }
 
-    async updateMemberCount(e) {
-        let targetValue = e.target.value
-        if (!this.validateMemberCount(targetValue)) {
+    async updateMembersCount(e) {
+        if (!this.validateMemberCount()) {
             return
         }
-        await invoke("update_members_count", { uid: this.uidValue, membersCount: targetValue })
+        await invoke("update_members_count", { uid: this.uidValue, membersCount: parseInt(this.sectionMembersCountTarget.value) })
         this.triggerGlobalRefresh()
     }
 
-    validateMemberCount(targetValue) {
-        return !isNaN(targetValue) && targetValue >= 0
+    validateMemberCount() {
+        return '' !== this.sectionMembersCountTarget.value.trim()
+            && !isNaN(this.sectionMembersCountTarget.value)
+            && this.sectionMembersCountTarget.value >= 0
     }
 
     async triggerGlobalRefresh() {

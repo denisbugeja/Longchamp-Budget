@@ -82,7 +82,7 @@ fn delete_expense(uid: &str) {
 }
 
 #[tauri::command]
-fn update_members_count(uid: &str, members_count: &str) {
+fn update_members_count(uid: &str, members_count: i32) {
     repository::update_members_count(uid, members_count);
 }
 
@@ -116,7 +116,6 @@ fn update_expense_instance(
 fn delete_expense_instance(uid_expense_instance: &str) {
     repository::delete_expense_instance(uid_expense_instance);
 }
-
 
 #[tauri::command]
 fn get_group_calculated_expenses() -> String {

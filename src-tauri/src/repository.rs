@@ -108,12 +108,11 @@ pub fn update_section(uid: &str, title: &str, color: &str, members_count: i32) {
     );
 }
 
-pub fn update_members_count(uid: &str, members_count: &str) {
+pub fn update_members_count(uid: &str, members_count: i32) {
     let conn = get_connection().expect("Cannot get connection");
-    let members_count_i32: i32 = members_count.parse().expect("Failed to parse rate as i32");
     execute_write_sql(
         "UPDATE sections SET members_count = ?1 WHERE uid = ?2",
-        params!(members_count_i32.abs(), uid),
+        params!(members_count.abs(), uid),
         &conn,
     );
 }
