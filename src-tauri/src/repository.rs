@@ -1,9 +1,8 @@
 use crate::helper::{CalculatedExpense, Expense, Section, SectionExpense, SumExpenseInstance};
 use lazy_static::lazy_static;
 use rusqlite::{params, Connection, Result, Row};
-use std::{path::absolute, sync::RwLock};
+use std::{sync::RwLock};
 use uuid::Uuid;
-use std::num;
 
 lazy_static! {
     static ref GLOBAL_FILE_PATH: RwLock<String> = RwLock::new(String::from(""));
