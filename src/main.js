@@ -91,7 +91,7 @@ function escapeHtmlAttribute(str) {
 window.Stimulus = Application.start()
 
 Stimulus.register("budget", class extends Controller {
-    static targets = ['textInput', 'message', 'main']
+    static targets = ['textInput', 'message', 'main', 'links']
 
     connect() {
     }
@@ -105,6 +105,7 @@ Stimulus.register("budget", class extends Controller {
 
         if (file) {
             await invoke("update_db_path", { path: file })
+            this.linksTarget.classList.remove('d-none')
         }
     }
 
@@ -116,6 +117,7 @@ Stimulus.register("budget", class extends Controller {
 
         if (file) {
             await invoke("update_db_path", { path: file })
+            this.linksTarget.classList.remove('d-none')
         }
     }
 
