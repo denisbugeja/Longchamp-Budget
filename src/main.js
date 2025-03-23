@@ -40,11 +40,15 @@ function getSelector(element) {
 }
 
 function renderElement(element, content) {
-    var focusedElement = document.activeElement,
-        focusedElementString = (focusedElement) ? getSelector(focusedElement) : ''
+    let focusedElement = document.activeElement,
+        focusedElementString = (focusedElement) ? getSelector(focusedElement) : '',
+        targetElement = null
     element.innerHTML = content
     if ('' !== focusedElementString) {
-        document.querySelector(focusedElementString).focus()
+        targetElement = document.querySelector(focusedElementString)
+        if (null !== targetElement) {
+            targetElement.focus()
+        }
     }
 }
 
@@ -186,17 +190,9 @@ Stimulus.register("section-edit", class extends Controller {
         uid: String
     }
 
-    used = null
-
     async isUsed() {
-        if (null === this.used) {
-            const usedSectionExpense = await this.sectionOutlet.getUsedSectionExpense(),
-                sectionUid = this.uidValue,
-                usedSectionList = (usedSectionExpense).filter((sectionExpense) => sectionExpense.uid_section == sectionUid)
-
-            this.used = 0 !== usedSectionList.length
-        }
-        return this.used
+        let expenseList = JSON.parse(await invoke("get_section_expense_from_expenses_instances_section", { sectionUid: this.uidValue })) ?? []
+        return (0 !== expenseList.length && 0 < (expenseList[0].count ?? 0))
     }
 
     async deleteTargetConnected() {
