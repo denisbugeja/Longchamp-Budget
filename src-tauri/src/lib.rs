@@ -118,6 +118,11 @@ fn delete_expense_instance(uid_expense_instance: &str) {
 }
 
 #[tauri::command]
+fn copy_expense_instance(uid_expense_instance: &str) {
+    repository::copy_expense_instance(uid_expense_instance);
+}
+
+#[tauri::command]
 fn get_group_calculated_expenses() -> String {
     helper::vec_to_json(repository::get_group_calculated_expenses())
 }
@@ -167,6 +172,7 @@ pub fn run() {
             get_members_count,
             update_expense_instance,
             delete_expense_instance,
+            copy_expense_instance,
             get_group_calculated_expenses,
             get_group_sum_calculated_expenses,
             get_group_only_sum_calculated_expenses,

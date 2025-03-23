@@ -60,12 +60,21 @@
     </div>
     <div class="w-100">
         <button
-        type="button"
-        class="btn btn-outline-danger text-align-center px-1"
-        title="Supprimer"
-        data-action="click->matrix-expense-instance#deleteExpenseInstance"
-    >
-        <i class="bi bi-trash"></i>
-    </button>
+            type="button"
+            class="btn btn-outline-danger text-align-center px-1"
+            title="Supprimer"
+            data-action="click->matrix-expense-instance#deleteExpenseInstance"
+        >
+            <i class="bi bi-trash"></i>
+        </button>
+
+        <button
+            type="button"
+            class="btn btn-outline-secondary text-align-center px-1"
+            title="Dupliquer"
+            data-action="click->matrix-expense-instance#copyExpenseInstance"
+        >
+            <i class="bi bi-copy"></i>
+        </button>
     </div>
 </div>

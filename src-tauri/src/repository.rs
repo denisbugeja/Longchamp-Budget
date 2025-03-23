@@ -243,6 +243,16 @@ pub fn delete_expense_instance(uid_expense_instance: &str) {
     );
 }
 
+pub fn copy_expense_instance(uid_expense_instance: &str) {
+    let conn = get_connection().expect("Cannot get connection");
+
+    execute_write_sql(
+        "INSERT INTO  expenses_instances (uid, uid_expense, uid_section, comments, units, unit_price, rate) SELECT ?1 AS uid, uid_expense, uid_section, comments, units, unit_price, rate FROM expenses_instances WHERE uid = ?2",
+        params!(Uuid::new_v4().to_string(), uid_expense_instance), 
+        &conn
+    );
+}
+
 pub fn update_expense_section_association(uid_expense: &str, section_list: Vec<&str>) {
     let mut conn = get_connection().expect("Cannot get connection");
     let sections_used_as_instances: Vec<SectionExpense> =

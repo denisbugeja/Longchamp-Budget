@@ -657,6 +657,11 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
         this.matrixSectionOutlet.triggerGlobalRefresh()
     }
 
+    copyExpenseInstance() {
+        invoke("copy_expense_instance", { uidExpenseInstance: this.uidValue })
+        this.matrixSectionOutlet.triggerGlobalRefresh()
+    }
+
     async updateExpenseInstance() {
         if (!this.validate()) {
             return
