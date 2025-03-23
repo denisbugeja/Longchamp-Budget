@@ -70,22 +70,7 @@ async function loadPart(htmlPart, target) {
 }
 
 function escapeHtmlAttribute(str) {
-    return str.toString().replace(/["'&<>]/g, function (char) {
-        switch (char) {
-            case '"':
-                return '&quot;'
-            case "'":
-                return '&#39;'
-            case '&':
-                return '&amp;'
-            case '<':
-                return '&lt;'
-            case '>':
-                return '&gt;'
-            default:
-                return char
-        }
-    })
+    return str.toString().replace(/["'&<>]/g, (char) => ({ '"': '&quot;', "'": '&#39;', '&': '&amp;', '<': '&lt;', '>': '&gt;' }[char] ?? char))
 }
 
 window.Stimulus = Application.start()
