@@ -325,16 +325,7 @@ Stimulus.register("expense", class extends Controller {
             return
         }
 
-        let sectionList = await this.getSectionList()
-
-        const sectionCheckboxListHtml = await generateFromFilePath('_parts/_components/_expense-edit-item-sections.html', sectionList)
-
-        expenseList = expenseList.map((expense) => {
-            expense.section_list_html = sectionCheckboxListHtml
-            return expense
-        })
-
-        renderElement(this.expenseListTarget, await generateFromFilePath('_parts/_components/_expense-edit-item.html', expenseList, true))
+        renderElement(this.expenseListTarget, await generateFromFilePath('_parts/_components/_expense-edit-item.html', expenseList))
     }
 
     hasAtLeastOneSectionChecked() {
@@ -373,16 +364,19 @@ Stimulus.register("expense-edit", class extends Controller {
         uid: String
     }
 
-    connect() {
-        console.log(this.uidValue + ' connected')
-    }
-
     used = null
 
+    connect() {
+    }
+
+    async sectionListTargetConnected() {
+        let sectionList = JSON.parse(await invoke("section_list_load"))
+        renderElement(this.sectionListTarget, await generateFromFilePath('_parts/_components/_expense-edit-item-sections.html', sectionList))
+    }
+
+    // TODO Refactoriser disabled et checked
+
     async sectionTargetConnected(element) {
-
-        console.log(this.uidValue + ' target ' + element.value + ' connected')
-
         const sectionUid = element.value,
             expenseUid = this.uidValue,
             associatedSectionExpense = await this.expenseOutlet.getAssociatedSectionExpense(),
