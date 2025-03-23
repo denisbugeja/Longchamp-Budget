@@ -373,9 +373,16 @@ Stimulus.register("expense-edit", class extends Controller {
         uid: String
     }
 
+    connect() {
+        console.log(this.uidValue + ' connected')
+    }
+
     used = null
 
     async sectionTargetConnected(element) {
+
+        console.log(this.uidValue + ' target ' + element.value + ' connected')
+
         const sectionUid = element.value,
             expenseUid = this.uidValue,
             associatedSectionExpense = await this.expenseOutlet.getAssociatedSectionExpense(),
