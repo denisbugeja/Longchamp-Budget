@@ -77,6 +77,13 @@ fn get_section_expense() -> String {
 }
 
 #[tauri::command]
+fn get_section_expense_from_instances(section_uid: &str) -> String {
+    helper::vec_to_json(repository::get_section_expense_from_instances_wrapper(
+        section_uid,
+    ))
+}
+
+#[tauri::command]
 fn delete_expense(uid: &str) {
     repository::delete_expense(uid);
 }
@@ -162,6 +169,7 @@ pub fn run() {
             insert_new_expense,
             get_section_expense_from_expenses_instances,
             get_section_expense,
+            get_section_expense_from_instances,
             update_expense_section_association,
             update_expense,
             delete_expense,

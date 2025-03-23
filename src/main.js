@@ -374,7 +374,7 @@ Stimulus.register("expense-edit", class extends Controller {
         renderElement(this.sectionListTarget, await generateFromFilePath('_parts/_components/_expense-edit-item-sections.html', sectionList))
     }
 
-    // TODO Refactoriser disabled et checked
+    // TODO Refactoriser disabled et checked get_section_expense_from_instances
 
     async sectionTargetConnected(element) {
         const sectionUid = element.value,
