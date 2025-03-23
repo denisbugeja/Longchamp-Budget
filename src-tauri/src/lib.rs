@@ -77,9 +77,9 @@ fn get_section_expense() -> String {
 }
 
 #[tauri::command]
-fn get_section_expense_from_instances(section_uid: &str) -> String {
+fn get_section_expense_from_instances(expense_uid: &str) -> String {
     helper::vec_to_json(repository::get_section_expense_from_instances_wrapper(
-        section_uid,
+        expense_uid,
     ))
 }
 

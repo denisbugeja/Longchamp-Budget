@@ -8,6 +8,25 @@ lazy_static! {
     static ref GLOBAL_FILE_PATH: RwLock<String> = RwLock::new(String::from(""));
 }
 
+fn parse_s_or_none(s: &str) -> Option<String> {
+    s.trim().parse().ok()
+}
+
+fn parse_f_or_none(s: &str) -> Option<f32> {
+    s.trim().parse().ok()
+}
+
+fn parse_i_or_none(s: &str) -> Option<i32> {
+    if let Ok(value) = s.trim().parse::<i32>() {
+        return Some(value);
+    }
+
+    match parse_f_or_none(s) {
+        Some(value) => Some(value.floor() as i32),
+        None => None,
+    }
+}
+
 pub fn get_connection() -> Result<Connection, rusqlite::Error> {
     let file_path = GLOBAL_FILE_PATH
         .read()
@@ -197,25 +216,6 @@ pub fn update_expense(
         params!(title, description, rate_f32, unitprice_f32, 0, uid), 
         &conn
     );
-}
-
-fn parse_s_or_none(s: &str) -> Option<String> {
-    s.trim().parse().ok()
-}
-
-fn parse_f_or_none(s: &str) -> Option<f32> {
-    s.trim().parse().ok()
-}
-
-fn parse_i_or_none(s: &str) -> Option<i32> {
-    if let Ok(value) = s.trim().parse::<i32>() {
-        return Some(value);
-    }
-
-    match parse_f_or_none(s) {
-        Some(value) => Some(value.floor() as i32),
-        None => None,
-    }
 }
 
 pub fn update_expense_instance(uid_expense_instance: &str, unit_price: &str, units: &str, rate: &str, comments: &str) {

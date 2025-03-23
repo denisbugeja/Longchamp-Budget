@@ -366,37 +366,20 @@ Stimulus.register("expense-edit", class extends Controller {
 
     used = null
 
-    connect() {
-    }
-
     async sectionListTargetConnected() {
         let sectionList = JSON.parse(await invoke("section_list_load"))
         renderElement(this.sectionListTarget, await generateFromFilePath('_parts/_components/_expense-edit-item-sections.html', sectionList))
     }
 
-    // TODO Refactoriser disabled et checked get_section_expense_from_instances
+    async sectionTargetConnected(section) {
+        console.log(section.value)
+        let expenseList = JSON.parse(await invoke("get_section_expense_from_instances", { expenseUid: this.uidValue })),
+            isUsed = 0 !== expenseList
+                .filter((sectionExpense) => sectionExpense.uid_expense == this.uidValue && sectionExpense.uid_section == section.value)
+                .length
 
-    async sectionTargetConnected(element) {
-        const sectionUid = element.value,
-            expenseUid = this.uidValue,
-            associatedSectionExpense = await this.expenseOutlet.getAssociatedSectionExpense(),
-            used = await this.isUsed()
-
-        element.disabled = used
-        element.checked = used || 0 != associatedSectionExpense
-            .filter((sectionExpense) => sectionExpense.uid_expense == expenseUid && sectionExpense.uid_section == sectionUid)
-            .length
-    }
-
-    async isUsed() {
-        if (null === this.used) {
-            const usedSectionExpense = await this.expenseOutlet.getUsedSectionExpense(),
-                expenseUid = this.uidValue,
-                usedSectionList = (usedSectionExpense).filter((sectionExpense) => sectionExpense.uid_expense == expenseUid)
-
-            this.used = 0 !== usedSectionList.length
-        }
-        return this.used
+        section.disabled = isUsed
+        section.checked = isUsed
     }
 
     submit(e) {
