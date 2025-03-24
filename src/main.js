@@ -364,7 +364,10 @@ Stimulus.register("expense-edit", class extends Controller {
         uid: String
     }
 
-    used = null
+    async isUsed() {
+        let expenseFromInstance = JSON.parse(await invoke("get_section_expense_from_instances_by_expense", { expenseUid: this.uidValue }))
+        return 0 !== expenseFromInstance.length
+    }
 
     async sectionListTargetConnected() {
         let sectionList = JSON.parse(await invoke("section_list_load"))
@@ -372,14 +375,11 @@ Stimulus.register("expense-edit", class extends Controller {
     }
 
     async sectionTargetConnected(section) {
-        console.log(section.value)
-        let expenseList = JSON.parse(await invoke("get_section_expense_from_instances", { expenseUid: this.uidValue })),
-            isUsed = 0 !== expenseList
-                .filter((sectionExpense) => sectionExpense.uid_expense == this.uidValue && sectionExpense.uid_section == section.value)
-                .length
+        let expenseFromInstance = JSON.parse(await invoke("get_section_expense_from_instance", { sectionUid: section.value, expenseUid: this.uidValue })),
+            expenseFromAssociation = JSON.parse(await invoke("get_section_expense_from_association", { sectionUid: section.value, expenseUid: this.uidValue }))
 
-        section.disabled = isUsed
-        section.checked = isUsed
+        section.disabled = 0 !== expenseFromInstance.length
+        section.checked = 0 !== expenseFromAssociation.length
     }
 
     submit(e) {

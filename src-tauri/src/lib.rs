@@ -77,7 +77,7 @@ fn get_section_expense() -> String {
 }
 
 #[tauri::command]
-fn get_section_expense_from_instances(expense_uid: &str) -> String {
+fn get_section_expense_from_instances_by_expense(expense_uid: &str) -> String {
     helper::vec_to_json(repository::get_section_expense_from_instances_wrapper(
         expense_uid,
     ))
@@ -154,6 +154,22 @@ fn get_total_per_member(section_uid: &str) -> String {
     helper::struct_to_json(repository::get_total_per_member(section_uid))
 }
 
+#[tauri::command]
+fn get_section_expense_from_instance(section_uid: &str, expense_uid: &str) -> String {
+    helper::struct_to_json(repository::get_section_expense_from_instance(
+        section_uid,
+        expense_uid,
+    ))
+}
+
+#[tauri::command]
+fn get_section_expense_from_association(section_uid: &str, expense_uid: &str) -> String {
+    helper::struct_to_json(repository::get_section_expense_from_association(
+        section_uid,
+        expense_uid,
+    ))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -169,7 +185,7 @@ pub fn run() {
             insert_new_expense,
             get_section_expense_from_expenses_instances,
             get_section_expense,
-            get_section_expense_from_instances,
+            get_section_expense_from_instances_by_expense,
             update_expense_section_association,
             update_expense,
             delete_expense,
@@ -185,7 +201,9 @@ pub fn run() {
             get_group_sum_calculated_expenses,
             get_group_only_sum_calculated_expenses,
             get_sum_calculated_expenses,
-            get_total_per_member
+            get_total_per_member,
+            get_section_expense_from_instance,
+            get_section_expense_from_association,
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");

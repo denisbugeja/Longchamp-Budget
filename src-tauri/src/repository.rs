@@ -356,20 +356,67 @@ pub fn get_section_expense() -> Vec<SectionExpense> {
     )
 }
 
-pub fn get_section_expense_from_instances_wrapper(uid: &str)-> Vec<SectionExpense>
-{
+pub fn get_section_expense_from_instance(section_uid: &str, expense_uid: &str) -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
-    get_section_expense_from_instances(uid, &conn)
+    execute_read_sql(
+        "SELECT DISTINCT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense
+        FROM expenses_instances
+        INNER JOIN sections ON expenses_instances.uid_section = sections.uid
+        INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
+        WHERE expenses_instances.uid_section = ?1 
+        AND expenses_instances.uid_expense = ?2",
+        params!(section_uid, expense_uid),
+        |row| {
+            Ok(SectionExpense {
+                uid_section: row.get(0)?,
+                uid_expense: row.get(1)?,
+                title_section: row.get(2)?,
+                title_expense: row.get(3)?,
+                count: 0
+            })
+        },
+        &conn
+    )
 }
 
-fn get_section_expense_from_instances(uid: &str, conn: &Connection) -> Vec<SectionExpense> {
+pub fn get_section_expense_from_association(section_uid: &str, expense_uid: &str) -> Vec<SectionExpense> {
+    let conn = get_connection().expect("Cannot get connection");
+    execute_read_sql(
+        "SELECT DISTINCT expense_section.uid_section, expense_section.uid_expense, sections.title AS title_section, expenses.title AS title_expense
+        FROM expense_section
+        INNER JOIN sections ON expense_section.uid_section = sections.uid
+        INNER JOIN expenses ON expense_section.uid_expense = expenses.uid
+        WHERE expense_section.uid_section = ?1 
+        AND expense_section.uid_expense = ?2",
+        params!(section_uid, expense_uid),
+        |row| {
+            Ok(SectionExpense {
+                uid_section: row.get(0)?,
+                uid_expense: row.get(1)?,
+                title_section: row.get(2)?,
+                title_expense: row.get(3)?,
+                count: 0
+            })
+        },
+        &conn
+    )
+}
+
+
+pub fn get_section_expense_from_instances_wrapper(expense_uid: &str)-> Vec<SectionExpense>
+{
+    let conn = get_connection().expect("Cannot get connection");
+    get_section_expense_from_instances(expense_uid, &conn)
+}
+
+fn get_section_expense_from_instances(expense_uid: &str, conn: &Connection) -> Vec<SectionExpense> {
     execute_read_sql(
         "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense
         FROM expenses_instances
         INNER JOIN sections ON expenses_instances.uid_section = sections.uid
         INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
         WHERE expenses.uid = ?1",
-        params!(uid),
+        params!(expense_uid),
         |row| {
             Ok(SectionExpense {
                 uid_section: row.get(0)?,
