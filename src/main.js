@@ -417,7 +417,7 @@ Stimulus.register("expense-edit", class extends Controller {
 
     async delete(e) {
         if (await this.isUsed()) {
-            alert("Tu ne peux pas supprimer cette dépense.\nElle est déja utilisée à par une section.")
+            alert("Tu ne peux pas supprimer cette dépense.\nElle est déja utilisée par une section.")
             return
         }
         invoke("delete_expense", { uid: this.uidValue })
