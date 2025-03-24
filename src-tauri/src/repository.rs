@@ -21,23 +21,20 @@ fn parse_i_or_none(s: &str) -> Option<i32> {
         return Some(value);
     }
 
-    match parse_f_or_none(s) {
-        Some(value) => Some(value.floor() as i32),
-        None => None,
-    }
+    parse_f_or_none(s).map(|value| value.floor() as i32)
 }
 
 pub fn get_connection() -> Result<Connection, rusqlite::Error> {
     let file_path = GLOBAL_FILE_PATH
         .read()
         .expect("Impossible to read file path variable");
-    Connection::open(String::from(file_path.clone()))
+    Connection::open(file_path.clone())
 }
 
 pub fn update_db_file_path(path: &str) {
     let mut file_path = GLOBAL_FILE_PATH.write().unwrap();
     *file_path = String::from(path);
-    let conn = Connection::open(String::from(file_path.clone())).expect("Unable to open file");
+    let conn = Connection::open(file_path.clone()).expect("Unable to open file");
     execute_migrations(conn);
 }
 
@@ -92,7 +89,7 @@ pub fn delete_section(uid: &str) {
     let count: i32 = execute_read_sql(
         "SELECT COUNT(uid) FROM expenses_instances WHERE uid_section = ?1",
         params!(uid),
-        |row| Ok(row.get(0)?),
+        |row| row.get(0),
         &conn,
     )
     .pop()
@@ -115,7 +112,7 @@ pub fn delete_section(uid: &str) {
     )
     .expect("Failed to add query to transaction");
 
-    let _ = tx.commit().expect("Failed to commit transaction");
+    tx.commit().expect("Failed to commit transaction");
 }
 
 pub fn update_section(uid: &str, title: &str, color: &str, members_count: i32) {
@@ -146,7 +143,7 @@ pub fn insert_new_expense(
 ) {
     let mut conn = get_connection().expect("Cannot get connection");
     let sections_in_db = section_list_from_uid_vec(section_list, &conn);
-    if sections_in_db.len() == 0 {
+    if sections_in_db.is_empty() {
         return;
     }
 
@@ -171,7 +168,7 @@ pub fn insert_new_expense(
         .expect("Failed to add query to transaction");
     }
 
-    let _ = tx.commit().expect("Failed to commit transaction");
+    tx.commit().expect("Failed to commit transaction");
 }
 
 fn section_list_from_uid_vec(section_list: Vec<&str>, conn: &Connection) -> Vec<Section> {
@@ -190,7 +187,7 @@ fn section_list_from_uid_vec(section_list: Vec<&str>, conn: &Connection) -> Vec<
             },
             conn,
         );
-        if sections_in_db.len() > 0 {
+        if !sections_in_db.is_empty() {
             section_list_vec.push(sections_in_db.pop().expect("Impossible to pop section"));
         }
     }
@@ -258,7 +255,7 @@ pub fn update_expense_section_association(uid_expense: &str, section_list: Vec<&
     let sections_used_as_instances: Vec<SectionExpense> =
         get_section_expense_from_instances(uid_expense, &conn);
     let sections_in_db: Vec<Section> = section_list_from_uid_vec(section_list, &conn);
-    if sections_in_db.len() == 0 {
+    if sections_in_db.is_empty() {
         return;
     }
 
@@ -278,7 +275,7 @@ pub fn update_expense_section_association(uid_expense: &str, section_list: Vec<&
         .cloned()
         .collect();
 
-    if diff.len() != 0 {
+    if !diff.is_empty() {
         return;
     }
 
@@ -298,7 +295,7 @@ pub fn update_expense_section_association(uid_expense: &str, section_list: Vec<&
         .expect("Failed to add query to transaction");
     }
 
-    let _ = tx.commit().expect("Failed to commit transaction");
+    tx.commit().expect("Failed to commit transaction");
 }
 
 
@@ -308,7 +305,7 @@ pub fn delete_expense(uid: &str) {
     let count: i32 = execute_read_sql(
         "SELECT COUNT(uid) FROM expenses_instances WHERE uid_expense = ?1",
         params!(uid),
-        |row| Ok(row.get(0)?),
+        |row| row.get(0),
         &conn,
     )
     .pop()
@@ -330,7 +327,7 @@ pub fn delete_expense(uid: &str) {
     tx.execute("DELETE FROM expenses WHERE uid = ?1", params!(uid))
         .expect("Failed to add query to transaction");
 
-    let _ = tx.commit().expect("Failed to commit transaction");
+    tx.commit().expect("Failed to commit transaction");
 }
 
 pub fn execute_write_sql<T: rusqlite::Params>(sql: &str, params: T, conn: &Connection) {
@@ -382,7 +379,7 @@ fn get_section_expense_from_instances(uid: &str, conn: &Connection) -> Vec<Secti
                 count: 0
             })
         },
-        &conn
+        conn
     )
 }
 
@@ -413,11 +410,11 @@ pub fn get_members_count(section_uid: &str) ->i32 {
         "SELECT members_count FROM sections WHERE uid = ?1",
         params!(section_uid),
         |row| {
-            Ok(row.get(0)?)
+            row.get(0)
         },
         &conn
     );
-    if 0 != member_count_list.len() {
+    if !member_count_list.is_empty() {
         return member_count_list[0];
     }
     0
@@ -628,7 +625,6 @@ where
         .expect("Cannot prepare query")
         .query_map(params, row_closure)
         .expect("Cannot execute query_map")
-        .into_iter()
         .flatten()
         .collect();
     data_iter
