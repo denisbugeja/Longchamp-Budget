@@ -591,11 +591,6 @@ Stimulus.register("matrix-section", class extends Controller {
         renderElement(this.expenseGroupInstanceListTarget, await generateFromFilePath('_parts/_components/_matrix_section_group_expense_instance.html', groupExpenseInstanceList))
     }
 
-    async addExpenseInstance(e) {
-        await invoke("add_expense_instance", { sectionUid: this.uidValue, expenseId: e.target.getAttribute('data-expense-id') })
-        this.triggerGlobalRefresh()
-    }
-
     async updateMembersCount(e) {
         if (!this.validateMemberCount()) {
             return
@@ -622,6 +617,25 @@ Stimulus.register("matrix-section", class extends Controller {
         this.expenseInstanceGroupTotalLoad()
         this.expenseInstanceTotalLoad()
         this.expenseInstanceMemberTotalLoad()
+    }
+})
+
+Stimulus.register("matrix-section-expense", class extends Controller {
+    static targets = ["count"]
+    static outlets = ["matrix-section"]
+    static values = {
+        uidSection: String,
+        uidExpense: String
+    }
+
+    async countTargetConnected() {
+        let expenseFromInstance = JSON.parse(await invoke("get_section_expense_from_instance", { sectionUid: this.uidSectionValue, expenseUid: this.uidExpenseValue }))
+        this.countTarget.innerHTML = expenseFromInstance.length
+    }
+
+    async addExpenseInstance(e) {
+        await invoke("add_expense_instance", { sectionUid: this.uidSectionValue, expenseId: this.uidExpenseValue })
+        this.matrixSectionOutlet.triggerGlobalRefresh()
     }
 })
 

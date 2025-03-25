@@ -359,7 +359,7 @@ pub fn get_section_expense() -> Vec<SectionExpense> {
 pub fn get_section_expense_from_instance(section_uid: &str, expense_uid: &str) -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT DISTINCT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense
+        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense
         FROM expenses_instances
         INNER JOIN sections ON expenses_instances.uid_section = sections.uid
         INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid

@@ -1,10 +1,15 @@
-<div class="row">
+<div
+    class="row"
+    data-controller="matrix-section-expense"
+    data-matrix-section-expense-matrix-section-outlet="[data-matrix-section-uid-value='{{ uid_section }}']"
+    data-matrix-section-expense-uid-section-value="{{ uid_section }}"
+    data-matrix-section-expense-uid-expense-value="{{ uid_expense }}"
+>
     <div
-        data-expense-id="{{ uid_expense }}"
-        data-action="click->matrix-section#addExpenseInstance"
+        data-action="click->matrix-section-expense#addExpenseInstance"
         class="col-10"
     >
         {{ title_expense }}
     </div>
-    <div class="col-2">{{ count }}</div>
+    <div class="col-2" data-matrix-section-expense-target="count">0</div>
 </div>
