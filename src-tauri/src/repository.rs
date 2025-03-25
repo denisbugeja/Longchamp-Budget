@@ -779,7 +779,7 @@ AFTER UPDATE OF members_count ON sections
 FOR EACH ROW
 BEGIN
     UPDATE sections
-    SET members_count = (SELECT SUM(members_count) FROM sections WHERE uid != 'group')
+    SET members_count = (SELECT coalesce(SUM(members_count),0) FROM sections WHERE uid != 'group')
     WHERE uid = 'group';
 END;",
 "CREATE TRIGGER IF NOT EXISTS update_group_members_count_after_insert
@@ -787,7 +787,7 @@ AFTER INSERT ON sections
 FOR EACH ROW
 BEGIN
     UPDATE sections
-    SET members_count = (SELECT SUM(members_count) FROM sections WHERE uid != 'group')
+    SET members_count = (SELECT coalesce(SUM(members_count),0) FROM sections WHERE uid != 'group')
     WHERE uid = 'group';
 END;",
 "CREATE TRIGGER IF NOT EXISTS update_group_members_count_after_delete
@@ -795,7 +795,7 @@ AFTER DELETE ON sections
 FOR EACH ROW
 BEGIN
     UPDATE sections
-    SET members_count = (SELECT SUM(members_count) FROM sections WHERE uid != 'group')
+    SET members_count = (SELECT coalesce(SUM(members_count),0) FROM sections WHERE uid != 'group')
     WHERE uid = 'group';
 END;",
     ];
