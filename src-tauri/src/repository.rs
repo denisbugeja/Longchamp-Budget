@@ -469,15 +469,13 @@ pub fn get_members_count(section_uid: &str) ->i32 {
 
 pub fn get_section_expense_from_expenses_instances_section(section_uid: &str) -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
-    execute_read_sql("SELECT expense_section.uid_section, expense_section.uid_expense, sections.title AS title_section, expenses.title AS title_expense, count(expenses_instances.uid_expense) AS cnt_uid_expense
+    execute_read_sql("SELECT expense_section.uid_section, expense_section.uid_expense, sections.title AS title_section, expenses.title AS title_expense
     FROM expense_section
     INNER JOIN sections ON expense_section.uid_section = sections.uid
     INNER JOIN expenses ON expense_section.uid_expense = expenses.uid
-    LEFT JOIN expenses_instances ON 
-        expense_section.uid_section = expenses_instances.uid_section 
-        AND expense_section.uid_expense = expenses_instances.uid_expense
-    WHERE expense_section.uid_section = ?1
-    GROUP BY expenses_instances.uid_section, expenses_instances.uid_expense",
+    WHERE expense_section.uid_section = ?1 
+    GROUP BY sections.uid, expenses.uid
+    ORDER BY expenses.position ASC",
         params!(section_uid),
         |row| {
             Ok(SectionExpense {
@@ -485,7 +483,7 @@ pub fn get_section_expense_from_expenses_instances_section(section_uid: &str) ->
                 uid_expense: row.get(1)?,
                 title_section: row.get(2)?,
                 title_expense: row.get(3)?,
-                count: row.get(4)?
+                count: 0
             })
         },
         &conn
