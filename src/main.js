@@ -305,7 +305,7 @@ Stimulus.register("expense", class extends Controller {
 
         this.titleTarget.value = ''
         this.descriptionTarget.value = ''
-        this.rateTarget.value = ''
+        this.rateTarget.value = 100
         this.unitPriceTarget.value = ''
         this.sectionTargets.forEach((section) => section.checked = false)
 
