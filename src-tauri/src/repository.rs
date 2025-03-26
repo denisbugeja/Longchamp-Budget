@@ -798,7 +798,8 @@ ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_insta
 ROUND(((view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price - view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100)) / group_members_count), 2) AS group_applyed_unit_price,
 group_members_count
 FROM view_expenses_sections_instances",
-"CREATE TRIGGER IF NOT EXISTS update_group_members_count_after_update
+"DROP TRIGGER IF EXISTS \"update_group_members_count_after_update\";",
+"CREATE TRIGGER update_group_members_count_after_update
 AFTER UPDATE OF members_count ON sections
 FOR EACH ROW
 BEGIN
@@ -806,7 +807,8 @@ BEGIN
     SET members_count = (SELECT coalesce(SUM(members_count),0) FROM sections WHERE uid != 'group')
     WHERE uid = 'group';
 END;",
-"CREATE TRIGGER IF NOT EXISTS update_group_members_count_after_insert
+"DROP TRIGGER IF EXISTS \"update_group_members_count_after_insert\";",
+"CREATE TRIGGER update_group_members_count_after_insert
 AFTER INSERT ON sections
 FOR EACH ROW
 BEGIN
@@ -814,7 +816,8 @@ BEGIN
     SET members_count = (SELECT coalesce(SUM(members_count),0) FROM sections WHERE uid != 'group')
     WHERE uid = 'group';
 END;",
-"CREATE TRIGGER IF NOT EXISTS update_group_members_count_after_delete
+"DROP TRIGGER IF EXISTS \"update_group_members_count_after_delete\";",
+"CREATE TRIGGER update_group_members_count_after_delete
 AFTER DELETE ON sections
 FOR EACH ROW
 BEGIN
