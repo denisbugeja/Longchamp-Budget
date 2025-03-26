@@ -170,6 +170,13 @@ fn get_section_expense_from_association(section_uid: &str, expense_uid: &str) ->
     ))
 }
 
+#[tauri::command]
+fn get_section_expense_from_expenses_instances_and_section(section_uid: &str) -> String {
+    helper::struct_to_json(
+        repository::get_section_expense_from_expenses_instances_and_section(section_uid),
+    )
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -204,6 +211,7 @@ pub fn run() {
             get_total_per_member,
             get_section_expense_from_instance,
             get_section_expense_from_association,
+            get_section_expense_from_expenses_instances_and_section,
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");

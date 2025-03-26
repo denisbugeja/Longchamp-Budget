@@ -1,7 +1,7 @@
 use crate::helper::{CalculatedExpense, Expense, Section, SectionExpense, SumExpenseInstance};
 use lazy_static::lazy_static;
 use rusqlite::{params, Connection, Result, Row};
-use std::{sync::RwLock};
+use std::sync::RwLock;
 use uuid::Uuid;
 
 lazy_static! {
@@ -438,6 +438,30 @@ pub fn get_section_expense_from_expenses_instances() -> Vec<SectionExpense> {
         INNER JOIN sections ON expenses_instances.uid_section = sections.uid
         INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid",
         [],
+        |row| {
+            Ok(SectionExpense {
+                uid_section: row.get(0)?,
+                uid_expense: row.get(1)?,
+                title_section: row.get(2)?,
+                title_expense: row.get(3)?,
+                count: row.get(4)?
+            })
+        },
+        &conn
+    )
+}
+
+pub fn get_section_expense_from_expenses_instances_and_section(section_uid: &str) -> Vec<SectionExpense> {
+    let conn = get_connection().expect("Cannot get connection");
+    execute_read_sql(
+        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, COUNT(uid_expense) AS cnt_uid_expense
+        FROM expenses_instances
+        INNER JOIN sections ON expenses_instances.uid_section = sections.uid
+        INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
+        WHERE expenses_instances.uid_section = ?1
+        GROUP BY uid_expense
+        ",
+        params!(section_uid),
         |row| {
             Ok(SectionExpense {
                 uid_section: row.get(0)?,

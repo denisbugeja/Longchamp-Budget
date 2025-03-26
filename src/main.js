@@ -191,8 +191,8 @@ Stimulus.register("section-edit", class extends Controller {
     }
 
     async isUsed() {
-        let expenseList = JSON.parse(await invoke("get_section_expense_from_expenses_instances_section", { sectionUid: this.uidValue })) ?? []
-        return (0 !== expenseList.length && 0 < (expenseList[0].count ?? 0))
+        let expenseList = JSON.parse(await invoke("get_section_expense_from_expenses_instances_and_section", { sectionUid: this.uidValue })) ?? []
+        return 0 !== expenseList.length
     }
 
     async deleteTargetConnected() {
