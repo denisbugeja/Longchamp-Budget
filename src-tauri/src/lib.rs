@@ -114,6 +114,11 @@ fn get_members_count(section_uid: &str) -> i32 {
 }
 
 #[tauri::command]
+fn get_adults_count(section_uid: &str) -> i32 {
+    repository::get_adults_count(section_uid)
+}
+
+#[tauri::command]
 fn update_expense_instance(
     uid_expense_instance: &str,
     unit_price: &str,
@@ -215,6 +220,7 @@ pub fn run() {
             get_calculated_expenses,
             get_section_expense_from_expenses_instances_section,
             get_members_count,
+            get_adults_count,
             update_expense_instance,
             delete_expense_instance,
             copy_expense_instance,

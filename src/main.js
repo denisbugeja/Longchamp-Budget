@@ -542,6 +542,10 @@ Stimulus.register("matrix-section", class extends Controller {
         await this.loadSectionMembersCount()
     }
 
+    async sectionAdultsCountTargetConnected() {
+        await this.loadSectionAdultsCount()
+    }
+
     async expenseInstanceListTargetConnected() {
         await this.expenseInstanceListLoad()
     }
