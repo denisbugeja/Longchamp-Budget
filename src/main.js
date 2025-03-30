@@ -495,7 +495,7 @@ Stimulus.register("matrix", class extends Controller {
 })
 
 Stimulus.register("matrix-section", class extends Controller {
-    static targets = ['expenseList', 'expenseInstanceList', 'expenseGroupInstanceList', 'sectionMembersCount', 'expenseInstanceGroupTotal', 'expenseInstanceTotal', 'expenseInstanceMemberTotal']
+    static targets = ['expenseList', 'expenseInstanceList', 'expenseGroupInstanceList', 'sectionMembersCount', 'sectionAdultsCount', 'expenseInstanceGroupTotal', 'expenseInstanceTotal', 'expenseInstanceMemberTotal']
     static outlets = ["matrix"]
     static values = {
         uid: String
@@ -515,6 +515,10 @@ Stimulus.register("matrix-section", class extends Controller {
 
     async getMembersCount() {
         return await invoke("get_members_count", { sectionUid: this.uidValue })
+    }
+
+    async getAdultsCount() {
+        return await invoke("get_adults_count", { sectionUid: this.uidValue })
     }
 
     async getTotal() {
@@ -570,6 +574,13 @@ Stimulus.register("matrix-section", class extends Controller {
         }
     }
 
+    async loadSectionAdultsCount() {
+        this.sectionAdultsCountTarget.value = await this.getAdultsCount()
+        if (GROUP_ID === this.uidValue) {
+            this.sectionAdultsCountTarget.setAttribute('readonly', 'readonly')
+        }
+    }
+
     async expenseInstanceListLoad() {
         let expenseInstanceList = await this.getUsedExpenseList()
         renderElement(this.expenseInstanceListTarget, await generateFromFilePath('_parts/_components/_matrix_section_expense_instance.html', expenseInstanceList))
@@ -604,17 +615,31 @@ Stimulus.register("matrix-section", class extends Controller {
     }
 
     async updateMembersCount(e) {
-        if (!this.validateMemberCount()) {
+        if (!this.validateMembersCount()) {
             return
         }
         await invoke("update_members_count", { uid: this.uidValue, membersCount: parseInt(this.sectionMembersCountTarget.value) })
         this.triggerGlobalRefresh()
     }
 
-    validateMemberCount() {
+    async updateAdultsCount(e) {
+        if (!this.validateAdultsCount()) {
+            return
+        }
+        await invoke("update_adults_count", { uid: this.uidValue, adultsCount: parseInt(this.sectionAdultsCountTarget.value) })
+        this.triggerGlobalRefresh()
+    }
+
+    validateMembersCount() {
         return '' !== this.sectionMembersCountTarget.value.trim()
             && !isNaN(this.sectionMembersCountTarget.value)
             && this.sectionMembersCountTarget.value >= 0
+    }
+
+    validateAdultsCount() {
+        return '' !== this.sectionAdultsCountTarget.value.trim()
+            && !isNaN(this.sectionAdultsCountTarget.value)
+            && this.sectionAdultsCountTarget.value >= 0
     }
 
     async triggerGlobalRefresh() {
@@ -623,6 +648,7 @@ Stimulus.register("matrix-section", class extends Controller {
 
     sectionRefresh() {
         this.loadSectionMembersCount()
+        this.loadSectionAdultsCount()
         this.expenseListLoad()
         this.expenseInstanceListLoad()
         this.expenseGroupInstanceListLoad()

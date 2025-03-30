@@ -143,7 +143,6 @@ pub fn update_adults_count(uid: &str, adults_count: i32) {
     );
 }
 
-
 pub fn insert_new_expense(
     title: &str,
     description: &str,

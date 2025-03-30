@@ -38,6 +38,16 @@
                             data-action="change->matrix-section#updateMembersCount"
                         />
                     </div>
+                    <div>
+                        <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            name="section-adults-count-{{ uid }}"
+                            data-matrix-section-target="sectionAdultsCount"
+                            data-action="change->matrix-section#updateAdultsCount"
+                        />
+                    </div>
                     <div data-matrix-section-target="expenseInstanceList"></div>
                     <div
                         data-matrix-section-target="expenseGroupInstanceList"

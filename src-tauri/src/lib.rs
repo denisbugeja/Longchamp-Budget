@@ -94,6 +94,11 @@ fn update_members_count(uid: &str, members_count: i32) {
 }
 
 #[tauri::command]
+fn update_adults_count(uid: &str, adults_count: i32) {
+    repository::update_adults_count(uid, adults_count);
+}
+
+#[tauri::command]
 fn add_expense_instance(section_uid: &str, expense_id: &str) {
     repository::add_expense_instance(section_uid, expense_id);
 }
@@ -117,7 +122,14 @@ fn update_expense_instance(
     rate: &str,
     comments: &str,
 ) {
-    repository::update_expense_instance(uid_expense_instance, unit_price, units, units_adults, rate, comments);
+    repository::update_expense_instance(
+        uid_expense_instance,
+        unit_price,
+        units,
+        units_adults,
+        rate,
+        comments,
+    );
 }
 
 #[tauri::command]
@@ -198,6 +210,7 @@ pub fn run() {
             update_expense,
             delete_expense,
             update_members_count,
+            update_adults_count,
             add_expense_instance,
             get_calculated_expenses,
             get_section_expense_from_expenses_instances_section,
