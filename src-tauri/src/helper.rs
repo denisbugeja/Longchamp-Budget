@@ -6,6 +6,7 @@ pub struct Section {
     pub title: String,
     pub color: String,
     pub members_count: i32,
+    pub adults_count: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

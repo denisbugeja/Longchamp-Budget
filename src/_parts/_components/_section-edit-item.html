@@ -21,9 +21,9 @@
                 />
             </div>
         </div>
-        <div class="col-3">
+        <div class="col-2">
             <div class="input-group">
-                <span class="input-group-text">Membres</span>
+                <span class="input-group-text">Enfants/Ados</span>
                 <input
                     class="form-control text-end"
                     type="number"
@@ -36,7 +36,22 @@
                 />
             </div>
         </div>
-        <div class="col-3">
+        <div class="col-2">
+            <div class="input-group">
+                <span class="input-group-text">Chefs</span>
+                <input
+                    class="form-control text-end"
+                    type="number"
+                    min="0"
+                    step="1"
+                    data-section-edit-target="sectionAdultsCount"
+                    data-action="change->section-edit#update"
+                    value="{{ adults_count }}"
+                    required="required"
+                />
+            </div>
+        </div>
+        <div class="col-2">
             <div class="input-group">
                 <span class="input-group-text">Couleur</span>
                 <input

@@ -15,8 +15,8 @@ fn section_list_load() -> String {
 }
 
 #[tauri::command]
-fn insert_new_section(title: &str, color: &str, members_count: i32) {
-    repository::insert_new_section(title, color, members_count);
+fn insert_new_section(title: &str, color: &str, members_count: i32, adults_count: i32) {
+    repository::insert_new_section(title, color, members_count, adults_count);
 }
 
 #[tauri::command]
@@ -25,8 +25,8 @@ fn delete_section(uid: &str) {
 }
 
 #[tauri::command]
-fn update_section(uid: &str, title: &str, color: &str, members_count: i32) {
-    repository::update_section(uid, title, color, members_count);
+fn update_section(uid: &str, title: &str, color: &str, members_count: i32, adults_count: i32) {
+    repository::update_section(uid, title, color, members_count, adults_count);
 }
 
 // Expense part

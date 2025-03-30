@@ -125,7 +125,7 @@ Stimulus.register("budget", class extends Controller {
 
 
 Stimulus.register("section", class extends Controller {
-    static targets = ['title', 'color', 'sectionList', 'sectionMembersCount']
+    static targets = ['title', 'color', 'sectionList', 'sectionMembersCount', 'sectionAdultsCount']
     static outlets = ["budget"]
 
     connect() {
@@ -149,7 +149,7 @@ Stimulus.register("section", class extends Controller {
         if (!this.validate()) {
             return
         }
-        await invoke("insert_new_section", { title: this.titleTarget.value, color: this.colorTarget.value, membersCount: parseInt(this.sectionMembersCountTarget.value) })
+        await invoke("insert_new_section", { title: this.titleTarget.value, color: this.colorTarget.value, membersCount: parseInt(this.sectionMembersCountTarget.value), adultsCount: parseInt(this.sectionAdultsCountTarget.value) })
         this.budgetOutlet.loadSections()
     }
 
@@ -176,15 +176,21 @@ Stimulus.register("section", class extends Controller {
             && !isNaN(this.sectionMembersCountTarget.value)
     }
 
+    validateAdults() {
+        return '' !== this.sectionAdultsCountTarget.value.trim()
+            && !isNaN(this.sectionAdultsCountTarget.value)
+    }
+
     validate() {
         return this.validateTitle()
             && this.validateColor()
             && this.validateMembers()
+            && this.validateAdults()
     }
 })
 
 Stimulus.register("section-edit", class extends Controller {
-    static targets = ['title', 'color', 'delete', 'sectionMembersCount']
+    static targets = ['title', 'color', 'delete', 'sectionMembersCount', 'sectionAdultsCount']
     static outlets = ["section"]
     static values = {
         uid: String
@@ -213,7 +219,7 @@ Stimulus.register("section-edit", class extends Controller {
         if (!this.validate()) {
             return
         }
-        invoke("update_section", { uid: this.uidValue, title: this.titleTarget.value.trim(), color: this.colorTarget.value.trim(), membersCount: parseInt(this.sectionMembersCountTarget.value) })
+        invoke("update_section", { uid: this.uidValue, title: this.titleTarget.value.trim(), color: this.colorTarget.value.trim(), membersCount: parseInt(this.sectionMembersCountTarget.value), adultsCount: parseInt(this.sectionAdultsCountTarget.value) })
         this.sectionOutlet.sectionListLoad()
     }
 
@@ -239,10 +245,16 @@ Stimulus.register("section-edit", class extends Controller {
             && !isNaN(this.sectionMembersCountTarget.value)
     }
 
+    validateAdults() {
+        return '' !== this.sectionAdultsCountTarget.value.trim()
+            && !isNaN(this.sectionAdultsCountTarget.value)
+    }
+
     validate() {
         return this.validateTitle()
             && this.validateColor()
             && this.validateMembers()
+            && this.validateAdults()
     }
 })
 

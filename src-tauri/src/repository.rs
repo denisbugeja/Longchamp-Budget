@@ -38,11 +38,11 @@ pub fn update_db_file_path(path: &str) {
     execute_migrations(conn);
 }
 
-pub fn insert_new_section(title: &str, color: &str, members_count: i32) {
+pub fn insert_new_section(title: &str, color: &str, members_count: i32, adults_count: i32) {
     let conn = get_connection().expect("Cannot get connection");
     execute_write_sql(
-        "INSERT INTO sections (uid, title, color, members_count, position) VALUES (?1, ?2, ?3, ?4, 0)",
-        params!(Uuid::new_v4().to_string(), title, color, members_count.abs()),
+        "INSERT INTO sections (uid, title, color, members_count, adults_count, position) VALUES (?1, ?2, ?3, ?4, ?5, 0)",
+        params!(Uuid::new_v4().to_string(), title, color, members_count.abs(), adults_count.abs()),
         &conn,
     );
 }
@@ -50,7 +50,7 @@ pub fn insert_new_section(title: &str, color: &str, members_count: i32) {
 pub fn section_list() -> Vec<Section> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT uid, title, color, members_count FROM sections",
+        "SELECT uid, title, color, members_count, adults_count FROM sections",
         [],
         |row| {
             Ok(Section {
@@ -58,6 +58,7 @@ pub fn section_list() -> Vec<Section> {
                 title: row.get(1)?,
                 color: row.get(2)?,
                 members_count: row.get(3)?,
+                adults_count: row.get(4)?,
             })
         },
         &conn,
@@ -115,11 +116,11 @@ pub fn delete_section(uid: &str) {
     tx.commit().expect("Failed to commit transaction");
 }
 
-pub fn update_section(uid: &str, title: &str, color: &str, members_count: i32) {
+pub fn update_section(uid: &str, title: &str, color: &str, members_count: i32, adults_count: i32) {
     let conn = get_connection().expect("Cannot get connection");
     execute_write_sql(
-        "UPDATE sections SET title = ?1, color = ?2, members_count=?3 WHERE uid = ?4",
-        params!(title, color, members_count.abs(), uid),
+        "UPDATE sections SET title = ?1, color = ?2, members_count=?3, adults_count=?4 WHERE uid = ?5",
+        params!(title, color, members_count.abs(), adults_count.abs(), uid),
         &conn,
     );
 }
@@ -129,6 +130,15 @@ pub fn update_members_count(uid: &str, members_count: i32) {
     execute_write_sql(
         "UPDATE sections SET members_count = ?1 WHERE uid = ?2",
         params!(members_count.abs(), uid),
+        &conn,
+    );
+}
+
+pub fn update_adults_count(uid: &str, adults_count: i32) {
+    let conn = get_connection().expect("Cannot get connection");
+    execute_write_sql(
+        "UPDATE sections SET adults_count = ?1 WHERE uid = ?2",
+        params!(adults_count.abs(), uid),
         &conn,
     );
 }
@@ -175,7 +185,7 @@ fn section_list_from_uid_vec(section_list: Vec<&str>, conn: &Connection) -> Vec<
     let mut section_list_vec: Vec<Section> = vec![];
     for section in section_list {
         let mut sections_in_db = execute_read_sql(
-            "SELECT uid, title, color, members_count FROM sections WHERE uid = ?1",
+            "SELECT uid, title, color, members_count, adults_count FROM sections WHERE uid = ?1",
             params!(section),
             |row| {
                 Ok(Section {
@@ -183,6 +193,7 @@ fn section_list_from_uid_vec(section_list: Vec<&str>, conn: &Connection) -> Vec<
                     title: row.get(1)?,
                     color: row.get(2)?,
                     members_count: row.get(3)?,
+                    adults_count: row.get(4)?,
                 })
             },
             conn,
@@ -219,7 +230,7 @@ pub fn update_expense_instance(uid_expense_instance: &str, unit_price: &str, uni
     let conn = get_connection().expect("Cannot get connection");
 
     let unit_price_f32 = parse_f_or_none(unit_price);
-    let units_i32 = parse_i_or_none(units).and_then(|value| if 0 == value { None } else { Some(value) });
+    let units_i32 = parse_i_or_none(units);
     let rate_f32 = parse_f_or_none(rate);
     let comments_s = parse_s_or_none(comments);
     
@@ -477,7 +488,7 @@ pub fn get_section_expense_from_expenses_instances_and_section(section_uid: &str
 
 pub fn get_members_count(section_uid: &str) ->i32 {
     let conn = get_connection().expect("Cannot get connection");
-    let member_count_list: Vec<i32> = execute_read_sql(
+    let members_count_list: Vec<i32> = execute_read_sql(
         "SELECT members_count FROM sections WHERE uid = ?1",
         params!(section_uid),
         |row| {
@@ -485,8 +496,24 @@ pub fn get_members_count(section_uid: &str) ->i32 {
         },
         &conn
     );
-    if !member_count_list.is_empty() {
-        return member_count_list[0];
+    if !members_count_list.is_empty() {
+        return members_count_list[0];
+    }
+    0
+}
+
+pub fn get_adults_count(section_uid: &str) ->i32 {
+    let conn = get_connection().expect("Cannot get connection");
+    let adults_count_list: Vec<i32> = execute_read_sql(
+        "SELECT adults_count FROM sections WHERE uid = ?1",
+        params!(section_uid),
+        |row| {
+            row.get(0)
+        },
+        &conn
+    );
+    if !adults_count_list.is_empty() {
+        return adults_count_list[0];
     }
     0
 }
@@ -706,6 +733,7 @@ pub fn execute_migrations(conn: Connection) {
 	\"title\"	TEXT NOT NULL,
 	\"color\"	TEXT,
     \"members_count\" INTEGER NOT NULL DEFAULT 0,
+    \"adults_count\" INTEGER NOT NULL DEFAULT 0,
 	\"position\"	INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY(\"uid\")
 );",
@@ -731,6 +759,7 @@ pub fn execute_migrations(conn: Connection) {
 	\"uid_section\"	TEXT NOT NULL,
     \"comments\" TEXT,
 	\"units\"	INTEGER,
+    \"units_adults\"	INTEGER,
 	\"unit_price\"	NUMERIC,
 	\"rate\"	NUMERIC,
 	FOREIGN KEY(\"uid_expense\") REFERENCES \"expenses\"(\"uid\"),
@@ -768,6 +797,11 @@ CASE WHEN expenses_instances.units IS NOT NULL AND TRIM(expenses_instances.units
     ELSE sections.members_count
 END AS live_units,
 
+CASE WHEN expenses_instances.units_adults IS NOT NULL AND TRIM(expenses_instances.units_adults,\" \") != \"\"
+    THEN expenses_instances.units_adults
+    ELSE sections.adults_count
+END AS live_units_adults,
+
 CASE WHEN expenses_instances.unit_price IS NOT NULL AND TRIM(expenses_instances.unit_price ,\" \") != \"\"
     THEN CAST(expenses_instances.unit_price AS REAL)
     ELSE CAST(expenses.unit_price AS REAL)
@@ -777,10 +811,17 @@ CASE WHEN expenses_instances.rate  IS NOT NULL AND TRIM(expenses_instances.rate,
     THEN CAST(expenses_instances.rate AS REAL)
     ELSE CAST(expenses.rate AS REAL)
 END AS live_rate,
+
 CASE WHEN group_sections.members_count > 0 
     THEN group_sections.members_count
     ELSE 1
-END AS group_members_count
+END AS group_members_count,
+
+CASE WHEN group_sections.adults_count > 0 
+    THEN group_sections.adults_count
+    ELSE 1
+END AS group_adults_count
+
 FROM sections AS group_sections, expenses_instances
 INNER JOIN sections ON expenses_instances.uid_section = sections.uid
 INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
@@ -792,11 +833,11 @@ expenses_unit_price, expenses_rate, expenses_instances_units, expenses_instances
 live_units, live_unit_price, live_rate,
 (100 - view_expenses_sections_instances.live_rate) AS group_rate,
 ROUND(view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100), 2) AS applyed_price,
-ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100), 2) AS total_applyed_price,
-ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price, 2) AS total_inital_price,
-ROUND(view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price - view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100),2) AS group_applyed_total_price,
-ROUND(((view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price - view_expenses_sections_instances.live_units * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100)) / group_members_count), 2) AS group_applyed_unit_price,
-group_members_count
+ROUND((view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults)* view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100), 2) AS total_applyed_price,
+ROUND((view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults) * view_expenses_sections_instances.live_unit_price, 2) AS total_inital_price,
+ROUND((view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults) * view_expenses_sections_instances.live_unit_price - (view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults) * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100),2) AS group_applyed_total_price,
+ROUND((((view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults) * view_expenses_sections_instances.live_unit_price - (view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults) * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100)) / group_members_count), 2) AS group_applyed_unit_price,
+group_members_count, group_adults_count
 FROM view_expenses_sections_instances",
 "DROP TRIGGER IF EXISTS \"update_group_members_count_after_update\";",
 "CREATE TRIGGER update_group_members_count_after_update
@@ -804,7 +845,8 @@ AFTER UPDATE OF members_count ON sections
 FOR EACH ROW
 BEGIN
     UPDATE sections
-    SET members_count = (SELECT coalesce(SUM(members_count),0) FROM sections WHERE uid != 'group')
+    SET members_count = (SELECT SUM(coalesce(members_count,0)) FROM sections WHERE uid != 'group'),
+    adults_count = (SELECT SUM(coalesce(adults_count,0)) FROM sections WHERE uid != 'group')
     WHERE uid = 'group';
 END;",
 "DROP TRIGGER IF EXISTS \"update_group_members_count_after_insert\";",
@@ -813,7 +855,8 @@ AFTER INSERT ON sections
 FOR EACH ROW
 BEGIN
     UPDATE sections
-    SET members_count = (SELECT coalesce(SUM(members_count),0) FROM sections WHERE uid != 'group')
+    SET members_count = (SELECT SUM(coalesce(members_count,0)) FROM sections WHERE uid != 'group'),
+    adults_count = (SELECT SUM(coalesce(adults_count,0)) FROM sections WHERE uid != 'group')
     WHERE uid = 'group';
 END;",
 "DROP TRIGGER IF EXISTS \"update_group_members_count_after_delete\";",
@@ -822,7 +865,8 @@ AFTER DELETE ON sections
 FOR EACH ROW
 BEGIN
     UPDATE sections
-    SET members_count = (SELECT coalesce(SUM(members_count),0) FROM sections WHERE uid != 'group')
+    SET members_count = (SELECT SUM(coalesce(members_count,0)) FROM sections WHERE uid != 'group'),
+    adults_count = (SELECT SUM(coalesce(adults_count,0)) FROM sections WHERE uid != 'group')
     WHERE uid = 'group';
 END;",
     ];
