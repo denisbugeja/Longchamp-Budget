@@ -113,10 +113,11 @@ fn update_expense_instance(
     uid_expense_instance: &str,
     unit_price: &str,
     units: &str,
+    units_adults: &str,
     rate: &str,
     comments: &str,
 ) {
-    repository::update_expense_instance(uid_expense_instance, unit_price, units, rate, comments);
+    repository::update_expense_instance(uid_expense_instance, unit_price, units, units_adults, rate, comments);
 }
 
 #[tauri::command]

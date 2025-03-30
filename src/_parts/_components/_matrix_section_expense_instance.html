@@ -19,19 +19,31 @@
             data-action="change->matrix-expense-instance#updateExpenseInstance"
         />
     </div>
-    <div class="col-3">
-        Quantité:<br />
+    <div class="col-2">
+        Quantité Enfants/Ados:<br />
         <input
             type="number"
             placeholder="{{ expenses_units }}"
             value="{{ expenses_instances_units }}"
             min="0"
             data-matrix-expense-instance-target="units"
-            step=".01"
+            step="1"
             data-action="change->matrix-expense-instance#updateExpenseInstance"
         />
     </div>
-    <div class="col-3">
+    <div class="col-2">
+        Quantité Chefs:<br />
+        <input
+            type="number"
+            placeholder="{{ expenses_units_adults }}"
+            value="{{ expenses_instances_units_adults }}"
+            min="0"
+            data-matrix-expense-instance-target="unitsAdults"
+            step="1"
+            data-action="change->matrix-expense-instance#updateExpenseInstance"
+        />
+    </div>
+    <div class="col-2">
         Ratio:<br />
         <input
             type="number"

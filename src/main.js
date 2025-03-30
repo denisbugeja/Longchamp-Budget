@@ -652,7 +652,7 @@ Stimulus.register("matrix-section-expense", class extends Controller {
 })
 
 Stimulus.register("matrix-expense-instance", class extends Controller {
-    static targets = ["unitPrice", "units", "rate", "comments"]
+    static targets = ["unitPrice", "units", "unitsAdults", "rate", "comments"]
     static outlets = ["matrix-section"]
     static values = {
         uid: String
@@ -677,6 +677,7 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
             uidExpenseInstance: this.uidValue,
             unitPrice: this.unitPriceTarget.value,
             units: this.unitsTarget.value,
+            unitsAdults: this.unitsAdultsTarget.value,
             rate: this.rateTarget.value,
             comments: this.commentsTarget.value,
         })
@@ -696,6 +697,11 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
             || !isNaN(this.unitsTarget.value)
     }
 
+    unitsAdultsValid() {
+        return '' === this.unitsAdultsTarget.value.trim()
+            || !isNaN(this.unitsAdultsTarget.value)
+    }
+
     rateValid() {
         return '' === this.rateTarget.value.trim()
             || (
@@ -708,6 +714,7 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
     validate() {
         return this.unitPriceValid()
             && this.unitsValid()
+            && this.unitsAdultsValid()
             && this.rateValid()
     }
 })
