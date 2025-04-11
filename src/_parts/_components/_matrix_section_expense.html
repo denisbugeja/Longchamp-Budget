@@ -5,11 +5,19 @@
     data-matrix-section-expense-uid-section-value="{{ uid_section }}"
     data-matrix-section-expense-uid-expense-value="{{ uid_expense }}"
 >
+    <div class="col-s-6 col-8">{{ title_expense }}</div>
     <div
-        data-action="click->matrix-section-expense#addExpenseInstance"
-        class="col-10"
-    >
-        {{ title_expense }}
+        class="col-3 text-align-end"
+        data-matrix-section-expense-target="count"
+    ></div>
+    <div class="col-s-3 col-1 p-0">
+        <button
+            type="button"
+            class="btn btn-outline-primary text-align-center w-100 p-0"
+            title="Ajouter"
+            data-action="click->matrix-section-expense#addExpenseInstance"
+        >
+            <i class="bi bi-plus p-0"></i>
+        </button>
     </div>
-    <div class="col-2" data-matrix-section-expense-target="count"></div>
 </div>
