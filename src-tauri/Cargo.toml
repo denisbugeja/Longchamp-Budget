@@ -36,6 +36,9 @@ uuid = { version = "1.11.0", features = [
 itertools = "0.13.0"
 
 
+[profile.dev]
+incremental = true # Compile your binary in smaller steps.
+
 [profile.release]
 strip = true
 opt-level = "z"   # or "s" depending of the project
