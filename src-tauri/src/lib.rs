@@ -198,17 +198,14 @@ fn get_section_expense_from_expenses_instances_and_section(section_uid: &str) ->
 }
 
 #[tauri::command]
-async fn read_asset<R: Runtime>(app: AppHandle<R>, path: &str) -> Result<String, String> {
+fn read_asset<R: Runtime>(app: AppHandle<R>, path: &str) -> String {
     let path_string = String::from(path);
     let asset = app
         .asset_resolver()
         .get(path_string)
-        .ok_or_else(|| format!("Impossible de trouver l'asset: {}", path))?;
+        .expect("Impossible de trouver l'asset");
 
-    let content = String::from_utf8(asset.bytes.to_vec())
-        .map_err(|e| format!("Échec de conversion en UTF-8: {}", e))?;
-
-    Ok(content)
+    String::from_utf8(asset.bytes.to_vec()).expect("Echec de conversion en UTF-8")
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
