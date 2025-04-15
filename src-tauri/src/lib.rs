@@ -214,6 +214,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
+            read_asset,
             update_db_path,
             section_list_load,
             insert_new_section,
@@ -245,7 +246,6 @@ pub fn run() {
             get_section_expense_from_instance,
             get_section_expense_from_association,
             get_section_expense_from_expenses_instances_and_section,
-            read_asset
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");
