@@ -2,6 +2,8 @@
 mod helper;
 mod repository;
 
+use tauri::{AppHandle, Runtime};
+
 #[tauri::command]
 fn update_db_path(path: &str) {
     repository::update_db_file_path(path);
@@ -195,6 +197,20 @@ fn get_section_expense_from_expenses_instances_and_section(section_uid: &str) ->
     )
 }
 
+#[tauri::command]
+async fn read_asset<R: Runtime>(app: AppHandle<R>, path: &str) -> Result<String, String> {
+    let path_string = String::from(path);
+    let asset = app
+        .asset_resolver()
+        .get(path_string)
+        .ok_or_else(|| format!("Impossible de trouver l'asset: {}", path))?;
+
+    let content = String::from_utf8(asset.bytes.to_vec())
+        .map_err(|e| format!("Échec de conversion en UTF-8: {}", e))?;
+
+    Ok(content)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -232,6 +248,7 @@ pub fn run() {
             get_section_expense_from_instance,
             get_section_expense_from_association,
             get_section_expense_from_expenses_instances_and_section,
+            read_asset
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");

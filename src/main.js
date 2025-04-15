@@ -53,13 +53,14 @@ function renderElement(element, content) {
 }
 
 async function fetchPart(htmlPart) {
-    var result
-    await fetch(htmlPart)
-        .then(response => response.text())
-        .then(html => {
-            result = html
+    try {
+        const content = await invoke('read_asset', {
+            path: htmlPart
         })
-    return result
+        return content
+    } catch (error) {
+        throw error
+    }
 }
 
 async function generateFromFilePath(filePathString, data, raw = false) {
