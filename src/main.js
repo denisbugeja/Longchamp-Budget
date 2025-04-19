@@ -495,7 +495,7 @@ Stimulus.register("matrix", class extends Controller {
 })
 
 Stimulus.register("matrix-section", class extends Controller {
-    static targets = ['expenseList', 'expenseInstanceList', 'expenseGroupInstanceList', 'sectionMembersCount', 'sectionAdultsCount', 'expenseInstanceGroupTotal', 'expenseInstanceTotal', 'expenseInstanceMemberTotal']
+    static targets = ['expenseList', 'expenseInstanceList', 'expenseGroupInstanceList', 'expenseGroupInstanceListContainer',  'sectionMembersCount', 'sectionAdultsCount', 'expenseInstanceGroupTotal', 'expenseInstanceTotal', 'expenseInstanceMemberTotal']
     static outlets = ["matrix"]
     static values = {
         uid: String
@@ -615,11 +615,12 @@ Stimulus.register("matrix-section", class extends Controller {
 
         let groupExpenseInstanceList = await this.getGroupUsedExpenseList()
         if (0 === groupExpenseInstanceList.length) {
+            this.expenseGroupInstanceListContainerTarget.classList.add('d-none')
             return
         }
 
         renderElement(this.expenseGroupInstanceListTarget, await generateFromFilePath('_parts/_components/_matrix_section_group_expense_instance.html', groupExpenseInstanceList))
-        this.expenseGroupInstanceListTarget.closest('.d-none')?.classList.remove('d-none')
+        this.expenseGroupInstanceListContainerTarget.classList.remove('d-none')
     }
 
     async updateMembersCount(e) {
