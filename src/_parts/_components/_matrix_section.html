@@ -28,34 +28,8 @@
                     data-matrix-section-target="expenseList"
                 ></div>
                 <div class="col-9 col-lg-10">
-                    <div
-                        data-matrix-section-target="expenseGroupInstanceListContainer"
-                        class="d-none"
-                    >
-                        <table
-                            class="table table-striped table-hover table-bordered"
-                        >
-                            <thead>
-                                <tr>
-                                    <th>Libellé</th>
-                                    <th>Section/Unité</th>
-                                    <th>Commentaires</th>
-                                    <th>% restant</th>
-                                    <th class="text-end">
-                                        Prix unitaire calculé
-                                    </th>
-                                    <th class="text-end">Prix Total</th>
-                                </tr>
-                            </thead>
-                            <tbody
-                                data-matrix-section-target="expenseGroupInstanceList"
-                            ></tbody>
-                            <tfoot
-                                data-matrix-section-target="expenseGroupRatioTotal"
-                            ></tfoot>
-                        </table>
-                    </div>
                     <div>
+                        <h3 class="h4 text-center">Dépenses de l'unité</h3>
                         <table
                             class="table table-striped table-hover table-bordered"
                         >
@@ -126,10 +100,39 @@
                         </table>
                     </div>
                     <div
-                        data-matrix-section-target="groupSumContainer"
-                        class="d-none py-3"
+                        data-matrix-section-target="expenseGroupInstanceListContainer"
+                        class="py-5 d-none"
                     >
+                        <h3 class="h4 text-center">
+                            Dépenses partiellement rattachées au groupe
+                        </h3>
+                        <table
+                            class="table table-striped table-hover table-bordered"
+                        >
+                            <thead>
+                                <tr>
+                                    <th>Libellé</th>
+                                    <th>Section/Unité</th>
+                                    <th>Commentaires</th>
+                                    <th>% restant</th>
+                                    <th class="text-end">
+                                        Prix unitaire calculé
+                                    </th>
+                                    <th class="text-end">Prix Total</th>
+                                </tr>
+                            </thead>
+                            <tbody
+                                data-matrix-section-target="expenseGroupInstanceList"
+                            ></tbody>
+                            <tfoot
+                                data-matrix-section-target="expenseGroupRatioTotal"
+                            ></tfoot>
+                        </table>
                     </div>
+                    <div
+                        data-matrix-section-target="groupSumContainer"
+                        class="py-5 d-none"
+                    ></div>
                 </div>
             </div>
         </div>
