@@ -1,23 +1,10 @@
-<div class="row">
-    <div data-expense-instance-id="{{ uid_expense_instance }}">
-        {{ title_expense }}
-    </div>
-    <div>{{ title_section }}</div>
-    <div>{{ comments }}</div>
-    <div class="col-3">
-        Prix unitaire calculé:<br />
-        {{ group_applyed_unit_price }}
-    </div>
-    <div class="col-3">
-        Quantité totale:<br />
-        {{ group_members_count }}
-    </div>
-    <div class="col-3">
-        Ratio restant:<br />
-        {{ group_rate }}
-    </div>
-    <div class="col-3">
-        Budget Total:<br />
-        <strong>{{ group_applyed_total_price }}</strong>
-    </div>
-</div>
+<tr id="ref-{{ uid_expense_instance }}">
+    <td>
+        <a href="#{{ uid_expense_instance }}">{{ title_expense }}</a>
+    </td>
+    <td>{{ title_section }}</td>
+    <td>{{ comments }}</td>
+    <td>{{ group_applyed_unit_price }}</td>
+    <td>{{ group_rate }}</td>
+    <td>{{ group_applyed_total_price }}</td>
+</tr>
