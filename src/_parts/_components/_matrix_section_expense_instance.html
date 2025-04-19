@@ -2,9 +2,10 @@
     data-controller="matrix-expense-instance"
     data-matrix-expense-instance-uid-value="{{ uid_expense_instance }}"
     data-matrix-expense-instance-matrix-section-outlet="[data-matrix-section-uid-value='{{ uid_section }}']"
-    id="{{ uid_expense_instance }}"
+    data-matrix-expense-instance-label-value="{{ title_expense }}"
+    id="{{ uid_expense_instance_escaped }}"
 >
-    <td>{{ title_expense }}</td>
+    <td data-matrix-expense-instance-target="label">{{ title_expense }}</td>
     <td>
         <input
             type="number"

@@ -15,26 +15,24 @@ function renderTemplate(templateString, data, raw = false) {
     })
 }
 
+function deleteSpecialCharForId(id) {
+    const spec = /[^a-zA-Z0-9_]+/g
+    return id.replace(spec, "")
+}
+
 function getSelector(element) {
     if (!(element instanceof Element)) return
 
     const path = []
     while (element && Node.ELEMENT_NODE === element.nodeType) {
         let selector = element.nodeName.toLowerCase()
-        if (element.id) {
-            selector += `#${element.id}`
-            path.unshift(selector)
-
-            return path.join(" > ")
-        } else {
-            let sibling = element,
-                nth = 1
-            while (sibling.previousElementSibling) {
-                sibling = sibling.previousElementSibling
-                if (sibling.nodeName.toLowerCase() === selector) nth++
-            }
-            if (nth !== 1) selector += `:nth-of-type(${nth})`
+        let sibling = element,
+            nth = 1
+        while (sibling.previousElementSibling) {
+            sibling = sibling.previousElementSibling
+            if (sibling.nodeName.toLowerCase() === selector) nth++
         }
+        if (nth !== 1) selector += `:nth-of-type(${nth})`
         path.unshift(selector)
         element = element.parentNode
     }
@@ -622,6 +620,12 @@ Stimulus.register("matrix-section", class extends Controller {
 
     async expenseInstanceListLoad() {
         let expenseInstanceList = await this.getUsedExpenseList()
+
+        expenseInstanceList = expenseInstanceList.map((item) => {
+            item.uid_expense_instance_escaped = deleteSpecialCharForId(item.uid_expense_instance)
+            return item
+        })
+
         renderElement(this.expenseInstanceListTarget, await generateFromFilePath('_parts/_components/_matrix_section_expense_instance.html', expenseInstanceList))
     }
 
@@ -657,6 +661,11 @@ Stimulus.register("matrix-section", class extends Controller {
             this.expenseGroupInstanceListContainerTarget.classList.add('d-none')
             return
         }
+
+        groupExpenseInstanceList = groupExpenseInstanceList.map((item) => {
+            item.uid_expense_instance_escaped = deleteSpecialCharForId(item.uid_expense_instance)
+            return item
+        })
 
         renderElement(this.expenseGroupInstanceListTarget, await generateFromFilePath('_parts/_components/_matrix_section_group_expense_instance.html', groupExpenseInstanceList))
         this.expenseGroupInstanceListContainerTarget.classList.remove('d-none')
@@ -728,10 +737,18 @@ Stimulus.register("matrix-section-expense", class extends Controller {
 })
 
 Stimulus.register("matrix-expense-instance", class extends Controller {
-    static targets = ["unitPrice", "units", "unitsAdults", "rate", "comments"]
+    static targets = ["label", "unitPrice", "units", "unitsAdults", "rate", "comments"]
     static outlets = ["matrix-section"]
     static values = {
-        uid: String
+        uid: String,
+        label: String
+    }
+
+    async connect() {
+        if ('' !== this.rateTarget.value.trim()) {
+            let data = { uid: deleteSpecialCharForId(this.uidValue), label: this.labelValue }
+            renderElement(this.labelTarget, await generateFromFilePath('_parts/_components/_matrix_section_expense_instance_label_link.html', data))
+        }
     }
 
     async deleteExpenseInstance() {
