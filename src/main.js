@@ -6,6 +6,8 @@ const GROUP_ID = 'group'
 // JS import
 import { Application, Controller } from "/stimulus.min.js"
 
+let assetPath = {}
+
 function renderTemplate(templateString, data, raw = false) {
     return templateString.replace(/{{(.*?)}}/g, (match, p1) => {
         const key = p1.trim()
@@ -53,8 +55,11 @@ function renderElement(element, content) {
 }
 
 async function fetchPart(htmlPart) {
-    const content = await invoke('read_asset', { path: htmlPart })
-    return content
+
+    if (!assetPath[htmlPart]) {
+        assetPath[htmlPart] = await invoke('read_asset', { path: htmlPart })
+    }
+    return assetPath[htmlPart]
 }
 
 async function generateFromFilePath(filePathString, data, raw = false) {
