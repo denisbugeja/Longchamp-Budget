@@ -51,9 +51,6 @@
             data-action="change->matrix-expense-instance#updateExpenseInstance"
         />
     </td>
-    <td class="text-end">
-        <strong>{{ total_applyed_price }}</strong>
-    </td>
     <td>
         <textarea
             class="w-100"
@@ -63,7 +60,10 @@
 {{ comments }}</textarea
         >
     </td>
-    <td>
+    <td class="text-end">
+        <strong>{{ total_applyed_price }}</strong>
+    </td>
+    <td class="text-end">
         <button
             type="button"
             class="btn btn-outline-danger text-align-center px-1"
