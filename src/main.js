@@ -616,6 +616,7 @@ Stimulus.register("matrix-section", class extends Controller {
 
         let groupExpenseInstanceList = await this.getGroupUsedExpenseList()
         renderElement(this.expenseGroupInstanceListTarget, await generateFromFilePath('_parts/_components/_matrix_section_group_expense_instance.html', groupExpenseInstanceList))
+        this.expenseGroupInstanceListTarget.closest('.d-none')?.classList.remove('d-none')
     }
 
     async updateMembersCount(e) {
