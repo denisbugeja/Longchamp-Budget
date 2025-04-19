@@ -688,9 +688,11 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
         uid: String
     }
 
-    deleteExpenseInstance() {
-        invoke("delete_expense_instance", { uidExpenseInstance: this.uidValue })
-        this.matrixSectionOutlet.triggerGlobalRefresh()
+    async deleteExpenseInstance() {
+        if (await confirm("Veux-tu vraiment supprimer cette dépense ?")) {
+            await invoke("delete_expense_instance", { uidExpenseInstance: this.uidValue })
+            this.matrixSectionOutlet.triggerGlobalRefresh()
+        }
     }
 
     copyExpenseInstance() {

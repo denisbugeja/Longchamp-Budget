@@ -1,14 +1,12 @@
-<div
-    class="row"
+<tr
     data-controller="matrix-expense-instance"
     data-matrix-expense-instance-uid-value="{{ uid_expense_instance }}"
     data-matrix-expense-instance-matrix-section-outlet="[data-matrix-section-uid-value='{{ uid_section }}']"
 >
-    <div data-expense-instance-id="{{ uid_expense_instance }}">
+    <td data-expense-instance-id="{{ uid_expense_instance }}">
         {{ title_expense }}
-    </div>
-    <div class="col-3">
-        Prix unitaire:<br />
+    </td>
+    <td>
         <input
             type="number"
             placeholder="{{ expenses_unit_price }}"
@@ -18,9 +16,8 @@
             step=".01"
             data-action="change->matrix-expense-instance#updateExpenseInstance"
         />
-    </div>
-    <div class="col-2">
-        Quantité Enfants/Ados:<br />
+    </td>
+    <td>
         <input
             type="number"
             placeholder="{{ expenses_units }}"
@@ -30,9 +27,8 @@
             step="1"
             data-action="change->matrix-expense-instance#updateExpenseInstance"
         />
-    </div>
-    <div class="col-2">
-        Quantité Chefs:<br />
+    </td>
+    <td>
         <input
             type="number"
             placeholder="{{ expenses_units_adults }}"
@@ -42,9 +38,8 @@
             step="1"
             data-action="change->matrix-expense-instance#updateExpenseInstance"
         />
-    </div>
-    <div class="col-2">
-        Ratio:<br />
+    </td>
+    <td>
         <input
             type="number"
             placeholder="{{ expenses_rate }}"
@@ -55,13 +50,11 @@
             step=".01"
             data-action="change->matrix-expense-instance#updateExpenseInstance"
         />
-    </div>
-    <div class="col-3">
-        Total:<br />
+    </td>
+    <td class="text-end">
         <strong>{{ total_applyed_price }}</strong>
-    </div>
-    <div class="w-100">
-        Commentaires<br />
+    </td>
+    <td>
         <textarea
             class="w-100"
             data-action="change->matrix-expense-instance#updateExpenseInstance"
@@ -69,8 +62,8 @@
         >
 {{ comments }}</textarea
         >
-    </div>
-    <div class="w-100">
+    </td>
+    <td>
         <button
             type="button"
             class="btn btn-outline-danger text-align-center px-1"
@@ -79,7 +72,6 @@
         >
             <i class="bi bi-trash"></i>
         </button>
-
         <button
             type="button"
             class="btn btn-outline-secondary text-align-center px-1"
@@ -88,5 +80,5 @@
         >
             <i class="bi bi-copy"></i>
         </button>
-    </div>
-</div>
+    </td>
+</tr>

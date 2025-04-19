@@ -29,26 +29,58 @@
                 ></div>
                 <div class="col-9 col-lg-10">
                     <div>
-                        <input
-                            type="number"
-                            min="0"
-                            step="1"
-                            name="section-member-count-{{ uid }}"
-                            data-matrix-section-target="sectionMembersCount"
-                            data-action="change->matrix-section#updateMembersCount"
-                        />
+                        <table
+                            class="table table-striped table-hover table-bordered"
+                        >
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" scope="col">Libellé</th>
+                                    <th rowspan="2" scope="col">
+                                        Prix unitaire
+                                    </th>
+                                    <th scope="col">Enfants/Ados</th>
+                                    <th scope="col">Chefs</th>
+                                    <th rowspan="2" scope="col">%</th>
+                                    <th
+                                        rowspan="2"
+                                        scope="col"
+                                        class="text-end"
+                                    >
+                                        Total
+                                    </th>
+                                    <th rowspan="2" scope="col">
+                                        Commentaires
+                                    </th>
+                                    <th rowspan="2" scope="col"></th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            name="section-member-count-{{ uid }}"
+                                            data-matrix-section-target="sectionMembersCount"
+                                            data-action="change->matrix-section#updateMembersCount"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            name="section-adults-count-{{ uid }}"
+                                            data-matrix-section-target="sectionAdultsCount"
+                                            data-action="change->matrix-section#updateAdultsCount"
+                                        />
+                                    </td>
+                                </tr>
+                            </thead>
+                            <tbody
+                                data-matrix-section-target="expenseInstanceList"
+                            ></tbody>
+                        </table>
                     </div>
-                    <div>
-                        <input
-                            type="number"
-                            min="0"
-                            step="1"
-                            name="section-adults-count-{{ uid }}"
-                            data-matrix-section-target="sectionAdultsCount"
-                            data-action="change->matrix-section#updateAdultsCount"
-                        />
-                    </div>
-                    <div data-matrix-section-target="expenseInstanceList"></div>
                     <div
                         data-matrix-section-target="expenseGroupInstanceList"
                     ></div>

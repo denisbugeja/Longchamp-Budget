@@ -32,3 +32,7 @@
         border-color: var(--bs-red);
     }
 }
+
+table input[type=number] {
+    width: 6rem;
+}
