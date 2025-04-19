@@ -33,6 +33,12 @@
     }
 }
 
-table input[type=number] {
-    width: 6rem;
+table {
+    input[type=number] {
+        width: 6rem;
+    }
+
+    tr.table-active * {
+        font-weight: bold;
+    }
 }
