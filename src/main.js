@@ -495,7 +495,7 @@ Stimulus.register("matrix", class extends Controller {
 })
 
 Stimulus.register("matrix-section", class extends Controller {
-    static targets = ['expenseList', 'expenseInstanceList', 'expenseGroupRatioTotal', 'expenseGroupInstanceList', 'expenseGroupInstanceListContainer', 'sectionMembersCount', 'sectionAdultsCount', 'expenseInstanceGroupTotal', 'expenseInstanceTotal', 'expenseInstanceMemberTotal']
+    static targets = ['expenseList', 'expenseInstanceList', 'expenseGroupRatioTotal', 'expenseGroupInstanceList', 'expenseGroupInstanceListContainer', 'sectionMembersCount', 'sectionAdultsCount', 'expenseInstanceGroupTotal', 'expenseInstanceTotal', 'expenseInstanceMemberTotal', 'groupSumContainer']
     static outlets = ['matrix']
     static values = {
         uid: String
@@ -573,13 +573,31 @@ Stimulus.register("matrix-section", class extends Controller {
         await this.expenseGroupRatioTotalLoad()
     }
 
+    async groupSumContainerTargetConnected() {
+        await this.groupSumContainerLoad()
+    }
+
+    async groupSumContainerLoad() {
+        if (GROUP_ID !== this.uidValue) {
+            return
+        }
+
+        this.groupSumContainerTarget.classList.remove('d-none')
+
+        let ratioTotal = await this.getGroupRatioTotal(),
+            total = await this.getTotal(),
+            groupTotal = await this.getGroupTotal(),
+            data = { ratio: ratioTotal.sum_unit, total: total.sum_unit, groupTotal: groupTotal.sum_unit }
+
+        renderElement(this.groupSumContainerTarget, await generateFromFilePath('_parts/_components/_matric_section_group_sum.html', data))
+    }
+
     async expenseGroupRatioTotalLoad() {
         if (GROUP_ID !== this.uidValue) {
             return
         }
 
         let total = await this.getGroupRatioTotal()
-        //TODO change template
         renderElement(this.expenseGroupRatioTotalTarget, await generateFromFilePath('_parts/_components/_matrix_section_total_ratio.html', total))
     }
 
@@ -686,6 +704,7 @@ Stimulus.register("matrix-section", class extends Controller {
         this.expenseInstanceTotalLoad()
         this.expenseInstanceMemberTotalLoad()
         this.expenseGroupRatioTotalLoad()
+        this.groupSumContainerLoad()
     }
 })
 
