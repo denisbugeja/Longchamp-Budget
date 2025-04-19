@@ -592,8 +592,7 @@ Stimulus.register("matrix-section", class extends Controller {
 
     async expenseInstanceGroupTotalLoad() {
         let total = await this.getGroupTotal()
-        const template = (GROUP_ID === this.uidValue) ? '_parts/_components/_matrix_section_group_total.html' : '_parts/_components/_matrix_section_global_total.html'
-        renderElement(this.expenseInstanceGroupTotalTarget, await generateFromFilePath(template, total))
+        renderElement(this.expenseInstanceGroupTotalTarget, await generateFromFilePath('_parts/_components/_matrix_section_global_total.html', total))
     }
 
     async expenseInstanceTotalLoad() {
@@ -615,6 +614,10 @@ Stimulus.register("matrix-section", class extends Controller {
         }
 
         let groupExpenseInstanceList = await this.getGroupUsedExpenseList()
+        if (0 === groupExpenseInstanceList.length) {
+            return
+        }
+
         renderElement(this.expenseGroupInstanceListTarget, await generateFromFilePath('_parts/_components/_matrix_section_group_expense_instance.html', groupExpenseInstanceList))
         this.expenseGroupInstanceListTarget.closest('.d-none')?.classList.remove('d-none')
     }
