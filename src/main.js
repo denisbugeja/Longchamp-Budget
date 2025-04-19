@@ -48,7 +48,7 @@ function renderElement(element, content) {
     element.innerHTML = content
     if ('' !== focusedElementString) {
         targetElement = document.querySelector(focusedElementString)
-        if (null !== targetElement) {
+        if (targetElement) {
             targetElement.focus()
         }
     }
