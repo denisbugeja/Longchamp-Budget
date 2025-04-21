@@ -1,6 +1,6 @@
 {
     "$schema": "https://schema.tauri.app/config/2",
-    "productName": "budget",
+    "productName": "longchamp-budget",
     "version": "0.1.0",
     "identifier": "longchamp.budget.app",
     "build": {
@@ -10,8 +10,8 @@
         "withGlobalTauri": true,
         "windows": [
             {
-                "title": "Budget",
-                "width": 800,
+                "title": "Longchamp Budget",
+                "width": 1100,
                 "height": 600
             }
         ],

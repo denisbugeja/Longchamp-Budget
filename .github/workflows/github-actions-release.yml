@@ -50,7 +50,7 @@ jobs:
         if: matrix.platform == 'windows-latest'
         with:
           name: app-windows
-          path: D:\a\longchamp.budget\longchamp.budget\src-tauri\target\release\budget.exe
+          path: D:\a\longchamp.budget\longchamp.budget\src-tauri\target\release\longchamp-budget.exe
 
       - name: Create Release
         id: create_release
@@ -70,8 +70,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: src-tauri\target\release\budget.exe
-          asset_name: budget.exe
+          asset_path: src-tauri\target\release\longchamp-budget.exe
+          asset_name: longchamp-budget.exe
           asset_content_type: application/octet-stream
 
       # - name: Upload Linux Release Asset

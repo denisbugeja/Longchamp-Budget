@@ -319,24 +319,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "budget"
-version = "0.1.0"
-dependencies = [
- "itertools 0.13.0",
- "lazy_static",
- "rusqlite",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-devtools",
- "tauri-plugin-dialog",
- "tauri-plugin-fs",
- "tauri-plugin-shell",
- "uuid",
-]
-
-[[package]]
 name = "bumpalo"
 version = "3.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2221,6 +2203,24 @@ name = "log"
 version = "0.4.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "30bde2b3dc3671ae49d8e2e9f044c7c005836e7a023ee57cffa25ab82764bb9e"
+
+[[package]]
+name = "longchamp-budget"
+version = "0.1.0"
+dependencies = [
+ "itertools 0.13.0",
+ "lazy_static",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-devtools",
+ "tauri-plugin-dialog",
+ "tauri-plugin-fs",
+ "tauri-plugin-shell",
+ "uuid",
+]
 
 [[package]]
 name = "mac"
