@@ -78,7 +78,8 @@ function escapeHtmlAttribute(str) {
 window.Stimulus = Application.start()
 
 Stimulus.register("budget", class extends Controller {
-    static targets = ['textInput', 'message', 'main', 'links']
+    static targets = ['textInput', 'message', 'main', 'links', 'export']
+    static classes = ["loading"]
 
     filePath = ''
 
@@ -88,13 +89,20 @@ Stimulus.register("budget", class extends Controller {
 
     async filePathLoaded() {
         this.filePath = await invoke("get_global_file_path")
-        console.log(this.filePath)
         if ('' !== this.filePath.trim()) {
             this.linksTarget.classList.remove('d-none')
+            this.exportTarget.classList.remove('d-none')
         }
     }
 
+    resetDisplay() {
+        this.mainTarget.innerHTML = ''
+        this.linksTarget.classList.add('d-none')
+        this.exportTarget.classList.add('d-none')
+    }
+
     async openFile(e) {
+        this.element.classList.add(this.loadingClass)
         const file = await open({
             multiple: false,
             directory: false,
@@ -102,23 +110,30 @@ Stimulus.register("budget", class extends Controller {
         })
 
         if (file) {
+            this.resetDisplay()
             await invoke("update_db_path", { path: file, eraseIfExists: false })
-            if (this.filePath !== file) {
-                this.filePathLoaded()
-            }
+            await this.filePathLoaded()
         }
+        this.element.classList.remove(this.loadingClass)
     }
 
     async createFile(e) {
+        this.element.classList.add(this.loadingClass)
         const file = await save({
             defaultPath: "budget.lb",
             filters: [{ name: "Longchamp Budget", extensions: ["lb"] }]
         })
 
         if (file) {
-            await invoke("update_db_path", { path: file, eraseIfExists: false })
-            this.filePathLoaded()
+            this.resetDisplay()
+            await invoke("update_db_path", { path: file, eraseIfExists: true })
+            await this.filePathLoaded()
         }
+        this.element.classList.remove(this.loadingClass)
+    }
+
+    export() {
+        invoke("generate_xls_file")
     }
 
     loadExpenses() {

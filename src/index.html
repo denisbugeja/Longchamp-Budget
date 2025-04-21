@@ -7,7 +7,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Budget</title>
     </head>
-    <body class="d-flex h-100 bg-white text-dark" data-controller="budget">
+    <body class="d-flex h-100 bg-white text-dark" data-controller="budget" data-budget-loading-class="cursor-wait">
         <div class="cover-container d-flex w-100 h-100 mx-auto flex-column">
             <header class="bg-dark text-white px-3 py-1 sticky-top">
               <div class="d-flex justify-content-between">
@@ -17,6 +17,9 @@
                     </button>
                     <button type="button" class="btn btn-secondary m-1" data-action="click->budget#openFile" title="Ouvrir un fichier existant">
                         <i class="bi bi-folder2-open"></i>
+                    </button>
+                    <button data-budget-target="export" type="button" class=" d-none btn btn-secondary m-1" data-action="click->budget#export" title="Exporter vers excel">
+                        <i class="bi bi-filetype-xlsx"></i>
                     </button>
                     <a class="nav-link active" aria-current="page" href="index.html">Accueil</a>
                 </nav>
