@@ -9,7 +9,7 @@
     </head>
     <body class="d-flex h-100 bg-white text-dark" data-controller="budget" data-budget-loading-class="cursor-wait">
         <div class="cover-container d-flex w-100 h-100 mx-auto flex-column">
-            <header class="bg-dark text-white px-3 py-1 sticky-top">
+            <header class="bg-dark border border-4 border-top-0 border-start-0 border-end-0 border-danger text-white px-3 py-1 sticky-top">
               <div class="d-flex justify-content-between">
                 <nav class="nav nav-masthead">
                     <button type="button" class="btn btn-secondary m-1" data-action="click->budget#createFile" title="Créer un nouveau fichier">
@@ -21,12 +21,12 @@
                     <button data-budget-target="export" type="button" class=" d-none btn btn-secondary m-1" data-action="click->budget#export" title="Exporter vers excel">
                         <i class="bi bi-filetype-xlsx"></i>
                     </button>
-                    <a class="nav-link active" aria-current="page" href="index.html">Accueil</a>
+                    <a class="nav-link text-white text-decoration-underline active" aria-current="page" href="index.html">Accueil</a>
                 </nav>
                 <nav class="nav nav-masthead d-none" data-budget-target="links">
-                  <a class="nav-link" href="#" data-action="click->budget#loadSections">Unités</a>
-                  <a class="nav-link" href="#" data-action="click->budget#loadExpenses">Dépenses</a>
-                  <a class="nav-link" href="#" data-action="click->budget#loadMatrix">Budget</a>
+                  <a class="nav-link text-white text-decoration-underline" href="#" data-action="click->budget#loadSections">Unités</a>
+                  <a class="nav-link text-white text-decoration-underline" href="#" data-action="click->budget#loadExpenses">Dépenses</a>
+                  <a class="nav-link text-white text-decoration-underline" href="#" data-action="click->budget#loadMatrix">Budget</a>
                 </nav>
               </div>
             </header>
