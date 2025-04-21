@@ -79,19 +79,6 @@ pub fn json_to_vec(json_data: &str) -> Vec<&str> {
     serde_json::from_str(json_data).expect("Cannot deserialize section list")
 }
 
-fn encode_text(input: &str) -> String {
-    input
-        .chars()
-        .map(|c| {
-            if c.is_ascii_alphanumeric() || c == '_' {
-                c
-            } else {
-                '_'
-            }
-        })
-        .collect()
-}
-
 pub fn generate_xls_file() {
     let file_path = repository::get_global_file_path();
     let path = Path::new(&file_path);
@@ -137,12 +124,12 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
 
     let _ = worksheet.merge_range(0, 0, 0, 6, &section.title, &title_format);
 
-    let _ = worksheet.write_with_format(row, 0, "Enfants/Ados:", &border_format);
-    let _ = worksheet.write_with_format(row, 1, section.members_count, &border_bold_format);
+    let _ = worksheet.write_with_format(row, 0, "Enfants/Ados:", &border_bold_format);
+    let _ = worksheet.write_with_format(row, 1, section.members_count, &border_format);
     row += 1;
 
-    let _ = worksheet.write_with_format(row, 0, "Chefs:", &border_format);
-    let _ = worksheet.write_with_format(row, 1, section.adults_count, &border_bold_format);
+    let _ = worksheet.write_with_format(row, 0, "Chefs:", &border_bold_format);
+    let _ = worksheet.write_with_format(row, 1, section.adults_count, &border_format);
 
     row += 2;
     let _ = worksheet.write_with_format(row, 0, "Libellé", &border_bold_format);
