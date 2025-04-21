@@ -114,10 +114,16 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
     let title_format = Format::new().set_bold().set_align(FormatAlign::Center);
     let calculated_expenses_list: Vec<CalculatedExpense> =
         repository::get_calculated_expenses(&section.uid);
-    let mut row: u32 = 1;
+    let mut row: u32 = 2;
+    let formula_children_string: &str = "=$B3";
+    let formula_adults_string: &str = "=$B4";
+    let formula_children =
+        Formula::new(formula_children_string).set_result(section.members_count.to_string());
+    let formula_adults =
+        Formula::new(formula_adults_string).set_result(section.adults_count.to_string());
 
     let _ = worksheet
-        .set_name(encode_text(&section.title))
+        .set_name(&section.title)
         .expect("Impossible to set the sheet's name");
 
     let _ = worksheet.merge_range(0, 0, 0, 6, &section.title, &title_format);
@@ -129,7 +135,7 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
     let _ = worksheet.write(row, 0, "Chefs:");
     let _ = worksheet.write(row, 1, section.adults_count);
 
-    row += 3;
+    row += 2;
     let _ = worksheet.write(row, 0, "Libellé");
     let _ = worksheet.write(row, 1, "Prix unitaire");
     let _ = worksheet.write(row, 2, "Enfants/Ados");
@@ -144,35 +150,41 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
             Some(val) => val,
             None => expense.expenses_unit_price.unwrap(),
         };
-        let children = match expense.expenses_instances_units {
-            Some(val) => val,
-            None => expense.expenses_units.unwrap(),
-        };
-        let adults = match expense.expenses_instances_units_adults {
-            Some(val) => val,
-            None => expense.expenses_units_adults.unwrap(),
-        };
+
         let rate = match expense.expenses_instances_rate {
             Some(val) => val,
             None => expense.expenses_rate.unwrap(),
         };
 
         let formula_row = row + 1;
-        let formula_string = format!(
+
+        let formula_total_string = format!(
             "=B{}*(C{}+D{})*(E{}/100)",
             formula_row, formula_row, formula_row, formula_row
         );
 
         let result: f32 = expense.total_applyed_price.unwrap();
-        let formula = Formula::new(formula_string.as_str()).set_result(result.to_string());
+        let formula_total =
+            Formula::new(formula_total_string.as_str()).set_result(result.to_string());
 
         let _ = worksheet.write(row, 0, expense.title_expense.clone());
         let _ = worksheet.write(row, 1, unit_price);
-        let _ = worksheet.write(row, 2, children);
-        let _ = worksheet.write(row, 3, adults);
+
+        if expense.expenses_instances_units.is_some() {
+            let _ = worksheet.write(row, 2, expense.expenses_instances_units.unwrap());
+        } else {
+            let _ = worksheet.write_formula(row, 2, &formula_children);
+        }
+
+        if expense.expenses_instances_units_adults.is_some() {
+            let _ = worksheet.write(row, 3, expense.expenses_instances_units_adults.unwrap());
+        } else {
+            let _ = worksheet.write_formula(row, 3, &formula_adults);
+        }
+
         let _ = worksheet.write(row, 4, rate);
         let _ = worksheet.write(row, 5, expense.comments.clone());
-        let _ = worksheet.write_formula(row, 6, formula);
+        let _ = worksheet.write_formula(row, 6, formula_total);
 
         row += 1
     }
