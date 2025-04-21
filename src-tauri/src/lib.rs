@@ -5,8 +5,8 @@ mod repository;
 use tauri::{AppHandle, Runtime};
 
 #[tauri::command]
-fn update_db_path(path: &str) {
-    repository::update_db_file_path(path);
+fn update_db_path(path: &str, erase_if_exists: bool) {
+    repository::update_db_file_path(path, erase_if_exists);
 }
 
 // Section part
@@ -208,6 +208,16 @@ fn read_asset<R: Runtime>(app: AppHandle<R>, path: &str) -> String {
     String::from_utf8(asset.bytes.to_vec()).expect("Echec de conversion en UTF-8")
 }
 
+#[tauri::command]
+fn generate_xls_file() {
+    helper::generate_xls_file();
+}
+
+#[tauri::command]
+fn get_global_file_path() -> String {
+    repository::get_global_file_path()
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -246,6 +256,8 @@ pub fn run() {
             get_section_expense_from_instance,
             get_section_expense_from_association,
             get_section_expense_from_expenses_instances_and_section,
+            generate_xls_file,
+            get_global_file_path
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");

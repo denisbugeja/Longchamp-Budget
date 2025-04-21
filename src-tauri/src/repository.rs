@@ -3,9 +3,16 @@ use lazy_static::lazy_static;
 use rusqlite::{params, Connection, Result, Row};
 use std::sync::RwLock;
 use uuid::Uuid;
+use std::fs;
+use std::path::Path;
 
 lazy_static! {
     static ref GLOBAL_FILE_PATH: RwLock<String> = RwLock::new(String::from(""));
+}
+
+pub fn get_global_file_path() -> String {
+    let path = GLOBAL_FILE_PATH.read().expect("Impossible to read file path variable");
+    path.clone()
 }
 
 fn parse_s_or_none(s: &str) -> Option<String> {
@@ -31,10 +38,18 @@ pub fn get_connection() -> Result<Connection, rusqlite::Error> {
     Connection::open(file_path.clone())
 }
 
-pub fn update_db_file_path(path: &str) {
-    let mut file_path = GLOBAL_FILE_PATH.write().unwrap();
-    *file_path = String::from(path);
-    let conn = Connection::open(file_path.clone()).expect("Unable to open file");
+pub fn update_db_file_path(str_path: &str, erase_if_exists: bool) {
+    let mut file_path = GLOBAL_FILE_PATH.write().expect("Impossible to get file path for write");
+    let real_path = String::from(str_path);
+    let path = Path::new(&real_path);
+    
+    if erase_if_exists && path.exists() {
+        fs::remove_file(path).expect("Impossible to erase file")
+    }
+
+    *file_path = real_path.clone();
+    let conn = Connection::open(real_path).expect("Unable to open file");
+
     execute_migrations(conn);
 }
 

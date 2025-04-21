@@ -80,7 +80,18 @@ window.Stimulus = Application.start()
 Stimulus.register("budget", class extends Controller {
     static targets = ['textInput', 'message', 'main', 'links']
 
-    connect() {
+    filePath = ''
+
+    async connect() {
+        this.filePathLoaded()
+    }
+
+    async filePathLoaded() {
+        this.filePath = await invoke("get_global_file_path")
+        console.log(this.filePath)
+        if ('' !== this.filePath.trim()) {
+            this.linksTarget.classList.remove('d-none')
+        }
     }
 
     async openFile(e) {
@@ -91,8 +102,10 @@ Stimulus.register("budget", class extends Controller {
         })
 
         if (file) {
-            await invoke("update_db_path", { path: file })
-            this.linksTarget.classList.remove('d-none')
+            await invoke("update_db_path", { path: file, eraseIfExists: false })
+            if (this.filePath !== file) {
+                this.filePathLoaded()
+            }
         }
     }
 
@@ -103,8 +116,8 @@ Stimulus.register("budget", class extends Controller {
         })
 
         if (file) {
-            await invoke("update_db_path", { path: file })
-            this.linksTarget.classList.remove('d-none')
+            await invoke("update_db_path", { path: file, eraseIfExists: false })
+            this.filePathLoaded()
         }
     }
 

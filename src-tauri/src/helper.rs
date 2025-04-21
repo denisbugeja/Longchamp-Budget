@@ -1,4 +1,7 @@
+use crate::repository;
+use rust_xlsxwriter::Workbook;
 use serde::{Deserialize, Serialize};
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Section {
@@ -74,4 +77,22 @@ pub fn struct_to_json<T: Serialize>(struct_data: T) -> String {
 
 pub fn json_to_vec(json_data: &str) -> Vec<&str> {
     serde_json::from_str(json_data).expect("Cannot deserialize section list")
+}
+
+pub fn generate_xls_file() {
+    let file_path = repository::get_global_file_path();
+    let path = Path::new(&file_path);
+    let mut path_buf = PathBuf::from(path);
+
+    path_buf.set_extension("xlsx");
+    let final_path = path_buf.to_string_lossy().into_owned();
+
+    let mut workbook = Workbook::new();
+    let worksheet = workbook.add_worksheet();
+    let mut row: u32 = 0;
+    let name = "test";
+
+    row += 1;
+    let _ = worksheet.write(row, 0, name);
+    let _ = workbook.save(final_path);
 }

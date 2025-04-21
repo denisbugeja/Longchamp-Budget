@@ -34,6 +34,7 @@ uuid = { version = "1.11.0", features = [
     "macro-diagnostics",
 ] }
 itertools = "0.13.0"
+rust_xlsxwriter = "0.86.0"
 
 
 [profile.dev]
