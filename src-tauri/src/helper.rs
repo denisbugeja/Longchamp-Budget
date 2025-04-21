@@ -115,8 +115,8 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
     let calculated_expenses_list: Vec<CalculatedExpense> =
         repository::get_calculated_expenses(&section.uid);
     let mut row: u32 = 2;
-    let formula_children_string: &str = "=$B3";
-    let formula_adults_string: &str = "=$B4";
+    let formula_children_string: &str = "=$B$3";
+    let formula_adults_string: &str = "=$B$4";
     let formula_children =
         Formula::new(formula_children_string).set_result(section.members_count.to_string());
     let formula_adults =
