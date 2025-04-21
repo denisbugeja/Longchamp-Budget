@@ -1,5 +1,5 @@
 use crate::repository;
-use rust_xlsxwriter::{Format, FormatAlign, Formula, Workbook, Worksheet};
+use rust_xlsxwriter::{Color, Format, FormatAlign, FormatBorder, Formula, Workbook, Worksheet};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
@@ -112,6 +112,10 @@ pub fn generate_xls_file() {
 fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
     let worksheet: &mut Worksheet = workbook.add_worksheet();
     let title_format = Format::new().set_bold().set_align(FormatAlign::Center);
+    let border_format = Format::new()
+        .set_border(FormatBorder::Thin)
+        .set_border_color(Color::Black);
+
     let calculated_expenses_list: Vec<CalculatedExpense> =
         repository::get_calculated_expenses(&section.uid);
     let mut row: u32 = 2;
@@ -128,21 +132,21 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
 
     let _ = worksheet.merge_range(0, 0, 0, 6, &section.title, &title_format);
 
-    let _ = worksheet.write(row, 0, "Enfants/Ados:");
-    let _ = worksheet.write(row, 1, section.members_count);
+    let _ = worksheet.write_with_format(row, 0, "Enfants/Ados:", &border_format);
+    let _ = worksheet.write_with_format(row, 1, section.members_count, &border_format);
     row += 1;
 
-    let _ = worksheet.write(row, 0, "Chefs:");
-    let _ = worksheet.write(row, 1, section.adults_count);
+    let _ = worksheet.write_with_format(row, 0, "Chefs:", &border_format);
+    let _ = worksheet.write_with_format(row, 1, section.adults_count, &border_format);
 
     row += 2;
-    let _ = worksheet.write(row, 0, "Libellé");
-    let _ = worksheet.write(row, 1, "Prix unitaire");
-    let _ = worksheet.write(row, 2, "Enfants/Ados");
-    let _ = worksheet.write(row, 3, "Chefs");
-    let _ = worksheet.write(row, 4, "%");
-    let _ = worksheet.write(row, 5, "Commentaires");
-    let _ = worksheet.write(row, 6, "Total");
+    let _ = worksheet.write_with_format(row, 0, "Libellé", &border_format);
+    let _ = worksheet.write_with_format(row, 1, "Prix unitaire", &border_format);
+    let _ = worksheet.write_with_format(row, 2, "Enfants/Ados", &border_format);
+    let _ = worksheet.write_with_format(row, 3, "Chefs", &border_format);
+    let _ = worksheet.write_with_format(row, 4, "%", &border_format);
+    let _ = worksheet.write_with_format(row, 5, "Commentaires", &border_format);
+    let _ = worksheet.write_with_format(row, 6, "Total", &border_format);
     row += 1;
 
     for expense in calculated_expenses_list {
@@ -167,24 +171,34 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
         let formula_total =
             Formula::new(formula_total_string.as_str()).set_result(result.to_string());
 
-        let _ = worksheet.write(row, 0, expense.title_expense.clone());
-        let _ = worksheet.write(row, 1, unit_price);
+        let _ = worksheet.write_with_format(row, 0, expense.title_expense.clone(), &border_format);
+        let _ = worksheet.write_with_format(row, 1, unit_price, &border_format);
 
         if expense.expenses_instances_units.is_some() {
-            let _ = worksheet.write(row, 2, expense.expenses_instances_units.unwrap());
+            let _ = worksheet.write_with_format(
+                row,
+                2,
+                expense.expenses_instances_units.unwrap(),
+                &border_format,
+            );
         } else {
-            let _ = worksheet.write_formula(row, 2, &formula_children);
+            let _ = worksheet.write_formula_with_format(row, 2, &formula_children, &border_format);
         }
 
         if expense.expenses_instances_units_adults.is_some() {
-            let _ = worksheet.write(row, 3, expense.expenses_instances_units_adults.unwrap());
+            let _ = worksheet.write_with_format(
+                row,
+                3,
+                expense.expenses_instances_units_adults.unwrap(),
+                &border_format,
+            );
         } else {
-            let _ = worksheet.write_formula(row, 3, &formula_adults);
+            let _ = worksheet.write_formula_with_format(row, 3, &formula_adults, &border_format);
         }
 
-        let _ = worksheet.write(row, 4, rate);
-        let _ = worksheet.write(row, 5, expense.comments.clone());
-        let _ = worksheet.write_formula(row, 6, formula_total);
+        let _ = worksheet.write_with_format(row, 4, rate, &border_format);
+        let _ = worksheet.write_with_format(row, 5, expense.comments.clone(), &border_format);
+        let _ = worksheet.write_formula_with_format(row, 6, formula_total, &border_format);
 
         row += 1
     }
