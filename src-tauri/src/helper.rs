@@ -116,6 +116,11 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
         .set_border(FormatBorder::Thin)
         .set_border_color(Color::Black);
 
+    let border_bold_format = Format::new()
+        .set_border(FormatBorder::Thin)
+        .set_border_color(Color::Black)
+        .set_bold();
+
     let calculated_expenses_list: Vec<CalculatedExpense> =
         repository::get_calculated_expenses(&section.uid);
     let mut row: u32 = 2;
@@ -133,20 +138,20 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
     let _ = worksheet.merge_range(0, 0, 0, 6, &section.title, &title_format);
 
     let _ = worksheet.write_with_format(row, 0, "Enfants/Ados:", &border_format);
-    let _ = worksheet.write_with_format(row, 1, section.members_count, &border_format);
+    let _ = worksheet.write_with_format(row, 1, section.members_count, &border_bold_format);
     row += 1;
 
     let _ = worksheet.write_with_format(row, 0, "Chefs:", &border_format);
-    let _ = worksheet.write_with_format(row, 1, section.adults_count, &border_format);
+    let _ = worksheet.write_with_format(row, 1, section.adults_count, &border_bold_format);
 
     row += 2;
-    let _ = worksheet.write_with_format(row, 0, "Libellé", &border_format);
-    let _ = worksheet.write_with_format(row, 1, "Prix unitaire", &border_format);
-    let _ = worksheet.write_with_format(row, 2, "Enfants/Ados", &border_format);
-    let _ = worksheet.write_with_format(row, 3, "Chefs", &border_format);
-    let _ = worksheet.write_with_format(row, 4, "%", &border_format);
-    let _ = worksheet.write_with_format(row, 5, "Commentaires", &border_format);
-    let _ = worksheet.write_with_format(row, 6, "Total", &border_format);
+    let _ = worksheet.write_with_format(row, 0, "Libellé", &border_bold_format);
+    let _ = worksheet.write_with_format(row, 1, "Prix unitaire", &border_bold_format);
+    let _ = worksheet.write_with_format(row, 2, "Enfants/Ados", &border_bold_format);
+    let _ = worksheet.write_with_format(row, 3, "Chefs", &border_bold_format);
+    let _ = worksheet.write_with_format(row, 4, "%", &border_bold_format);
+    let _ = worksheet.write_with_format(row, 5, "Commentaires", &border_bold_format);
+    let _ = worksheet.write_with_format(row, 6, "Total", &border_bold_format);
     row += 1;
 
     for expense in calculated_expenses_list {
