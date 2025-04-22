@@ -114,6 +114,9 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
         .set_align(FormatAlign::Right)
         .set_bold();
 
+    let border_bold_number_right_format =
+        border_bold_right_format.clone().set_num_format("#,##0.00");
+
     let calculated_expenses_list: Vec<CalculatedExpense> =
         repository::get_calculated_expenses(&section.uid);
     let mut row: u32 = 2;
@@ -131,11 +134,11 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
     let _ = worksheet.merge_range(0, 0, 0, 6, &section.title, &title_format);
 
     let _ = worksheet.write_with_format(row, 0, "Enfants/Ados:", &border_bold_format);
-    let _ = worksheet.write_with_format(row, 1, section.members_count, &border_format);
+    let _ = worksheet.write_number_with_format(row, 1, section.members_count, &border_format);
     row += 1;
 
     let _ = worksheet.write_with_format(row, 0, "Chefs:", &border_bold_format);
-    let _ = worksheet.write_with_format(row, 1, section.adults_count, &border_format);
+    let _ = worksheet.write_number_with_format(row, 1, section.adults_count, &border_format);
 
     row += 2;
     let _ = worksheet.write_with_format(row, 0, "Libellé", &border_bold_format);
@@ -171,10 +174,10 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
             .set_result(result.to_string().replace(".", ","));
 
         let _ = worksheet.write_with_format(row, 0, expense.title_expense.clone(), &border_format);
-        let _ = worksheet.write_with_format(row, 1, unit_price, &border_format);
+        let _ = worksheet.write_number_with_format(row, 1, unit_price, &border_format);
 
         if expense.expenses_instances_units.is_some() {
-            let _ = worksheet.write_with_format(
+            let _ = worksheet.write_number_with_format(
                 row,
                 2,
                 expense.expenses_instances_units.unwrap(),
@@ -185,7 +188,7 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
         }
 
         if expense.expenses_instances_units_adults.is_some() {
-            let _ = worksheet.write_with_format(
+            let _ = worksheet.write_number_with_format(
                 row,
                 3,
                 expense.expenses_instances_units_adults.unwrap(),
@@ -195,7 +198,7 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
             let _ = worksheet.write_formula_with_format(row, 3, &formula_adults, &border_format);
         }
 
-        let _ = worksheet.write_with_format(row, 4, rate, &border_format);
+        let _ = worksheet.write_number_with_format(row, 4, rate, &border_format);
         let _ = worksheet.write_with_format(row, 5, expense.comments.clone(), &border_format);
         let _ = worksheet.write_formula_with_format(row, 6, formula_total, &border_format);
 
@@ -207,25 +210,28 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
         .set_result(sum_calculated.sum_total.to_string().replace(".", ","));
 
     let _ = worksheet.merge_range(row, 3, row, 5, "Total Unité", &border_format);
-    let _ = worksheet.write_formula_with_format(row, 6, &formula_sum, &border_bold_right_format);
+    let _ =
+        worksheet.write_formula_with_format(row, 6, &formula_sum, &border_bold_number_right_format);
 
     row += 1;
-    let formula_sum_units = Formula::new(format!("=G{}/$B$3", row))
+    let formula_sum_units = Formula::new(format!("=ROUND((G{}/$B$3),2)", row))
         .set_result(sum_calculated.sum_unit.to_string().replace(".", ","));
-
     let _ = worksheet.merge_range(row, 3, row, 5, "Total Unité par enfant", &border_format);
-    let _ =
-        worksheet.write_formula_with_format(row, 6, &formula_sum_units, &border_bold_right_format);
+    let _ = worksheet.write_formula_with_format(
+        row,
+        6,
+        &formula_sum_units,
+        &border_bold_number_right_format,
+    );
 
     row += 1;
     let sum_calculated_group: SumExpenseInstance = repository::get_group_sum_calculated_expenses();
     let _ = worksheet.merge_range(row, 3, row, 5, "Total Groupe par enfant", &border_format);
-    //todo fix FLOAT as string in excel
-    let _ = worksheet.write_with_format(
+    let _ = worksheet.write_number_with_format(
         row,
         6,
-        format!("{:.2}", sum_calculated_group.sum_unit),
-        &border_bold_right_format,
+        sum_calculated_group.sum_unit,
+        &border_bold_number_right_format,
     );
 
     row += 1;
@@ -233,8 +239,12 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
     let formula_sum_total = Formula::new(format!("=SUM(G{}:G{})", row - 1, row))
         .set_result(total_per_member.sum_unit.to_string().replace(".", ","));
     let _ = worksheet.merge_range(row, 3, row, 5, "Total par enfant", &border_format);
-    let _ =
-        worksheet.write_formula_with_format(row, 6, &formula_sum_total, &border_bold_right_format);
+    let _ = worksheet.write_formula_with_format(
+        row,
+        6,
+        &formula_sum_total,
+        &border_bold_number_right_format,
+    );
 
     let _ = worksheet.autofit();
 }
