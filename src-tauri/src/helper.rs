@@ -108,6 +108,12 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
         .set_border_color(Color::Black)
         .set_bold();
 
+    let border_bold_right_format = Format::new()
+        .set_border(FormatBorder::Thin)
+        .set_border_color(Color::Black)
+        .set_align(FormatAlign::Right)
+        .set_bold();
+
     let calculated_expenses_list: Vec<CalculatedExpense> =
         repository::get_calculated_expenses(&section.uid);
     let mut row: u32 = 2;
@@ -141,6 +147,7 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
     let _ = worksheet.write_with_format(row, 6, "Total", &border_bold_format);
     row += 1;
 
+    let first_excel_row = row + 1;
     for expense in calculated_expenses_list {
         let unit_price = match expense.expenses_instances_unit_price {
             Some(val) => val,
@@ -194,6 +201,34 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
 
         row += 1
     }
+
+    let sum_calculated = repository::get_sum_calculated_expenses(&section.uid);
+    let formula_sum = Formula::new(format!("=SUM(G{}:G{})", first_excel_row, row))
+        .set_result(sum_calculated.sum_total.to_string());
+
+    let _ = worksheet.merge_range(row, 0, row, 5, "Total Unité", &border_format);
+    let _ = worksheet.write_formula_with_format(row, 6, &formula_sum, &border_bold_right_format);
+
+    row += 1;
+    let formula_sum_units =
+        Formula::new(format!("=G{}/$B$3", row)).set_result(sum_calculated.sum_unit.to_string());
+
+    let _ = worksheet.merge_range(row, 0, row, 5, "Total Unité par enfant", &border_format);
+    let _ =
+        worksheet.write_formula_with_format(row, 6, &formula_sum_units, &border_bold_right_format);
+
+    row += 1;
+
+    let _ = worksheet.merge_range(row, 0, row, 5, "Total Groupe par enfant", &border_format);
+    let _ = worksheet.write_with_format(row, 6, "0", &border_bold_right_format);
+
+    row += 1;
+
+    let formula_sum_total = Formula::new(format!("=SUM(G{}:G{})", row - 1, row))
+        .set_result(sum_calculated.sum_unit.to_string());
+    let _ = worksheet.merge_range(row, 0, row, 5, "Total par enfant", &border_format);
+    let _ =
+        worksheet.write_formula_with_format(row, 6, &formula_sum_total, &border_bold_right_format);
 
     let _ = worksheet.autofit();
 }
