@@ -151,7 +151,7 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
     row += 1;
 
     let first_excel_row = row + 1;
-    for expense in calculated_expenses_list {
+    for expense in &calculated_expenses_list {
         let unit_price = match expense.expenses_instances_unit_price {
             Some(val) => val,
             None => expense.expenses_unit_price.unwrap(),
@@ -205,46 +205,53 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
         row += 1;
     }
 
-    let sum_calculated = repository::get_sum_calculated_expenses(&section.uid);
-    let formula_sum = Formula::new(format!("=SUM(G{}:G{})", first_excel_row, row))
-        .set_result(sum_calculated.sum_total.to_string().replace(".", ","));
+    if 0 != calculated_expenses_list.len() {
+        let sum_calculated = repository::get_sum_calculated_expenses(&section.uid);
+        let formula_sum = Formula::new(format!("=SUM(G{}:G{})", first_excel_row, row))
+            .set_result(sum_calculated.sum_total.to_string().replace(".", ","));
 
-    let _ = worksheet.merge_range(row, 3, row, 5, "Total Unité", &border_format);
-    let _ =
-        worksheet.write_formula_with_format(row, 6, &formula_sum, &border_bold_number_right_format);
+        let _ = worksheet.merge_range(row, 3, row, 5, "Total Unité", &border_format);
+        let _ = worksheet.write_formula_with_format(
+            row,
+            6,
+            &formula_sum,
+            &border_bold_number_right_format,
+        );
 
-    row += 1;
-    let formula_sum_units = Formula::new(format!("=ROUND((G{}/$B$3),2)", row))
-        .set_result(sum_calculated.sum_unit.to_string().replace(".", ","));
-    let _ = worksheet.merge_range(row, 3, row, 5, "Total Unité par enfant", &border_format);
-    let _ = worksheet.write_formula_with_format(
-        row,
-        6,
-        &formula_sum_units,
-        &border_bold_number_right_format,
-    );
+        row += 1;
+        let formula_sum_units = Formula::new(format!("=ROUND((G{}/$B$3),2)", row))
+            .set_result(sum_calculated.sum_unit.to_string().replace(".", ","));
+        let _ = worksheet.merge_range(row, 3, row, 5, "Total Unité par enfant", &border_format);
+        let _ = worksheet.write_formula_with_format(
+            row,
+            6,
+            &formula_sum_units,
+            &border_bold_number_right_format,
+        );
 
-    row += 1;
-    let sum_calculated_group: SumExpenseInstance = repository::get_group_sum_calculated_expenses();
-    let _ = worksheet.merge_range(row, 3, row, 5, "Total Groupe par enfant", &border_format);
-    let _ = worksheet.write_number_with_format(
-        row,
-        6,
-        sum_calculated_group.sum_unit,
-        &border_bold_number_right_format,
-    );
+        row += 1;
+        let sum_calculated_group: SumExpenseInstance =
+            repository::get_group_sum_calculated_expenses();
+        let _ = worksheet.merge_range(row, 3, row, 5, "Total Groupe par enfant", &border_format);
+        let _ = worksheet.write_number_with_format(
+            row,
+            6,
+            sum_calculated_group.sum_unit,
+            &border_bold_number_right_format,
+        );
 
-    row += 1;
-    let total_per_member = repository::get_total_per_member(&section.uid);
-    let formula_sum_total = Formula::new(format!("=SUM(G{}:G{})", row - 1, row))
-        .set_result(total_per_member.sum_unit.to_string().replace(".", ","));
-    let _ = worksheet.merge_range(row, 3, row, 5, "Total par enfant", &border_format);
-    let _ = worksheet.write_formula_with_format(
-        row,
-        6,
-        &formula_sum_total,
-        &border_bold_number_right_format,
-    );
+        row += 1;
+        let total_per_member = repository::get_total_per_member(&section.uid);
+        let formula_sum_total = Formula::new(format!("=SUM(G{}:G{})", row - 1, row))
+            .set_result(total_per_member.sum_unit.to_string().replace(".", ","));
+        let _ = worksheet.merge_range(row, 3, row, 5, "Total par enfant", &border_format);
+        let _ = worksheet.write_formula_with_format(
+            row,
+            6,
+            &formula_sum_total,
+            &border_bold_number_right_format,
+        );
+    }
 
     let _ = worksheet.autofit();
 }
