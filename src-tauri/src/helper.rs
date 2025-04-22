@@ -205,7 +205,7 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
         row += 1;
     }
 
-    if 0 != calculated_expenses_list.len() {
+    if !calculated_expenses_list.is_empty() {
         let sum_calculated = repository::get_sum_calculated_expenses(&section.uid);
         let formula_sum = Formula::new(format!("=SUM(G{}:G{})", first_excel_row, row))
             .set_result(sum_calculated.sum_total.to_string().replace(".", ","));
