@@ -190,21 +190,42 @@ Stimulus.register("section", class extends Controller {
     }
 
     validateTitle() {
-        return '' !== this.titleTarget.value.trim()
+        this.titleTarget.classList.remove('invalid')
+        if ('' !== this.titleTarget.value.trim()) {
+            return true
+        }
+        this.titleTarget.classList.add('invalid')
+        return false
     }
 
     validateColor() {
-        return '' !== this.colorTarget.value.trim()
+        this.colorTarget.classList.remove('invalid')
+        if ('' !== this.colorTarget.value.trim()) {
+            return true
+        }
+        this.colorTarget.classList.add('invalid')
+        return false
     }
 
     validateMembers() {
-        return '' !== this.sectionMembersCountTarget.value.trim()
+        this.sectionMembersCountTarget.classList.remove('invalid')
+        if ('' !== this.sectionMembersCountTarget.value.trim()
             && !isNaN(this.sectionMembersCountTarget.value)
+        ) {
+            return true
+        }
+        this.sectionMembersCountTarget.classList.add('invalid')
+        return false
     }
 
     validateAdults() {
-        return '' !== this.sectionAdultsCountTarget.value.trim()
-            && !isNaN(this.sectionAdultsCountTarget.value)
+        this.sectionAdultsCountTarget.classList.remove('invalid')
+        if ('' !== this.sectionAdultsCountTarget.value.trim()
+            && !isNaN(this.sectionAdultsCountTarget.value)) {
+            return true
+        }
+        this.sectionAdultsCountTarget.classList.add('invalid')
+        return false
     }
 
     validate() {
@@ -259,21 +280,41 @@ Stimulus.register("section-edit", class extends Controller {
     }
 
     validateTitle() {
-        return '' !== this.titleTarget.value.trim()
+        this.titleTarget.classList.remove('invalid')
+        if ('' !== this.titleTarget.value.trim()) {
+            return true
+        }
+        this.titleTarget.classList.add('invalid')
+        return false
     }
 
     validateColor() {
-        return '' !== this.colorTarget.value.trim()
+        this.colorTarget.classList.remove('invalid')
+        if ('' !== this.colorTarget.value.trim()) {
+            return true
+        }
+        this.colorTarget.classList.add('invalid')
+        return false
     }
 
     validateMembers() {
-        return '' !== this.sectionMembersCountTarget.value.trim()
-            && !isNaN(this.sectionMembersCountTarget.value)
+        this.sectionMembersCountTarget.classList.remove('invalid')
+        if ('' !== this.sectionMembersCountTarget.value.trim()
+            && !isNaN(this.sectionMembersCountTarget.value)) {
+            return true
+        }
+        this.sectionMembersCountTarget.classList.add('invalid')
+        return false
     }
 
     validateAdults() {
-        return '' !== this.sectionAdultsCountTarget.value.trim()
-            && !isNaN(this.sectionAdultsCountTarget.value)
+        this.sectionAdultsCountTarget.classList.remove('invalid')
+        if ('' !== this.sectionAdultsCountTarget.value.trim()
+            && !isNaN(this.sectionAdultsCountTarget.value)) {
+            return true
+        }
+        this.sectionAdultsCountTarget.classList.add('invalid')
+        return false
     }
 
     validate() {
