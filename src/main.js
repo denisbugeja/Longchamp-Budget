@@ -898,7 +898,8 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
         this.matrixSectionOutlet.triggerGlobalRefresh()
     }
 
-    async updateExpenseInstance() {
+    async updateExpenseInstance(e) {
+        console.log(e.target.value)
         if (!this.validate()) {
             return
         }
