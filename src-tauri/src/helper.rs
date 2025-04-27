@@ -229,28 +229,55 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
             &border_bold_number_right_format,
         );
 
-        row += 1;
-        let sum_calculated_group: SumExpenseInstance =
-            repository::get_group_sum_calculated_expenses();
-        let _ = worksheet.merge_range(row, 3, row, 5, "Total Groupe par enfant", &border_format);
-        let _ = worksheet.write_number_with_format(
-            row,
-            6,
-            sum_calculated_group.sum_unit,
-            &border_bold_number_right_format,
-        );
+        if "group" == section.uid {
+            row += 3;
+            let sum_calculated_group: SumExpenseInstance =
+                repository::get_group_sum_calculated_expenses();
+            let _ =
+                worksheet.merge_range(row, 3, row, 5, "Total Groupe par enfant", &border_format);
+            let _ = worksheet.write_number_with_format(
+                row,
+                6,
+                sum_calculated_group.sum_unit,
+                &border_bold_number_right_format,
+            );
 
-        row += 1;
-        let total_per_member = repository::get_total_per_member(&section.uid);
-        let formula_sum_total = Formula::new(format!("=SUM(G{}:G{})", row - 1, row))
-            .set_result(total_per_member.sum_unit.to_string().replace(".", ","));
-        let _ = worksheet.merge_range(row, 3, row, 5, "Total par enfant", &border_format);
-        let _ = worksheet.write_formula_with_format(
-            row,
-            6,
-            &formula_sum_total,
-            &border_bold_number_right_format,
-        );
+            row += 1;
+            let total_per_member = repository::get_total_per_member(&section.uid);
+            let formula_sum_total = Formula::new(format!("=SUM(G{}:G{})", row - 1, row))
+                .set_result(total_per_member.sum_unit.to_string().replace(".", ","));
+            let _ = worksheet.merge_range(row, 3, row, 5, "Total par enfant", &border_format);
+            let _ = worksheet.write_formula_with_format(
+                row,
+                6,
+                &formula_sum_total,
+                &border_bold_number_right_format,
+            );
+        } else {
+            row += 1;
+            let sum_calculated_group: SumExpenseInstance =
+                repository::get_group_sum_calculated_expenses();
+            let _ =
+                worksheet.merge_range(row, 3, row, 5, "Total Groupe par enfant", &border_format);
+            let _ = worksheet.write_number_with_format(
+                row,
+                6,
+                sum_calculated_group.sum_unit,
+                &border_bold_number_right_format,
+            );
+
+            row += 1;
+            let total_per_member = repository::get_total_per_member(&section.uid);
+            let formula_sum_total = Formula::new(format!("=SUM(G{}:G{})", row - 1, row))
+                .set_result(total_per_member.sum_unit.to_string().replace(".", ","));
+            let _ = worksheet.merge_range(row, 3, row, 5, "Total par enfant", &border_format);
+            let _ = worksheet.write_formula_with_format(
+                row,
+                6,
+                &formula_sum_total,
+                &border_bold_number_right_format,
+            );
+        }
     }
 
     let _ = worksheet.autofit();
