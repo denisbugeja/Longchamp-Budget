@@ -874,11 +874,12 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
     static outlets = ["matrix-section"]
     static values = {
         uid: String,
-        label: String
+        label: String,
+        rate: Number
     }
 
     async connect() {
-        if ('' !== this.rateTarget.value.trim()) {
+        if (100 != this.rateValue) {
             let data = { uid: deleteSpecialCharForId(this.uidValue), label: this.labelValue }
             renderElement(this.labelTarget, await generateFromFilePath('_parts/_components/_matrix_section_expense_instance_label_link.html', data))
         }
