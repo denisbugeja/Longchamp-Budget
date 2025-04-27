@@ -229,10 +229,13 @@ Stimulus.register("section", class extends Controller {
     }
 
     validate() {
-        return this.validateTitle()
-            && this.validateColor()
-            && this.validateMembers()
-            && this.validateAdults()
+        let validateArray = [
+            this.validateTitle(),
+            this.validateColor(),
+            this.validateMembers(),
+            this.validateAdults(),
+        ]
+        return validateArray.filter((item) => item).length === validateArray.length
     }
 })
 
@@ -318,10 +321,14 @@ Stimulus.register("section-edit", class extends Controller {
     }
 
     validate() {
-        return this.validateTitle()
-            && this.validateColor()
-            && this.validateMembers()
-            && this.validateAdults()
+        let validateArray = [
+            this.validateTitle(),
+            this.validateColor(),
+            this.validateMembers(),
+            this.validateAdults()
+        ]
+
+        return validateArray.filter((item) => item).length === validateArray.length
     }
 })
 
@@ -408,31 +415,55 @@ Stimulus.register("expense", class extends Controller {
     }
 
     hasAtLeastOneSectionChecked() {
-        return 0 != this.sectionTargets.filter((section) => section.checked).length
+        this.sectionListTarget.classList.remove('invalid')
+        if (0 != this.sectionTargets.filter((section) => section.checked).length) {
+            return true
+        }
+        this.sectionListTarget.classList.add('invalid')
+
+        return false
     }
 
     isRateTargetValid() {
-        return '' !== this.rateTarget.value.trim()
+        this.rateTarget.classList.remove('invalid')
+        if ('' !== this.rateTarget.value.trim()
             && !isNaN(this.rateTarget.value)
             && parseFloat(this.rateTarget.value) >= 0
-            && parseFloat(this.rateTarget.value) <= 100
+            && parseFloat(this.rateTarget.value) <= 100) {
+            return true
+        }
+        this.rateTarget.classList.add('invalid')
+        return false
     }
 
     isTitleTargetValid() {
-        return '' !== this.titleTarget.value.trim()
+        this.titleTarget.classList.remove('invalid')
+        if ('' !== this.titleTarget.value.trim()) {
+            return true
+        }
+        this.titleTarget.classList.add('invalid')
+        return false
     }
 
     isUnitPriceTargetValid() {
-        return "" !== this.unitPriceTarget.value.trim()
+        this.unitPriceTarget.classList.remove('invalid')
+        if ('' !== this.unitPriceTarget.value.trim()
             && !isNaN(this.unitPriceTarget.value)
-            && parseFloat(this.unitPriceTarget.value) >= 0
+            && parseFloat(this.unitPriceTarget.value) >= 0) {
+            return true
+        }
+        this.unitPriceTarget.classList.add('invalid')
+        return false
     }
 
     validate() {
-        return this.isTitleTargetValid()
-            && this.isRateTargetValid()
-            && this.isUnitPriceTargetValid()
-            && this.hasAtLeastOneSectionChecked()
+        let validateArray = [
+            this.isTitleTargetValid(),
+            this.isRateTargetValid(),
+            this.isUnitPriceTargetValid(),
+            this.hasAtLeastOneSectionChecked()
+        ]
+        return validateArray.filter((item) => item).length === validateArray.length
     }
 })
 
@@ -504,30 +535,53 @@ Stimulus.register("expense-edit", class extends Controller {
     }
 
     isRateTargetValid() {
-        return '' !== this.rateTarget.value.trim()
+        this.rateTarget.classList.remove('invalid')
+        if ('' !== this.rateTarget.value.trim()
             && !isNaN(this.rateTarget.value)
             && parseFloat(this.rateTarget.value) >= 0
-            && parseFloat(this.rateTarget.value) <= 100
+            && parseFloat(this.rateTarget.value) <= 100) {
+            return true
+        }
+        this.rateTarget.classList.add('invalid')
+        return false
     }
 
     isTitleTargetValid() {
-        return '' !== this.titleTarget.value.trim()
+        this.titleTarget.classList.remove('invalid')
+        if ('' !== this.titleTarget.value.trim()) {
+            return true
+        }
+        this.titleTarget.classList.add('invalid')
+        return false
     }
 
     isUnitPriceTargetValid() {
-        return "" !== this.unitPriceTarget.value.trim()
+        this.unitPriceTarget.classList.remove('invalid')
+        if ("" !== this.unitPriceTarget.value.trim()
             && !isNaN(this.unitPriceTarget.value)
-            && parseFloat(this.unitPriceTarget.value) >= 0
+            && parseFloat(this.unitPriceTarget.value) >= 0) {
+            return true
+        }
+        this.unitPriceTarget.classList.add('invalid')
+        return false
     }
 
     hasAtLeastOneSectionChecked() {
-        return 0 != this.sectionTargets.filter((section) => section.checked).length
+        this.sectionListTarget.classList.remove('invalid')
+        if (0 != this.sectionTargets.filter((section) => section.checked).length) {
+            return true
+        }
+        this.sectionListTarget.classList.add('invalid')
+        return false
     }
 
     validate() {
-        return this.isTitleTargetValid()
-            && this.isRateTargetValid()
-            && this.isUnitPriceTargetValid()
+        let validateArray = [
+            this.isTitleTargetValid(),
+            this.isRateTargetValid(),
+            this.isUnitPriceTargetValid()
+        ]
+        return validateArray.filter((item) => item).length === validateArray.length
     }
 })
 
@@ -757,15 +811,25 @@ Stimulus.register("matrix-section", class extends Controller {
     }
 
     validateMembersCount() {
-        return '' !== this.sectionMembersCountTarget.value.trim()
+        this.sectionMembersCountTarget.classList.remove('invalid')
+        if ('' !== this.sectionMembersCountTarget.value.trim()
             && !isNaN(this.sectionMembersCountTarget.value)
-            && this.sectionMembersCountTarget.value >= 0
+            && this.sectionMembersCountTarget.value >= 0) {
+            return true
+        }
+        this.sectionMembersCountTarget.classList.add('invalid')
+        return false
     }
 
     validateAdultsCount() {
-        return '' !== this.sectionAdultsCountTarget.value.trim()
+        this.sectionAdultsCountTarget.classList.remove('invalid')
+        if ('' !== this.sectionAdultsCountTarget.value.trim()
             && !isNaN(this.sectionAdultsCountTarget.value)
-            && this.sectionAdultsCountTarget.value >= 0
+            && this.sectionAdultsCountTarget.value >= 0) {
+            return true
+        }
+        this.sectionAdultsCountTarget.classList.add('invalid')
+        return false
     }
 
     async triggerGlobalRefresh() {
@@ -851,36 +915,60 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
     }
 
     unitPriceValid() {
-        return '' === this.unitPriceTarget.value.trim()
+        this.unitPriceTarget.classList.remove('invalid')
+        if ('' === this.unitPriceTarget.value.trim()
             || (
                 !isNaN(this.unitPriceTarget.value)
-                && parseFloat(this.unitPriceTarget.value) > 0
-            )
+                && parseFloat(this.unitPriceTarget.value) > 0)
+        ) {
+            return true
+        }
+        this.unitPriceTarget.classList.add('invalid')
+        return false
     }
 
     unitsValid() {
-        return '' === this.unitsTarget.value.trim()
+        this.unitsTarget.classList.remove('invalid')
+        if ('' === this.unitsTarget.value.trim()
             || !isNaN(this.unitsTarget.value)
+        ) {
+            return true
+        }
+        this.unitsTarget.classList.add('invalid')
+        return false
     }
 
     unitsAdultsValid() {
-        return '' === this.unitsAdultsTarget.value.trim()
-            || !isNaN(this.unitsAdultsTarget.value)
+        this.unitsAdultsTarget.classList.remove('invalid')
+        if ('' === this.unitsAdultsTarget.value.trim()
+            || !isNaN(this.unitsAdultsTarget.value)) {
+            return true
+        }
+        this.unitsAdultsTarget.classList.add('invalid')
+        return false
     }
 
     rateValid() {
-        return '' === this.rateTarget.value.trim()
+        this.rateTarget.classList.remove('invalid')
+        if ('' === this.rateTarget.value.trim()
             || (
                 !isNaN(this.rateTarget.value)
                 && parseInt(this.rateTarget.value) >= 0
                 && parseInt(this.rateTarget.value) <= 100
-            )
+            )) {
+            return true
+        }
+        this.rateTarget.classList.add('invalid')
+        return false
     }
 
     validate() {
-        return this.unitPriceValid()
-            && this.unitsValid()
-            && this.unitsAdultsValid()
-            && this.rateValid()
+        let validateArray = [
+            this.unitPriceValid(),
+            this.unitsValid(),
+            this.unitsAdultsValid(),
+            this.rateValid()
+        ]
+        return validateArray.filter((item) => item).length === validateArray.length
     }
 })
