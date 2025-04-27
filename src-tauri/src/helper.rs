@@ -269,6 +269,9 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
         let groupe_expense_list: Vec<CalculatedExpense> =
             repository::get_group_calculated_expenses();
 
+        let group_sum_expense_instance: SumExpenseInstance =
+            repository::get_group_only_sum_calculated_expenses();
+
         if !groupe_expense_list.is_empty() {
             row += 3;
             let _ = worksheet.merge_range(
@@ -289,6 +292,7 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
                 worksheet.write_with_format(row, 4, "Prix unitaire calculé", &border_bold_format);
             let _ = worksheet.write_with_format(row, 5, "Prix total", &border_bold_format);
 
+            //TODO refacto total formula in case of empty groupe_expense_list
             for group_expense in &groupe_expense_list {
                 row += 1;
                 let _ = worksheet.write_with_format(
@@ -353,7 +357,7 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
         let _ = worksheet.write_number_with_format(
             row,
             4,
-            sum_calculated_group.sum_unit,
+            group_sum_expense_instance.sum_unit,
             &border_bold_number_right_format,
         );
 
