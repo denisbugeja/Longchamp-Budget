@@ -120,8 +120,8 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
     let calculated_expenses_list: Vec<CalculatedExpense> =
         repository::get_calculated_expenses(&section.uid);
     let mut row: u32 = 2;
-    let formula_children_string: &str = "=$B$3";
-    let formula_adults_string: &str = "=$B$4";
+    let formula_children_string: &str = "=B3";
+    let formula_adults_string: &str = "=B4";
     let formula_children =
         Formula::new(formula_children_string).set_result(section.members_count.to_string());
     let formula_adults =
@@ -219,7 +219,7 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
         );
 
         row += 1;
-        let formula_sum_units = Formula::new(format!("=ROUND((G{}/$B$3),2)", row))
+        let formula_sum_units = Formula::new(format!("=ROUND((G{}/B3),2)", row))
             .set_result(sum_calculated.sum_unit.to_string().replace(".", ","));
         let _ = worksheet.merge_range(row, 3, row, 5, "Total Unité par enfant", &border_format);
         let _ = worksheet.write_formula_with_format(
