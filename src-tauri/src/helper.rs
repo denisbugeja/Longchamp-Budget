@@ -292,7 +292,7 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
                 worksheet.write_with_format(row, 4, "Prix unitaire calculé", &border_bold_format);
             let _ = worksheet.write_with_format(row, 5, "Prix total", &border_bold_format);
 
-            //TODO refacto total formula in case of empty groupe_expense_list
+            //TODO refacto total formula in case of empty groupe_expense_list or ratio expense list
             for group_expense in &groupe_expense_list {
                 row += 1;
                 let _ = worksheet.write_with_format(
