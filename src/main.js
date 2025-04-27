@@ -229,7 +229,7 @@ Stimulus.register("section", class extends Controller {
     }
 
     validate() {
-        let validateArray = [
+        const validateArray = [
             this.validateTitle(),
             this.validateColor(),
             this.validateMembers(),
@@ -321,7 +321,7 @@ Stimulus.register("section-edit", class extends Controller {
     }
 
     validate() {
-        let validateArray = [
+        const validateArray = [
             this.validateTitle(),
             this.validateColor(),
             this.validateMembers(),
@@ -457,7 +457,7 @@ Stimulus.register("expense", class extends Controller {
     }
 
     validate() {
-        let validateArray = [
+        const validateArray = [
             this.isTitleTargetValid(),
             this.isRateTargetValid(),
             this.isUnitPriceTargetValid(),
@@ -576,7 +576,7 @@ Stimulus.register("expense-edit", class extends Controller {
     }
 
     validate() {
-        let validateArray = [
+        const validateArray = [
             this.isTitleTargetValid(),
             this.isRateTargetValid(),
             this.isUnitPriceTargetValid()
@@ -963,7 +963,7 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
     }
 
     validate() {
-        let validateArray = [
+        const validateArray = [
             this.unitPriceValid(),
             this.unitsValid(),
             this.unitsAdultsValid(),
