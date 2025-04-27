@@ -114,12 +114,20 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
         .set_align(FormatAlign::Right)
         .set_bold();
 
+    let border_bold_center_format = Format::new()
+        .set_border(FormatBorder::Thin)
+        .set_border_color(Color::Black)
+        .set_align(FormatAlign::Center)
+        .set_bold();
+
     let border_bold_number_right_format =
         border_bold_right_format.clone().set_num_format("#,##0.00");
 
     let calculated_expenses_list: Vec<CalculatedExpense> =
         repository::get_calculated_expenses(&section.uid);
     let mut row: u32 = 2;
+    let mut row_total_unite: u32 = 2;
+    let mut row_total_rated_group: u32 = 2;
     let formula_children_string: &str = "=B3";
     let formula_adults_string: &str = "=B4";
     let formula_children =
@@ -219,6 +227,7 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
         );
 
         row += 1;
+        row_total_unite = row + 1;
         let formula_sum_units = Formula::new(format!("=ROUND((G{}/B3),2)", row))
             .set_result(sum_calculated.sum_unit.to_string().replace(".", ","));
         let _ = worksheet.merge_range(row, 3, row, 5, "Total Unité par enfant", &border_format);
@@ -229,31 +238,7 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
             &border_bold_number_right_format,
         );
 
-        if "group" == section.uid {
-            row += 3;
-            let sum_calculated_group: SumExpenseInstance =
-                repository::get_group_sum_calculated_expenses();
-            let _ =
-                worksheet.merge_range(row, 3, row, 5, "Total Groupe par enfant", &border_format);
-            let _ = worksheet.write_number_with_format(
-                row,
-                6,
-                sum_calculated_group.sum_unit,
-                &border_bold_number_right_format,
-            );
-
-            row += 1;
-            let total_per_member = repository::get_total_per_member(&section.uid);
-            let formula_sum_total = Formula::new(format!("=SUM(G{}:G{})", row - 1, row))
-                .set_result(total_per_member.sum_unit.to_string().replace(".", ","));
-            let _ = worksheet.merge_range(row, 3, row, 5, "Total par enfant", &border_format);
-            let _ = worksheet.write_formula_with_format(
-                row,
-                6,
-                &formula_sum_total,
-                &border_bold_number_right_format,
-            );
-        } else {
+        if "group" != section.uid {
             row += 1;
             let sum_calculated_group: SumExpenseInstance =
                 repository::get_group_sum_calculated_expenses();
@@ -278,6 +263,111 @@ fn handle_worksheet(section: &Section, workbook: &mut Workbook) {
                 &border_bold_number_right_format,
             );
         }
+    }
+
+    if "group" == section.uid {
+        let groupe_expense_list: Vec<CalculatedExpense> =
+            repository::get_group_calculated_expenses();
+
+        if !groupe_expense_list.is_empty() {
+            row += 3;
+            let _ = worksheet.merge_range(
+                row,
+                0,
+                row,
+                5,
+                "Dépenses partiellement rattachées au groupe",
+                &border_bold_center_format,
+            );
+
+            row += 1;
+            let _ = worksheet.write_with_format(row, 0, "Libellé", &border_bold_format);
+            let _ = worksheet.write_with_format(row, 1, "Section/Unité", &border_bold_format);
+            let _ = worksheet.write_with_format(row, 2, "Commentaires", &border_bold_format);
+            let _ = worksheet.write_with_format(row, 3, "% restant", &border_bold_format);
+            let _ =
+                worksheet.write_with_format(row, 4, "Prix unitaire calculé", &border_bold_format);
+            let _ = worksheet.write_with_format(row, 5, "Prix total", &border_bold_format);
+
+            for group_expense in &groupe_expense_list {
+                row += 1;
+                let _ = worksheet.write_with_format(
+                    row,
+                    0,
+                    group_expense.title_expense.clone(),
+                    &border_format,
+                );
+                let _ = worksheet.write_with_format(
+                    row,
+                    1,
+                    group_expense.title_section.clone(),
+                    &border_format,
+                );
+
+                let _ = worksheet.write_with_format(
+                    row,
+                    2,
+                    group_expense.comments.clone().unwrap_or_else(String::new),
+                    &border_format,
+                );
+
+                let _ =
+                    worksheet.write_with_format(row, 3, group_expense.group_rate, &border_format);
+
+                let formula_group_unit = Formula::new(format!("=ROUND((F{}/B3),2)", row + 1))
+                    .set_result(
+                        group_expense
+                            .group_applyed_unit_price
+                            .unwrap()
+                            .to_string()
+                            .replace(".", ","),
+                    );
+                let _ = worksheet.write_formula_with_format(
+                    row,
+                    4,
+                    &formula_group_unit,
+                    &border_bold_number_right_format,
+                );
+
+                let _ = worksheet.write_number_with_format(
+                    row,
+                    5,
+                    group_expense.group_applyed_total_price.unwrap(),
+                    &border_bold_number_right_format,
+                );
+            }
+        }
+
+        row += 1;
+        row_total_rated_group = row + 1;
+        let sum_calculated_group: SumExpenseInstance =
+            repository::get_group_sum_calculated_expenses();
+        let _ = worksheet.merge_range(
+            row,
+            1,
+            row,
+            3,
+            "Cotisation répartie par enfant",
+            &border_format,
+        );
+        let _ = worksheet.write_number_with_format(
+            row,
+            4,
+            sum_calculated_group.sum_unit,
+            &border_bold_number_right_format,
+        );
+
+        row += 3;
+        let formula_total_group =
+            Formula::new(format!("=G{}+E{}", row_total_unite, row_total_rated_group))
+                .set_result(sum_calculated_group.sum_unit.to_string());
+        let _ = worksheet.write_with_format(row, 0, "Total Groupe par enfant", &border_bold_format);
+        let _ = worksheet.write_formula_with_format(
+            row,
+            1,
+            formula_total_group,
+            &border_bold_number_right_format,
+        );
     }
 
     let _ = worksheet.autofit();
