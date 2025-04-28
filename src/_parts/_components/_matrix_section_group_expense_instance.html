@@ -1,6 +1,15 @@
-<tr id="ref{{ uid_expense_instance_escaped }}">
+<tr
+    id="ref{{ uid_expense_instance_escaped }}"
+    data-controller="matrix-group-expense-instance"
+    data-matrix-group-expense-instance-uid-section-value="{{ uid_section }}"
+    data-matrix-group-expense-instance-uid-expense-value="{{ uid_expense }}"
+>
     <td>
-        <a href="#{{ uid_expense_instance_escaped }}">{{ title_expense }}</a>
+        <a
+            href="#{{ uid_expense_instance_escaped }}"
+            data-action="click->matrix-group-expense-instance#clickAnchor"
+            >{{ title_expense }}</a
+        >
     </td>
     <td>{{ title_section }}</td>
     <td>{{ comments }}</td>

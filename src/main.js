@@ -915,6 +915,19 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
         await this.matrixSectionOutlet.triggerGlobalRefresh()
     }
 
+
+    clickAnchor(e) {
+        const targetIdSelector = '#matrix-section-group',
+            targetItem = document.querySelector(targetIdSelector)
+
+        if (!targetItem) {
+            return
+        }
+
+        targetItem.classList.remove('hide')
+        targetItem.classList.add('show')
+    }
+
     unitPriceValid() {
         this.unitPriceTarget.classList.remove('invalid')
         if ('' === this.unitPriceTarget.value.trim()
@@ -971,5 +984,26 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
             this.rateValid()
         ]
         return validateArray.filter((item) => item).length === validateArray.length
+    }
+})
+
+Stimulus.register("matrix-group-expense-instance", class extends Controller {
+    static targets = []
+    static outlets = []
+    static values = {
+        uidSection: String,
+        uidExpense: String
+    }
+
+    clickAnchor(e) {
+        const targetIdSelector = '#matrix-section-' + this.uidSectionValue,
+            targetItem = document.querySelector(targetIdSelector)
+
+        if (!targetItem) {
+            return
+        }
+
+        targetItem.classList.remove('hide')
+        targetItem.classList.add('show')
     }
 })
