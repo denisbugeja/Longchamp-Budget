@@ -27,10 +27,10 @@ jobs:
           #   target: x86_64-apple-darwin
           #   runner: macos-latest
           
-          - platform: "ubuntu-22.04" # for Linux
-            args: ""
-            target: x86_64-unknown-linux-gnu
-            runner: ubuntu-latest
+          # - platform: "ubuntu-22.04" # for Linux
+          #   args: ""
+          #   target: x86_64-unknown-linux-gnu
+          #   runner: ubuntu-latest
           
           - platform: "windows-latest" # for Windows
             runner: windows-latest
@@ -53,18 +53,16 @@ jobs:
           # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
-      - name: Add Rust Target
-        run: rustup target add ${{ matrix.target }}
 
-      - uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version
-          releaseName: "v__VERSION__"
-          releaseBody: "See the assets to download this version and install."
-          releaseDraft: false
-          prerelease: false
+      # - uses: tauri-apps/tauri-action@v0
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version
+      #     releaseName: "v__VERSION__"
+      #     releaseBody: "See the assets to download this version and install."
+      #     releaseDraft: false
+      #     prerelease: false
 
 
       - name: Build Portable Binaries (Windows)
@@ -74,4 +72,6 @@ jobs:
 
       - name: Upload Portable Binaries (Windows)
         if: ${{ matrix.runner == 'windows-latest' }}
-        run: bash -c 'gh release upload ${{ github.ref_name }} ./src-tauri/target/release/longchamp-budget.exe --clobber'
+        run: |
+          bash -c 'gh release create ${{ github.ref_name }}'
+          bash -c 'gh release upload ${{ github.ref_name }} D:\a\longchamp.budget\longchamp.budget\src-tauri\target\release\longchamp-budget.exe --clobber'
