@@ -261,10 +261,6 @@ Stimulus.register("section-edit", class extends Controller {
         }
     }
 
-    submit(e) {
-        e.preventDefault()
-    }
-
     update(e) {
         if (!this.validate()) {
             return

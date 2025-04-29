@@ -1,80 +1,64 @@
-<form
-    action=""
+<tr
     data-controller="section-edit"
     data-section-edit-uid-value="{{ uid }}"
-    data-action="section-edit#submit"
     data-section-edit-section-outlet="[data-controller='section']"
 >
-    <div class="row px-4 py-1">
-        <div class="col-5">
-            <div class="input-group">
-                <span class="input-group-text">Nom</span>
-                <input
-                    type="text"
-                    class="form-control"
-                    placeholder="Saisis ici le nom de la section/pôle/section"
-                    title="Tu dois saisir le nom de la section/pôle/section"
-                    data-section-edit-target="title"
-                    required="required"
-                    value="{{ title }}"
-                    data-action="change->section-edit#update"
-                />
-            </div>
-        </div>
-        <div class="col-2">
-            <div class="input-group">
-                <span class="input-group-text">Enfants/Ados</span>
-                <input
-                    class="form-control text-end"
-                    type="number"
-                    min="0"
-                    step="1"
-                    data-section-edit-target="sectionMembersCount"
-                    data-action="change->section-edit#update"
-                    value="{{ members_count }}"
-                    required="required"
-                />
-            </div>
-        </div>
-        <div class="col-2">
-            <div class="input-group">
-                <span class="input-group-text">Chefs</span>
-                <input
-                    class="form-control text-end"
-                    type="number"
-                    min="0"
-                    step="1"
-                    data-section-edit-target="sectionAdultsCount"
-                    data-action="change->section-edit#update"
-                    value="{{ adults_count }}"
-                    required="required"
-                />
-            </div>
-        </div>
-        <div class="col-2">
-            <div class="input-group">
-                <span class="input-group-text">Couleur</span>
-                <input
-                    type="color"
-                    class="form-control form-control-color"
-                    placeholder="Saisis ici la couleur de la section/pôle/sectioné"
-                    data-section-edit-target="color"
-                    required="required"
-                    value="{{ color }}"
-                    data-action="change->section-edit#update"
-                />
-            </div>
-        </div>
-        <div class="col-1 d-grid gap-2">
-            <button
-                type="button"
-                class="w-100 h-100 btn btn-outline-danger text-align-center px-1"
-                title="Supprimer"
-                data-action="section-edit#delete"
-                data-section-edit-target="delete"
-            >
-                <i class="bi bi-trash"></i>
-            </button>
-        </div>
-    </div>
-</form>
+    <td>
+        <input
+            type="text"
+            class="form-control"
+            placeholder="Saisis ici le nom de la section/pôle/section"
+            title="Tu dois saisir le nom de la section/pôle/section"
+            data-section-edit-target="title"
+            required="required"
+            value="{{ title }}"
+            data-action="change->section-edit#update"
+        />
+    </td>
+    <td>
+        <input
+            class="form-control text-end"
+            type="number"
+            min="0"
+            step="1"
+            data-section-edit-target="sectionMembersCount"
+            data-action="change->section-edit#update"
+            value="{{ members_count }}"
+            required="required"
+        />
+    </td>
+    <td>
+        <input
+            class="form-control text-end"
+            type="number"
+            min="0"
+            step="1"
+            data-section-edit-target="sectionAdultsCount"
+            data-action="change->section-edit#update"
+            value="{{ adults_count }}"
+            required="required"
+        />
+    </td>
+    <td>
+        <input
+            type="color"
+            class="form-control form-control-color"
+            placeholder="Saisis ici la couleur de la section/pôle/sectioné"
+            data-section-edit-target="color"
+            required="required"
+            value="{{ color }}"
+            data-action="change->section-edit#update"
+        />
+    </td>
+    <td>
+        <button
+            type="button"
+            class="w-100 h-100 btn btn-outline-danger text-align-center px-1"
+            title="Supprimer"
+            data-action="section-edit#delete"
+            data-section-edit-target="delete"
+        >
+            <i class="bi bi-trash"></i>
+        </button>
+    </td>
+</tr>
