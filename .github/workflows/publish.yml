@@ -68,6 +68,7 @@ jobs:
       - name: Manage Binaries (Windows)
         if: ${{ matrix.runner == 'windows-latest' }}
         run: |
-          cd ./src-tauri && cargo build --release
-          bash -c 'gh release create ${{ github.ref_name }}'
-          bash -c 'gh release upload ${{ github.ref_name }} D:\\a\\longchamp.budget\\longchamp.budget\\src-tauri\\target\\release\\longchamp-budget.exe --clobber'
+          cd ./src-tauri && cargo build --release && cd ..
+          mv ./src-tauri/target/release/longchamp-budget.exe ./
+          bash -c 'gh release create v${{ github.ref_name }}
+          bash -c 'gh release upload v${{ github.ref_name }} ./longchamp-budget.exe --clobber'
