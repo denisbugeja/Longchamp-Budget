@@ -1,53 +1,59 @@
-<form
-    action=""
+<tr
     data-controller="expense-edit"
     data-expense-edit-uid-value="{{ uid }}"
-    data-action="expense-edit#submit"
     data-expense-edit-expense-outlet="[data-controller='expense']"
 >
-    <input
-        type="text"
-        data-expense-edit-target="title"
-        value="{{ title }}"
-        data-action="change->expense-edit#update"
-    />
-    <br />
-    <textarea
-        data-expense-edit-target="description"
-        data-action="change->expense-edit#update"
-    >
+    <td>
+        <input
+            class="form-control w-100"
+            type="text"
+            data-expense-edit-target="title"
+            value="{{ title }}"
+            data-action="change->expense-edit#update"
+        />
+    </td>
+    <td>
+        <input
+            class="form-control w-100 text-end"
+            type="number"
+            data-expense-edit-target="unitPrice"
+            value="{{ unit_price }}"
+            data-action="change->expense-edit#update"
+            min="0"
+            step=".01"
+        />
+    </td>
+    <td>
+        <input
+            class="form-control w-100 text-end"
+            type="number"
+            data-expense-edit-target="rate"
+            value="{{ rate }}"
+            data-action="change->expense-edit#update"
+            min="0"
+            max="100"
+            step=".01"
+        />
+    </td>
+    <td>
+        <textarea
+            class="form-control w-100"
+            data-expense-edit-target="description"
+            data-action="change->expense-edit#update"
+        >
 {{ description }}</textarea
-    >
-    <br />
-    <input
-        type="number"
-        data-expense-edit-target="rate"
-        value="{{ rate }}"
-        data-action="change->expense-edit#update"
-        min="0"
-        max="100"
-        step=".01"
-    />
-    <br />
-    <input
-        type="number"
-        data-expense-edit-target="unitPrice"
-        value="{{ unit_price }}"
-        data-action="change->expense-edit#update"
-        min="0"
-        step=".01"
-    />
-    <div data-expense-edit-target="sectionList" class="with-validation">
-        <!-- TODO a refactoriser , ça doit être un event targetConnected-->
-        {{ section_list_html }}
-    </div>
-    <button
-        type="button"
-        class="btn btn-outline-danger text-align-center px-1"
-        title="Supprimer"
-        data-action="expense-edit#delete"
-        data-expense-edit-target="delete"
-    >
-        <i class="bi bi-trash"></i>
-    </button>
-</form>
+        >
+    </td>
+    <td data-expense-edit-target="sectionList">{{ section_list_html }}</td>
+    <td class="text-end">
+        <button
+            type="button"
+            class="btn btn-outline-danger text-align-center px-1"
+            title="Supprimer"
+            data-action="expense-edit#delete"
+            data-expense-edit-target="delete"
+        >
+            <i class="bi bi-trash"></i>
+        </button>
+    </td>
+</tr>

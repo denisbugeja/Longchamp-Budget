@@ -477,6 +477,10 @@ Stimulus.register("expense-edit", class extends Controller {
 
     async sectionListTargetConnected() {
         let sectionList = JSON.parse(await invoke("section_list_load"))
+        sectionList = sectionList.map((item) => {
+            item.expenseUid = this.uidValue
+            return item
+        })
         renderElement(this.sectionListTarget, await generateFromFilePath('_parts/_components/_expense-edit-item-sections.html', sectionList))
     }
 
@@ -486,10 +490,6 @@ Stimulus.register("expense-edit", class extends Controller {
 
         section.disabled = 0 !== expenseFromInstance.length
         section.checked = 0 !== expenseFromAssociation.length
-    }
-
-    submit(e) {
-        e.preventDefault()
     }
 
     update(e) {

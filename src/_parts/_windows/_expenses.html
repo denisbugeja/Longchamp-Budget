@@ -1,74 +1,98 @@
 <div data-controller="expense" id="main-expense">
-    <div data-expense-target="expenseList" class="py-4"></div>
+    <div class="py-4">
+        <h3 class="h4 text-center">Liste des dépenses</h3>
+        <table class="table table-striped table-hover table-bordered">
+            <thead>
+                <tr>
+                    <th scope="col">Nom</th>
+                    <th scope="col">Prix unitaire</th>
+                    <th scope="col">Taux de prise en charge par les unités</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Unités</th>
+                    <th scope="col" class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody data-expense-target="expenseList"></tbody>
+        </table>
+    </div>
     <div>
+        <h3 class="h4 text-center">Créer une nouvelle dépense</h3>
         <form
             action=""
             id="expense-add-form"
             data-action="submit->expense#create"
         >
-            <div class="input-group">
-                <span class="input-group-text">Nom</span>
-                <input
-                    type="text"
-                    class="form-control"
-                    placeholder="Saisis ici le nom de la dépense"
-                    title="Tu dois saisir le nom de la dépense"
-                    data-expense-target="title"
-                    required="required"
-                />
-            </div>
-
-            <div class="input-group">
-                <span class="input-group-text">Description</span>
-                <textarea
-                    class="form-control"
-                    placeholder="Saisis ici la description de la dépense"
-                    data-expense-target="description"
-                ></textarea>
-            </div>
-
-            <div class="input-group">
-                <span class="input-group-text">Ratio</span>
-                <input
-                    type="number"
-                    class="form-control"
-                    placeholder="Saisis ici le ratio de la dépense"
-                    title="Tu dois saisir le ratio de la dépense"
-                    data-expense-target="rate"
-                    required="required"
-                    min="0"
-                    max="100"
-                    step=".01"
-                    value="100"
-                />
-            </div>
-
-            <div class="input-group">
-                <span class="input-group-text">Prix Unitaire</span>
-                <input
-                    type="number"
-                    class="form-control"
-                    placeholder="Saisis ici le prix unitaire de la dépense"
-                    title="Tu dois saisir le prix unitaire de la dépense"
-                    data-expense-target="unitPrice"
-                    step=".01"
-                    required="required"
-                    min="0"
-                />
-            </div>
-
-            <div
-                data-expense-target="sectionList"
-                class="with-validation"
-            ></div>
-
-            <button
-                type="submit"
-                class="w-100 h-100 btn btn-outline-primary text-align-center px-1"
-                title="Ajouter"
-            >
-                <i class="bi bi-floppy"></i>
-            </button>
+            <table class="table table-striped table-hover table-bordered">
+                <thead>
+                    <tr>
+                        <th scope="col">Nom</th>
+                        <th scope="col">Prix unitaire</th>
+                        <th scope="col">
+                            Taux de prise en charge par les unités
+                        </th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Unités</th>
+                        <th scope="col" class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <input
+                                type="text"
+                                class="form-control w-100"
+                                placeholder="Saisis ici le nom de la dépense"
+                                title="Tu dois saisir le nom de la dépense"
+                                data-expense-target="title"
+                                required="required"
+                            />
+                        </td>
+                        <td>
+                            <input
+                                type="number"
+                                class="form-control w-100 text-end"
+                                placeholder="Saisis ici le prix unitaire de la dépense"
+                                title="Tu dois saisir le prix unitaire de la dépense"
+                                data-expense-target="unitPrice"
+                                step=".01"
+                                required="required"
+                                min="0"
+                            />
+                        </td>
+                        <td>
+                            <input
+                                type="number"
+                                class="form-control w-100 text-end"
+                                placeholder="Saisis ici le taux de prise en charge par les unités"
+                                title="Tu dois saisir le taux de prise en charge de cette dépense"
+                                data-expense-target="rate"
+                                required="required"
+                                min="0"
+                                max="100"
+                                step=".01"
+                                value="100"
+                            />
+                        </td>
+                        <td>
+                            <textarea
+                                class="form-control w-100"
+                                placeholder="Saisis ici la description de la dépense"
+                                data-expense-target="description"
+                            ></textarea>
+                        </td>
+                        <td data-expense-target="sectionList"></td>
+                        <td class="text-end">
+                            <button
+                                type="submit"
+                                class="btn btn-outline-primary text-align-center px-1"
+                                title="Ajouter"
+                            >
+                                <i class="bi bi-floppy"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </form>
     </div>
 </div>

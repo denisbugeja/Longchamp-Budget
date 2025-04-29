@@ -1,2 +1,9 @@
-<input data-expense-target="section" type="checkbox" value="{{ uid }}" />
-{{ title }}
+<div>
+    <input
+        data-expense-target="section"
+        type="checkbox"
+        value="{{ uid }}"
+        id="create-expense-{{ uid }}"
+    />
+    <label for="create-expense-{{ uid }}">{{ title }}</label>
+</div>
