@@ -64,10 +64,11 @@ jobs:
       #     releaseDraft: false
       #     prerelease: false
 
+      - name: Create Release
+        run: gh release create v${{ github.ref_name }}
 
       - name: Manage Binaries (Windows)
         if: ${{ matrix.runner == 'windows-latest' }}
         run: |
           cd ./src-tauri && cargo build --release
-          gh release create v${{ github.ref_name }}
           gh release upload v${{ github.ref_name }} ./target/release/longchamp-budget.exe --clobber
