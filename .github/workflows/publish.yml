@@ -70,11 +70,9 @@ jobs:
       - name: Build Portable Binaries (Windows)
         if: ${{ matrix.runner == 'windows-latest' }}
         run: |
-          cargo build --target ${{ matrix.target }}
-          cargo build --release --target ${{ matrix.target }}
-          mv ./target/${{ matrix.target }}/debug/longchamp-budget.exe ./target/${{ matrix.target }}/debug/longchamp-budget_${{ github.ref_name }}_x64-portable.exe
-          mv ./target/${{ matrix.target }}/release/longchamp-budget.exe ./target/${{ matrix.target }}/release/longchamp-budget_${{ github.ref_name }}_x64-portable.exe
+          cargo build --release
+          mv ./target/release/longchamp-budget.exe ./target/release/longchamp-budget_${{ github.ref_name }}_x64-portable.exe
 
       - name: Upload Portable Binaries (Windows)
         if: ${{ matrix.runner == 'windows-latest' }}
-        run: bash -c 'gh release upload ${{ github.ref_name }} ./target/${{ matrix.target }}/{debug/longchamp-budget_${{ github.ref_name }}_x64-portable.exe,release/longchamp-budget_${{ github.ref_name }}_x64-portable.exe} --clobber'
+        run: bash -c 'gh release upload ${{ github.ref_name }} ./target/release/longchamp-budget_${{ github.ref_name }}_x64-portable.exe --clobber'
