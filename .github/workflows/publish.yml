@@ -69,5 +69,5 @@ jobs:
         if: ${{ matrix.runner == 'windows-latest' }}
         run: |
           cd ./src-tauri && cargo build --release
-          bash -c 'gh release create v${{ github.ref_name }}
-          bash -c 'gh release upload v${{ github.ref_name }} ./src-tauri/target/release/longchamp-budget.exe --clobber'
+          gh release create v${{ github.ref_name }}
+          gh release upload v${{ github.ref_name }} ./target/release/longchamp-budget.exe --clobber
