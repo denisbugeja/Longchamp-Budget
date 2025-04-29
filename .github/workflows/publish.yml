@@ -9,6 +9,8 @@ on:
 
 jobs:
   publish-tauri:
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       contents: write
     strategy:
@@ -17,12 +19,23 @@ jobs:
         include:
           - platform: "macos-latest" # for Arm based macs (M1 and above).
             args: "--target aarch64-apple-darwin"
+            target: aarch64-apple-darwin
+            runner: macos-latest
+          
           - platform: "macos-latest" # for Intel based macs.
             args: "--target x86_64-apple-darwin"
+            target: x86_64-apple-darwin
+            runner: macos-latest
+          
           - platform: "ubuntu-22.04" # for Linux
             args: ""
+            target: x86_64-unknown-linux-gnu
+            runner: ubuntu-latest
+          
           - platform: "windows-latest" # for Windows
+            runner: windows-latest
             args: ""
+            target: x86_64-pc-windows-msvc
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -40,6 +53,9 @@ jobs:
           # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
+      - name: Add Rust Target
+        run: rustup target add ${{ matrix.target }}
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -49,3 +65,16 @@ jobs:
           releaseBody: "See the assets to download this version and install."
           releaseDraft: false
           prerelease: false
+
+
+      - name: Build Portable Binaries (Windows)
+        if: ${{ matrix.runner == 'windows-latest' }}
+        run: |
+          cargo build --target ${{ matrix.target }}
+          cargo build --release --target ${{ matrix.target }}
+          mv ./target/${{ matrix.target }}/debug/wooting-profile-switcher.exe ./target/${{ matrix.target }}/debug/WootingProfileSwitcher_${{ github.ref_name }}_x64-portable.exe
+          mv ./target/${{ matrix.target }}/release/wooting-profile-switcher.exe ./target/${{ matrix.target }}/release/WootingProfileSwitcher_${{ github.ref_name }}_x64-portable.exe
+
+      - name: Upload Portable Binaries (Windows)
+        if: ${{ matrix.runner == 'windows-latest' }}
+        run: bash -c 'gh release upload ${{ github.ref_name }} ./target/${{ matrix.target }}/{debug/WootingProfileSwitcher_${{ github.ref_name }}_x64-portable.exe,release/WootingProfileSwitcher_${{ github.ref_name }}_x64-portable.exe} --clobber'
