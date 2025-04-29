@@ -41,11 +41,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      # - name: install dependencies (ubuntu only)
+      #   if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable # Set this to dtolnay/rust-toolchain@nightly
@@ -65,13 +65,9 @@ jobs:
       #     prerelease: false
 
 
-      - name: Build Portable Binaries (Windows)
+      - name: Manage Binaries (Windows)
         if: ${{ matrix.runner == 'windows-latest' }}
         run: |
           cd ./src-tauri && cargo build --release
-
-      - name: Upload Portable Binaries (Windows)
-        if: ${{ matrix.runner == 'windows-latest' }}
-        run: |
           bash -c 'gh release create ${{ github.ref_name }}'
-          bash -c 'gh release upload ${{ github.ref_name }} D:\a\longchamp.budget\longchamp.budget\src-tauri\target\release\longchamp-budget.exe --clobber'
+          bash -c 'gh release upload ${{ github.ref_name }} D:\\a\\longchamp.budget\\longchamp.budget\\src-tauri\\target\\release\\longchamp-budget.exe --clobber'
