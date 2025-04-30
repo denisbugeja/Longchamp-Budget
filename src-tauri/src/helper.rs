@@ -305,6 +305,7 @@ fn handle_worksheet(
                 worksheet.write_with_format(row, 4, "Prix unitaire calculé", &border_bold_format);
             let _ = worksheet.write_with_format(row, 5, "Prix total", &border_bold_format);
 
+            let sum_row_begin: u32 = row + 2;
             for group_expense in group_expense_list {
                 row += 1;
                 let _ = worksheet.write_with_format(
@@ -354,6 +355,7 @@ fn handle_worksheet(
             }
 
             row += 1;
+            let sum_row_end: u32 = row;
             let mut total_label_ratio = String::from("Cotisation répartie par enfant");
             if "group" == section.uid && calculated_expenses_list.is_empty() {
                 total_label_ratio = String::from("Total Groupe par enfant");
@@ -362,10 +364,21 @@ fn handle_worksheet(
             let sum_calculated_group: SumExpenseInstance =
                 repository::get_group_sum_calculated_expenses();
             let _ = worksheet.merge_range(row, 1, row, 3, &total_label_ratio, &border_format);
-            let _ = worksheet.write_number_with_format(
+
+            let formula_total_calculated_group = Formula::new(format!(
+                "=ROUND(SUM(E{}:E{}),2)",
+                sum_row_begin, sum_row_end
+            ))
+            .set_result(
+                group_sum_expense_instance
+                    .sum_unit
+                    .to_string()
+                    .replace(".", ","),
+            );
+            let _ = worksheet.write_formula_with_format(
                 row,
                 4,
-                group_sum_expense_instance.sum_unit,
+                formula_total_calculated_group,
                 &border_bold_number_right_format,
             );
 
