@@ -114,13 +114,6 @@ fn handle_worksheet(
         .set_border_color(Color::Black)
         .set_bold();
 
-    let border_bold_right_format = Format::new()
-        .set_border(FormatBorder::Thin)
-        .set_border_color(Color::Black)
-        .set_align(FormatAlign::Right)
-        .set_num_format("0.00")
-        .set_bold();
-
     let border_bold_center_format = Format::new()
         .set_border(FormatBorder::Thin)
         .set_border_color(Color::Black)
@@ -128,7 +121,18 @@ fn handle_worksheet(
         .set_num_format("0.00")
         .set_bold();
 
-    let border_bold_number_right_format = border_bold_right_format.clone().set_num_format("0.00");
+    let border_number_right_format = Format::new()
+        .set_border(FormatBorder::Thin)
+        .set_border_color(Color::Black)
+        .set_align(FormatAlign::Right)
+        .set_num_format("0.00");
+
+    let border_bold_number_right_format = Format::new()
+        .set_border(FormatBorder::Thin)
+        .set_border_color(Color::Black)
+        .set_align(FormatAlign::Right)
+        .set_num_format("0.00")
+        .set_bold();
 
     let calculated_expenses_list: Vec<CalculatedExpense> =
         repository::get_calculated_expenses(&section.uid);
@@ -338,14 +342,14 @@ fn handle_worksheet(
                     row,
                     4,
                     &formula_group_unit,
-                    &border_bold_number_right_format,
+                    &border_number_right_format,
                 );
 
                 let _ = worksheet.write_number_with_format(
                     row,
                     5,
                     group_expense.group_applyed_total_price.unwrap(),
-                    &border_bold_number_right_format,
+                    &border_number_right_format,
                 );
             }
 
