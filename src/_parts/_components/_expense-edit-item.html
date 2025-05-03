@@ -2,6 +2,9 @@
     data-controller="expense-edit"
     data-expense-edit-uid-value="{{ uid }}"
     data-expense-edit-expense-outlet="[data-controller='expense']"
+    draggable="true"
+    droppable="true"
+    data-action="dragstart->expense#dragstart dragover->expense#dragover drop->expense#drop"
 >
     <td>
         <input

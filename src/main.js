@@ -410,6 +410,20 @@ Stimulus.register("expense", class extends Controller {
         renderElement(this.expenseListTarget, await generateFromFilePath('_parts/_components/_expense-edit-item.html', expenseList))
     }
 
+    dragstart(e) {
+        e.dataTransfer.setData("text/plain", e.target.getAttribute("data-expense-edit-uid-value"))
+    }
+
+    dragover(e) {
+        e.preventDefault()
+    }
+
+    drop(e) {
+        e.preventDefault()
+        const draggedElementPosition = e.dataTransfer.getData("text/plain")
+        console.log(draggedElementPosition, e.target.closest('tr').getAttribute('data-expense-edit-uid-value'))
+    }
+
     hasAtLeastOneSectionChecked() {
         this.sectionListTarget.classList.remove('invalid')
         if (0 != this.sectionTargets.filter((section) => section.checked).length) {
