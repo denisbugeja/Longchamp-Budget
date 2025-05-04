@@ -154,6 +154,8 @@ Stimulus.register("section", class extends Controller {
     static targets = ['title', 'color', 'sectionList', 'sectionMembersCount', 'sectionAdultsCount']
     static outlets = ["budget"]
 
+    sectionList = null
+
     connect() {
     }
 
@@ -180,13 +182,35 @@ Stimulus.register("section", class extends Controller {
     }
 
     async sectionListLoad() {
-        let sectionList = JSON.parse(await invoke("section_list_load"))
+        this.sectionList = JSON.parse(await invoke("section_list_load"))
 
-        if (!sectionList) {
+        if (!this.sectionList) {
             return
         }
 
-        renderElement(this.sectionListTarget, await generateFromFilePath('_parts/_components/_section-edit-item.html', sectionList))
+        renderElement(this.sectionListTarget, await generateFromFilePath('_parts/_components/_section-edit-item.html', this.sectionList))
+    }
+
+    async dragstart(e) {
+        await e.dataTransfer.setData("text/plain", e.target.getAttribute("data-section-edit-uid-value"))
+    }
+
+    async dragover(e) {
+        await e.preventDefault()
+    }
+
+    async drop(e) {
+        await e.preventDefault()
+        const tr = e.target.closest('tr') ?? e.target,
+            uidList = this.sectionList.map((item) => item.uid),
+            draggedElementUid = e.dataTransfer.getData("text/plain"),
+            sourcePosition = uidList.indexOf(draggedElementUid),
+            element = uidList.splice(sourcePosition, 1)[0],
+            targetPosition = uidList.indexOf(tr.getAttribute('data-section-edit-uid-value'))
+
+        uidList.splice(targetPosition, 0, element)
+        await invoke("update_section_order", { sectionList: JSON.stringify(uidList) })
+        this.sectionListLoad()
     }
 
     validateTitle() {

@@ -140,6 +140,22 @@ pub fn update_section(uid: &str, title: &str, color: &str, members_count: i32, a
     );
 }
 
+pub fn update_section_order(section_list: Vec<&str>)
+{
+    let mut conn = get_connection().expect("Cannot get connection");
+    let tx = conn.transaction().expect("Impossible to create transaction");
+
+    for (index, uid) in section_list.iter().enumerate() {
+        tx.execute(
+            "UPDATE sections SET position = ?1 WHERE uid = ?2",
+            params!(index, uid),
+        )
+        .expect("Failed to add query to transaction");
+    }
+
+    tx.commit().expect("Failed to commit transaction");
+}
+
 pub fn update_members_count(uid: &str, members_count: i32) {
     let conn = get_connection().expect("Cannot get connection");
     execute_write_sql(

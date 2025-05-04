@@ -2,6 +2,9 @@
     data-controller="section-edit"
     data-section-edit-uid-value="{{ uid }}"
     data-section-edit-section-outlet="[data-controller='section']"
+    draggable="true"
+    droppable="true"
+    data-action="dragstart->section#dragstart dragover->section#dragover drop->section#drop"
 >
     <td>
         <input
