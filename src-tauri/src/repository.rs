@@ -83,7 +83,7 @@ pub fn section_list() -> Vec<Section> {
 pub fn expense_list() -> Vec<Expense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT uid, title, description, rate, unit_price, position  FROM expenses",
+        "SELECT uid, title, description, rate, unit_price, position  FROM expenses ORDER BY position ASC",
         [],
         |row| {
             Ok(Expense {
@@ -180,7 +180,7 @@ pub fn insert_new_expense(
         .expect("Impossible to create transaction");
 
     tx.execute(
-        "INSERT INTO expenses (uid, title, description, rate, unit_price, position) VALUES (?1, ?2, ?3, ?4, ?5, 0)",
+        "INSERT INTO expenses (uid, title, description, rate, unit_price, position) VALUES (?1, ?2, ?3, ?4, ?5, (SELECT COALESCE(MAX(position), -1) + 1 FROM expenses))",
         params!(uid_expense, title, description, rate_f32, unitprice_f32),
     ).expect("Failed to add query to transaction");
 
@@ -234,8 +234,8 @@ pub fn update_expense(
         .expect("Failed to parse unit_price as f32");
 
     execute_write_sql(
-        "UPDATE expenses set title = ?1, description = ?2, rate = ?3, unit_price = ?4, position = ?5 WHERE uid = ?6",
-        params!(title, description, rate_f32, unitprice_f32, 0, uid), 
+        "UPDATE expenses SET title = ?1, description = ?2, rate = ?3, unit_price = ?4 WHERE uid = ?5",
+        params!(title, description, rate_f32, unitprice_f32, uid), 
         &conn
     );
 }
@@ -726,6 +726,22 @@ pub fn add_expense_instance(section_uid: &str, expense_id: &str) {
         params!(Uuid::new_v4().to_string(), section_uid, expense_id),
         &conn,
     );
+}
+
+pub fn update_expense_order(expense_list: Vec<&str>)
+{
+    let mut conn = get_connection().expect("Cannot get connection");
+    let tx = conn.transaction().expect("Impossible to create transaction");
+
+    for (index, uid) in expense_list.iter().enumerate() {
+        tx.execute(
+            "UPDATE expenses SET position = ?1 WHERE uid = ?2",
+            params!(index, uid),
+        )
+        .expect("Failed to add query to transaction");
+    }
+
+    tx.commit().expect("Failed to commit transaction");
 }
 
 pub fn execute_read_sql<F, T, P: rusqlite::Params>(

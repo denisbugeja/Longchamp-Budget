@@ -334,6 +334,7 @@ Stimulus.register("expense", class extends Controller {
     usedSectionExpense = null
     associatedSectionExpense = null
     sectionList = null
+    expenseList = null
 
     async getUsedSectionExpense() {
         if (null === this.usedSectionExpense) {
@@ -401,27 +402,35 @@ Stimulus.register("expense", class extends Controller {
 
     async expenseListLoad() {
 
-        let expenseList = JSON.parse(await invoke("expense_list_load"))
+        this.expenseList = JSON.parse(await invoke("expense_list_load"))
 
-        if (!expenseList) {
+        if (!this.expenseList) {
             return
         }
 
-        renderElement(this.expenseListTarget, await generateFromFilePath('_parts/_components/_expense-edit-item.html', expenseList))
+        renderElement(this.expenseListTarget, await generateFromFilePath('_parts/_components/_expense-edit-item.html', this.expenseList))
     }
 
-    dragstart(e) {
-        e.dataTransfer.setData("text/plain", e.target.getAttribute("data-expense-edit-uid-value"))
+    async dragstart(e) {
+        await e.dataTransfer.setData("text/plain", e.target.getAttribute("data-expense-edit-uid-value"))
     }
 
-    dragover(e) {
-        e.preventDefault()
+    async dragover(e) {
+        await e.preventDefault()
     }
 
-    drop(e) {
-        e.preventDefault()
-        const draggedElementPosition = e.dataTransfer.getData("text/plain")
-        console.log(draggedElementPosition, e.target.closest('tr').getAttribute('data-expense-edit-uid-value'))
+    async drop(e) {
+        await e.preventDefault()
+        const tr = e.target.closest('tr') ?? e.target,
+            uidList = this.expenseList.map((item) => item.uid),
+            draggedElementUid = e.dataTransfer.getData("text/plain"),
+            sourcePosition = uidList.indexOf(draggedElementUid),
+            element = uidList.splice(sourcePosition, 1)[0],
+            targetPosition = uidList.indexOf(tr.getAttribute('data-expense-edit-uid-value'))
+
+        uidList.splice(targetPosition, 0, element)
+        await invoke("update_expense_order", { expenseList: JSON.stringify(uidList) })
+        this.expenseListLoad()
     }
 
     hasAtLeastOneSectionChecked() {

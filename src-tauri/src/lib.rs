@@ -56,6 +56,12 @@ fn update_expense(uid: &str, title: &str, description: &str, rate: &str, unit_pr
 }
 
 #[tauri::command]
+fn update_expense_order(expense_list: &str) {
+    let vec_expense_list: Vec<&str> = helper::json_to_vec(expense_list);
+    repository::update_expense_order(vec_expense_list);
+}
+
+#[tauri::command]
 fn update_expense_section_association(uid: &str, section_list: &str) {
     let vec_section_list: Vec<&str> = helper::json_to_vec(section_list);
     repository::update_expense_section_association(uid, vec_section_list);
@@ -257,7 +263,8 @@ pub fn run() {
             get_section_expense_from_association,
             get_section_expense_from_expenses_instances_and_section,
             generate_xls_file,
-            get_global_file_path
+            get_global_file_path,
+            update_expense_order
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");
