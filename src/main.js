@@ -208,6 +208,10 @@ Stimulus.register("section", class extends Controller {
             element = uidList.splice(sourcePosition, 1)[0],
             targetPosition = uidList.indexOf(tr.getAttribute('data-section-edit-uid-value'))
 
+        if (-1 === sourcePosition) {
+            return
+        }
+
         uidList.splice(targetPosition, 0, element)
         await invoke("update_section_order", { sectionList: JSON.stringify(uidList) })
         this.sectionListLoad()
@@ -452,6 +456,10 @@ Stimulus.register("expense", class extends Controller {
             element = uidList.splice(sourcePosition, 1)[0],
             targetPosition = uidList.indexOf(tr.getAttribute('data-expense-edit-uid-value'))
 
+        if (-1 === sourcePosition) {
+            return
+        }
+
         uidList.splice(targetPosition, 0, element)
         await invoke("update_expense_order", { expenseList: JSON.stringify(uidList) })
         this.expenseListLoad()
@@ -665,6 +673,8 @@ Stimulus.register("matrix-section", class extends Controller {
         uid: String
     }
 
+    expenseInstanceList = null
+
     async getExpenseList() {
         return JSON.parse(await invoke("get_section_expense_from_expenses_instances_section", { sectionUid: this.uidValue }))
     }
@@ -785,14 +795,14 @@ Stimulus.register("matrix-section", class extends Controller {
     }
 
     async expenseInstanceListLoad() {
-        let expenseInstanceList = await this.getUsedExpenseList()
+        this.expenseInstanceList = await this.getUsedExpenseList()
 
-        expenseInstanceList = expenseInstanceList.map((item) => {
+        this.expenseInstanceList = this.expenseInstanceList.map((item) => {
             item.uid_expense_instance_escaped = deleteSpecialCharForId(item.uid_expense_instance)
             return item
         })
 
-        renderElement(this.expenseInstanceListTarget, await generateFromFilePath('_parts/_components/_matrix_section_expense_instance.html', expenseInstanceList))
+        renderElement(this.expenseInstanceListTarget, await generateFromFilePath('_parts/_components/_matrix_section_expense_instance.html', this.expenseInstanceList))
     }
 
     async expenseInstanceGroupTotalLoad() {
@@ -851,6 +861,33 @@ Stimulus.register("matrix-section", class extends Controller {
         }
         await invoke("update_adults_count", { uid: this.uidValue, adultsCount: parseInt(this.sectionAdultsCountTarget.value) })
         this.triggerGlobalRefresh()
+    }
+
+
+    async dragstart(e) {
+        await e.dataTransfer.setData("text/plain", e.target.getAttribute("data-matrix-expense-instance-uid-value"))
+    }
+
+    async dragover(e) {
+        await e.preventDefault()
+    }
+
+    async drop(e) {
+        await e.preventDefault()
+        const tr = e.target.closest('tr') ?? e.target,
+            uidList = this.expenseInstanceList.map((item) => item.uid_expense_instance),
+            draggedElementUid = e.dataTransfer.getData("text/plain"),
+            sourcePosition = uidList.indexOf(draggedElementUid),
+            element = uidList.splice(sourcePosition, 1)[0],
+            targetPosition = uidList.indexOf(tr.getAttribute('data-matrix-expense-instance-uid-value'))
+
+        if (-1 === sourcePosition) {
+            return
+        }
+
+        uidList.splice(targetPosition, 0, element)
+        await invoke("update_expense_instance_order", { expenseInstanceList: JSON.stringify(uidList) })
+        await this.triggerGlobalRefresh()
     }
 
     validateMembersCount() {

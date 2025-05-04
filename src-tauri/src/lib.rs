@@ -68,6 +68,12 @@ fn update_section_order(section_list: &str) {
 }
 
 #[tauri::command]
+fn update_expense_instance_order(expense_instance_list: &str) {
+    let vec_expense_instance_list: Vec<&str> = helper::json_to_vec(expense_instance_list);
+    repository::update_expense_instance_order(vec_expense_instance_list);
+}
+
+#[tauri::command]
 fn update_expense_section_association(uid: &str, section_list: &str) {
     let vec_section_list: Vec<&str> = helper::json_to_vec(section_list);
     repository::update_expense_section_association(uid, vec_section_list);
@@ -271,7 +277,8 @@ pub fn run() {
             generate_xls_file,
             get_global_file_path,
             update_expense_order,
-            update_section_order
+            update_section_order,
+            update_expense_instance_order
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");

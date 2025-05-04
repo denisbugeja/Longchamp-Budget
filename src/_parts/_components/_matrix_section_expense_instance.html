@@ -5,6 +5,9 @@
     data-matrix-expense-instance-label-value="{{ title_expense }}"
     data-matrix-expense-instance-rate-value="{{ live_rate }}"
     id="{{ uid_expense_instance_escaped }}"
+    draggable="true"
+    droppable="true"
+    data-action="dragstart->matrix-section#dragstart dragover->matrix-section#dragover drop->matrix-section#drop"
 >
     <td data-matrix-expense-instance-target="label">{{ title_expense }}</td>
     <td>

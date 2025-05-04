@@ -256,6 +256,22 @@ pub fn update_expense(
     );
 }
 
+pub fn update_expense_instance_order(vec_expense_instance_list: Vec<&str>)
+{
+    let mut conn = get_connection().expect("Cannot get connection");
+    let tx = conn.transaction().expect("Impossible to create transaction");
+
+    for (index, uid) in vec_expense_instance_list.iter().enumerate() {
+        tx.execute(
+            "UPDATE expenses_instances SET position = ?1 WHERE uid = ?2",
+            params!(index, uid),
+        )
+        .expect("Failed to add query to transaction");
+    }
+
+    tx.commit().expect("Failed to commit transaction");
+}
+
 pub fn update_expense_instance(uid_expense_instance: &str, unit_price: &str, units: &str, units_adults: &str, rate: &str, comments: &str) {
     let conn = get_connection().expect("Cannot get connection");
 
@@ -584,7 +600,8 @@ pub fn get_calculated_expenses(section_uid: &str)-> Vec<CalculatedExpense> {
 expenses_unit_price, expenses_rate, expenses_instances_units, expenses_instances_units_adults, expenses_instances_unit_price, expenses_instances_rate,
 live_units, live_units_adults, live_unit_price, live_rate, group_rate, applyed_price, total_applyed_price, total_inital_price, group_applyed_total_price, group_applyed_unit_price, group_members_count
 FROM view_calculated_expenses_sections_instances
-WHERE uid_section = ?1",
+WHERE uid_section = ?1
+ORDER BY expenses_instances_position ASC",
         params!(section_uid),
         |row| {
             Ok(CalculatedExpense {
@@ -705,7 +722,8 @@ pub fn get_group_calculated_expenses() -> Vec<CalculatedExpense> {
     expenses_unit_price, expenses_rate, expenses_instances_units, expenses_instances_units_adults, expenses_instances_unit_price, expenses_instances_rate,
     live_units, live_units_adults, live_unit_price, live_rate, group_rate, applyed_price, total_applyed_price, total_inital_price, group_applyed_total_price, group_applyed_unit_price, group_members_count
     FROM view_calculated_expenses_sections_instances
-    WHERE group_rate <> 0",
+    WHERE group_rate <> 0
+    ORDER BY sections_position ASC, expenses_instances_position ASC",
     [],
     |row| {
             Ok(CalculatedExpense {
