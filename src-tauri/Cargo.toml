@@ -27,13 +27,13 @@ tauri-plugin-devtools = "2.0.0"
 tauri-plugin-dialog = "2"
 lazy_static = "1.5.0"
 tauri-plugin-fs = "2.2.0"
-rusqlite = { version = "0.32.0", features = ["bundled"] }
+rusqlite = { version = "0.35.0", features = ["bundled"] }
 uuid = { version = "1.11.0", features = [
     "v4",
     "fast-rng",
     "macro-diagnostics",
 ] }
-itertools = "0.13.0"
+itertools = "0.14.0"
 rust_xlsxwriter = "0.86.0"
 
 
