@@ -656,9 +656,7 @@ Stimulus.register("matrix", class extends Controller {
         }
 
         renderElement(this.sectionListTarget, await generateFromFilePath('_parts/_components/_matrix_section.html', sectionList))
-        const machin = await generateFromFilePath('_parts/_components/_matrix_style.css', sectionList, true)
-        console.log(machin)
-        document.getElementById('globalstyle').innerText = machin
+        document.getElementById('globalstyle').innerText = await generateFromFilePath('_parts/_components/_matrix_style.css', sectionList, true)
     }
 
     async refreshAllData() {
