@@ -51,6 +51,24 @@ html {
     cursor: wait;
 }
 
+.cursor-pointer {
+    cursor: pointer;
+}
+
 .invalid {
     border: 1px solid red;
+}
+
+[draggable="true"] {
+    cursor: move;
+    /* fallback if grab cursor is unsupported */
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+}
+
+[draggable="true"]:active {
+    cursor: grabbing;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
 }

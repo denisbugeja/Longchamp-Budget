@@ -638,7 +638,7 @@ Stimulus.register("expense-edit", class extends Controller {
 
 Stimulus.register("matrix", class extends Controller {
     static targets = ['sectionList']
-    static outlets = ["matrix-section", "global-style"]
+    static outlets = ["matrix-section"]
 
     async getSectionList() {
         return JSON.parse(await invoke("section_list_load"))
@@ -666,6 +666,7 @@ Stimulus.register("matrix", class extends Controller {
 
 Stimulus.register("matrix-section", class extends Controller {
     static targets = ['expenseList', 'expenseInstanceList', 'expenseGroupRatioTotal', 'expenseGroupInstanceList', 'expenseGroupInstanceListContainer', 'sectionMembersCount', 'sectionAdultsCount', 'expenseInstanceGroupTotal', 'expenseInstanceTotal', 'expenseInstanceMemberTotal', 'groupSumContainer']
+    static outlets = ['matrix']
     static values = {
         uid: String
     }
@@ -944,6 +945,15 @@ Stimulus.register("matrix-section-expense", class extends Controller {
         await invoke("add_expense_instance", { sectionUid: this.uidSectionValue, expenseId: this.uidExpenseValue })
         this.matrixSectionOutlet.triggerGlobalRefresh()
     }
+
+    async highlightExpense() {
+        const expenseObject = {
+            uidExpense: this.uidExpenseValue
+        }
+
+        const applyedStyle = await generateFromFilePath('_parts/_components/_matrix_expense_style.css', expenseObject, true)
+        document.getElementById('tempstyle').innerText = (applyedStyle == document.getElementById('tempstyle').innerText) ? '' : applyedStyle
+    }
 })
 
 Stimulus.register("matrix-expense-instance", class extends Controller {
@@ -952,7 +962,8 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
     static values = {
         uid: String,
         label: String,
-        rate: Number
+        rate: Number,
+        expense: String
     }
 
     async connect() {
