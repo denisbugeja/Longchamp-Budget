@@ -40,7 +40,10 @@ pub fn get_connection() -> Result<Connection, rusqlite::Error> {
 
 pub fn update_db_file_path(str_path: &str, erase_if_exists: bool) {
     let mut file_path = GLOBAL_FILE_PATH.write().expect("Impossible to get file path for write");
-    let real_path = String::from(str_path);
+    let mut real_path = String::from(str_path);
+    if !real_path.ends_with(".lb") {
+        real_path.push_str(".lb");
+    }
     let path = Path::new(&real_path);
     
     if erase_if_exists && path.exists() {
@@ -55,6 +58,26 @@ pub fn update_db_file_path(str_path: &str, erase_if_exists: bool) {
 
 pub fn insert_new_section(title: &str, color: &str, members_count: i32, adults_count: i32) {
     let conn = get_connection().expect("Cannot get connection");
+
+    let existing_sections: Vec<Section> = execute_read_sql(
+        "SELECT uid, title, color, members_count, adults_count FROM sections WHERE title = ?1",
+        params!(title),
+        |row| {
+            Ok(Section {
+                uid: row.get(0)?,
+                title: row.get(1)?,
+                color: row.get(2)?,
+                members_count: row.get(3)?,
+                adults_count: row.get(4)?,
+            })
+        },
+        &conn,
+    );
+
+    if !existing_sections.is_empty(){
+        return;
+    }
+
     execute_write_sql(
         "INSERT INTO sections (uid, title, color, members_count, adults_count, position) VALUES (?1, ?2, ?3, ?4, ?5, (SELECT COALESCE(MAX(position), -1) + 1 FROM sections))",
         params!(Uuid::new_v4().to_string(), title, color, members_count.abs(), adults_count.abs()),
@@ -133,6 +156,26 @@ pub fn delete_section(uid: &str) {
 
 pub fn update_section(uid: &str, title: &str, color: &str, members_count: i32, adults_count: i32) {
     let conn = get_connection().expect("Cannot get connection");
+
+    let existing_sections: Vec<Section> = execute_read_sql(
+        "SELECT uid, title, color, members_count, adults_count FROM sections WHERE title = ?1 AND uid != ?2",
+        params!(title, uid),
+        |row| {
+            Ok(Section {
+                uid: row.get(0)?,
+                title: row.get(1)?,
+                color: row.get(2)?,
+                members_count: row.get(3)?,
+                adults_count: row.get(4)?,
+            })
+        },
+        &conn,
+    );
+
+    if !existing_sections.is_empty(){
+        return;
+    }
+
     execute_write_sql(
         "UPDATE sections SET title = ?1, color = ?2, members_count=?3, adults_count=?4 WHERE uid = ?5",
         params!(title, color, members_count.abs(), adults_count.abs(), uid),
@@ -811,7 +854,8 @@ pub fn execute_migrations(conn: Connection) {
     \"members_count\" INTEGER NOT NULL DEFAULT 0,
     \"adults_count\" INTEGER NOT NULL DEFAULT 0,
 	\"position\"	INTEGER NOT NULL DEFAULT 0,
-	PRIMARY KEY(\"uid\")
+	PRIMARY KEY(\"uid\"),
+    UNIQUE(\"title\")
 );",
         "CREATE TABLE IF NOT EXISTS \"expenses\" (
 	\"uid\"	TEXT NOT NULL UNIQUE,
