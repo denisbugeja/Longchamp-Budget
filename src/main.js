@@ -638,13 +638,10 @@ Stimulus.register("expense-edit", class extends Controller {
 
 Stimulus.register("matrix", class extends Controller {
     static targets = ['sectionList']
-    static outlets = ["matrix-section"]
+    static outlets = ["matrix-section", "global-style"]
 
     async getSectionList() {
         return JSON.parse(await invoke("section_list_load"))
-    }
-
-    connect() {
     }
 
     sectionListTargetConnected(element) {
@@ -659,6 +656,9 @@ Stimulus.register("matrix", class extends Controller {
         }
 
         renderElement(this.sectionListTarget, await generateFromFilePath('_parts/_components/_matrix_section.html', sectionList))
+        const machin = await generateFromFilePath('_parts/_components/_matrix_style.css', sectionList, true)
+        console.log(machin)
+        document.getElementById('globalstyle').innerText = machin
     }
 
     async refreshAllData() {
@@ -668,7 +668,6 @@ Stimulus.register("matrix", class extends Controller {
 
 Stimulus.register("matrix-section", class extends Controller {
     static targets = ['expenseList', 'expenseInstanceList', 'expenseGroupRatioTotal', 'expenseGroupInstanceList', 'expenseGroupInstanceListContainer', 'sectionMembersCount', 'sectionAdultsCount', 'expenseInstanceGroupTotal', 'expenseInstanceTotal', 'expenseInstanceMemberTotal', 'groupSumContainer']
-    static outlets = ['matrix']
     static values = {
         uid: String
     }
@@ -932,7 +931,7 @@ Stimulus.register("matrix-section", class extends Controller {
 
 Stimulus.register("matrix-section-expense", class extends Controller {
     static targets = ["count"]
-    static outlets = ["matrix-section"]
+    static outlets = ["matrix-section", ""]
     static values = {
         uidSection: String,
         uidExpense: String
