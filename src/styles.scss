@@ -71,3 +71,11 @@ html {
     cursor: -moz-grabbing;
     cursor: -webkit-grabbing;
 }
+
+.accordion-header * {
+
+    &,
+    &::after {
+        color: #fff;
+    }
+}
