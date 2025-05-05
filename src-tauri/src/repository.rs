@@ -972,8 +972,8 @@ AFTER UPDATE OF members_count ON sections
 FOR EACH ROW
 BEGIN
     UPDATE sections
-    SET members_count = (SELECT SUM(coalesce(members_count,0)) FROM sections WHERE uid != 'group'),
-    adults_count = (SELECT SUM(coalesce(adults_count,0)) FROM sections WHERE uid != 'group')
+    SET members_count = COALESCE((SELECT SUM(COALESCE(members_count, 0)) FROM sections WHERE uid != 'group'), 0),
+        adults_count = COALESCE((SELECT SUM(COALESCE(adults_count, 0)) FROM sections WHERE uid != 'group'), 0)
     WHERE uid = 'group';
 END;",
 "DROP TRIGGER IF EXISTS \"update_group_members_count_after_insert\";",
@@ -982,8 +982,8 @@ AFTER INSERT ON sections
 FOR EACH ROW
 BEGIN
     UPDATE sections
-    SET members_count = (SELECT SUM(coalesce(members_count,0)) FROM sections WHERE uid != 'group'),
-    adults_count = (SELECT SUM(coalesce(adults_count,0)) FROM sections WHERE uid != 'group')
+    SET members_count = COALESCE((SELECT SUM(COALESCE(members_count, 0)) FROM sections WHERE uid != 'group'), 0),
+        adults_count = COALESCE((SELECT SUM(COALESCE(adults_count, 0)) FROM sections WHERE uid != 'group'), 0)
     WHERE uid = 'group';
 END;",
 "DROP TRIGGER IF EXISTS \"update_group_members_count_after_delete\";",
@@ -992,9 +992,10 @@ AFTER DELETE ON sections
 FOR EACH ROW
 BEGIN
     UPDATE sections
-    SET members_count = (SELECT SUM(coalesce(members_count,0)) FROM sections WHERE uid != 'group'),
-    adults_count = (SELECT SUM(coalesce(adults_count,0)) FROM sections WHERE uid != 'group')
+    SET members_count = COALESCE((SELECT SUM(COALESCE(members_count, 0)) FROM sections WHERE uid != 'group'), 0),
+        adults_count = COALESCE((SELECT SUM(COALESCE(adults_count, 0)) FROM sections WHERE uid != 'group'), 0)
     WHERE uid = 'group';
+
 END;",
     ];
 
