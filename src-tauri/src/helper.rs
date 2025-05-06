@@ -1,5 +1,7 @@
 use crate::repository;
-use rust_xlsxwriter::{Color, Format, FormatAlign, FormatBorder, Formula, Workbook, Worksheet};
+use rust_xlsxwriter::{
+    Color, Format, FormatAlign, FormatBorder, Formula, Note, Workbook, Worksheet,
+};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
@@ -29,6 +31,7 @@ pub struct SectionExpense {
     pub title_section: String,
     pub title_expense: String,
     pub count: i32,
+    pub description: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -59,6 +62,7 @@ pub struct CalculatedExpense {
     pub group_applyed_total_price: Option<f32>,
     pub group_applyed_unit_price: Option<f32>,
     pub group_members_count: Option<f32>,
+    pub expenses_description: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -192,6 +196,15 @@ fn handle_worksheet(
             Formula::new(formula_total_string.as_str()).set_result(result.to_string());
 
         let _ = worksheet.write_with_format(row, 0, expense.title_expense.clone(), &border_format);
+
+        if !expense.expenses_description.clone().unwrap().is_empty() {
+            let _ = worksheet.insert_note(
+                row,
+                0,
+                &Note::new(expense.expenses_description.clone().unwrap()),
+            );
+        }
+
         let _ = worksheet.write_number_with_format(row, 1, unit_price, &border_format);
 
         if expense.expenses_instances_units.is_some() {
@@ -314,6 +327,20 @@ fn handle_worksheet(
                     group_expense.title_expense.clone(),
                     &border_format,
                 );
+
+                if !group_expense
+                    .expenses_description
+                    .clone()
+                    .unwrap()
+                    .is_empty()
+                {
+                    let _ = worksheet.insert_note(
+                        row,
+                        0,
+                        &Note::new(group_expense.expenses_description.clone().unwrap()),
+                    );
+                }
+
                 let _ = worksheet.write_with_format(
                     row,
                     1,

@@ -23,6 +23,7 @@ fn parse_f_or_none(s: &str) -> Option<f32> {
     s.trim().parse().ok()
 }
 
+#[allow(dead_code)]
 fn parse_i_or_none(s: &str) -> Option<i32> {
     if let Ok(value) = s.trim().parse::<i32>() {
         return Some(value);
@@ -439,7 +440,7 @@ pub fn execute_write_sql<T: rusqlite::Params>(sql: &str, params: T, conn: &Conne
 pub fn get_section_expense() -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT expense_section.uid_section, expense_section.uid_expense, sections.title AS title_section, expenses.title AS title_expense
+        "SELECT expense_section.uid_section, expense_section.uid_expense, sections.title AS title_section, expenses.title AS title_expense, expenses.description
         FROM expense_section
         INNER JOIN sections ON expense_section.uid_section = sections.uid
         INNER JOIN expenses ON expense_section.uid_expense = expenses.uid
@@ -451,7 +452,8 @@ pub fn get_section_expense() -> Vec<SectionExpense> {
                 uid_expense: row.get(1)?,
                 title_section: row.get(2)?,
                 title_expense: row.get(3)?,
-                count: 0
+                count: 0,
+                description: row.get(4)?
             })
         },
         &conn
@@ -461,7 +463,7 @@ pub fn get_section_expense() -> Vec<SectionExpense> {
 pub fn get_section_expense_from_instance(section_uid: &str, expense_uid: &str) -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense
+        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, expenses.description
         FROM expenses_instances
         INNER JOIN sections ON expenses_instances.uid_section = sections.uid
         INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
@@ -475,7 +477,8 @@ pub fn get_section_expense_from_instance(section_uid: &str, expense_uid: &str) -
                 uid_expense: row.get(1)?,
                 title_section: row.get(2)?,
                 title_expense: row.get(3)?,
-                count: 0
+                count: 0,
+                description: row.get(4)?,
             })
         },
         &conn
@@ -485,7 +488,7 @@ pub fn get_section_expense_from_instance(section_uid: &str, expense_uid: &str) -
 pub fn get_section_expense_from_association(section_uid: &str, expense_uid: &str) -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT DISTINCT expense_section.uid_section, expense_section.uid_expense, sections.title AS title_section, expenses.title AS title_expense
+        "SELECT DISTINCT expense_section.uid_section, expense_section.uid_expense, sections.title AS title_section, expenses.title AS title_expense, expenses.description
         FROM expense_section
         INNER JOIN sections ON expense_section.uid_section = sections.uid
         INNER JOIN expenses ON expense_section.uid_expense = expenses.uid
@@ -499,7 +502,8 @@ pub fn get_section_expense_from_association(section_uid: &str, expense_uid: &str
                 uid_expense: row.get(1)?,
                 title_section: row.get(2)?,
                 title_expense: row.get(3)?,
-                count: 0
+                count: 0,
+                description: row.get(4)?,
             })
         },
         &conn
@@ -515,7 +519,7 @@ pub fn get_section_expense_from_instances_wrapper(expense_uid: &str)-> Vec<Secti
 
 fn get_section_expense_from_instances(expense_uid: &str, conn: &Connection) -> Vec<SectionExpense> {
     execute_read_sql(
-        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense
+        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, expenses.description
         FROM expenses_instances
         INNER JOIN sections ON expenses_instances.uid_section = sections.uid
         INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
@@ -528,7 +532,8 @@ fn get_section_expense_from_instances(expense_uid: &str, conn: &Connection) -> V
                 uid_expense: row.get(1)?,
                 title_section: row.get(2)?,
                 title_expense: row.get(3)?,
-                count: 0
+                count: 0,
+                description: row.get(4)?
             })
         },
         conn
@@ -538,7 +543,7 @@ fn get_section_expense_from_instances(expense_uid: &str, conn: &Connection) -> V
 pub fn get_section_expense_from_expenses_instances() -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, COUNT(uid_expense) AS cnt_uid_expense
+        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, COUNT(uid_expense) AS cnt_uid_expense, expenses.description
         FROM expenses_instances
         INNER JOIN sections ON expenses_instances.uid_section = sections.uid
         INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
@@ -550,7 +555,8 @@ pub fn get_section_expense_from_expenses_instances() -> Vec<SectionExpense> {
                 uid_expense: row.get(1)?,
                 title_section: row.get(2)?,
                 title_expense: row.get(3)?,
-                count: row.get(4)?
+                count: row.get(4)?,
+                description: row.get(5)?
             })
         },
         &conn
@@ -560,7 +566,7 @@ pub fn get_section_expense_from_expenses_instances() -> Vec<SectionExpense> {
 pub fn get_section_expense_from_expenses_instances_and_section(section_uid: &str) -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, COUNT(uid_expense) AS cnt_uid_expense
+        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, COUNT(uid_expense) AS cnt_uid_expense, expenses.description
         FROM expenses_instances
         INNER JOIN sections ON expenses_instances.uid_section = sections.uid
         INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
@@ -575,7 +581,8 @@ pub fn get_section_expense_from_expenses_instances_and_section(section_uid: &str
                 uid_expense: row.get(1)?,
                 title_section: row.get(2)?,
                 title_expense: row.get(3)?,
-                count: row.get(4)?
+                count: row.get(4)?,
+                description: row.get(5)?
             })
         },
         &conn
@@ -616,7 +623,7 @@ pub fn get_adults_count(section_uid: &str) ->i32 {
 
 pub fn get_section_expense_from_expenses_instances_section(section_uid: &str) -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
-    execute_read_sql("SELECT expense_section.uid_section, expense_section.uid_expense, sections.title AS title_section, expenses.title AS title_expense
+    execute_read_sql("SELECT expense_section.uid_section, expense_section.uid_expense, sections.title AS title_section, expenses.title AS title_expense, expenses.description
     FROM expense_section
     INNER JOIN sections ON expense_section.uid_section = sections.uid
     INNER JOIN expenses ON expense_section.uid_expense = expenses.uid
@@ -630,7 +637,8 @@ pub fn get_section_expense_from_expenses_instances_section(section_uid: &str) ->
                 uid_expense: row.get(1)?,
                 title_section: row.get(2)?,
                 title_expense: row.get(3)?,
-                count: 0
+                count: 0,
+                description: row.get(4)?
             })
         },
         &conn
@@ -641,7 +649,7 @@ pub fn get_calculated_expenses(section_uid: &str)-> Vec<CalculatedExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql("SELECT uid_expense_instance, uid_section, uid_expense, title_section, title_expense, comments, section_color, expenses_units, expenses_units_adults,
 expenses_unit_price, expenses_rate, expenses_instances_units, expenses_instances_units_adults, expenses_instances_unit_price, expenses_instances_rate,
-live_units, live_units_adults, live_unit_price, live_rate, group_rate, applyed_price, total_applyed_price, total_inital_price, group_applyed_total_price, group_applyed_unit_price, group_members_count
+live_units, live_units_adults, live_unit_price, live_rate, group_rate, applyed_price, total_applyed_price, total_inital_price, group_applyed_total_price, group_applyed_unit_price, group_members_count, expenses_description
 FROM view_calculated_expenses_sections_instances
 WHERE uid_section = ?1
 ORDER BY expenses_instances_position ASC",
@@ -674,6 +682,7 @@ ORDER BY expenses_instances_position ASC",
                 group_applyed_total_price: row.get(23)?,
                 group_applyed_unit_price: row.get(24)?,
                 group_members_count: row.get(25)?,
+                expenses_description: row.get(26)?
             })
         },
         &conn
@@ -763,7 +772,7 @@ pub fn get_group_calculated_expenses() -> Vec<CalculatedExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql("SELECT uid_expense_instance, uid_section, uid_expense, title_section, title_expense, comments, section_color, expenses_units, expenses_units_adults,
     expenses_unit_price, expenses_rate, expenses_instances_units, expenses_instances_units_adults, expenses_instances_unit_price, expenses_instances_rate,
-    live_units, live_units_adults, live_unit_price, live_rate, group_rate, applyed_price, total_applyed_price, total_inital_price, group_applyed_total_price, group_applyed_unit_price, group_members_count
+    live_units, live_units_adults, live_unit_price, live_rate, group_rate, applyed_price, total_applyed_price, total_inital_price, group_applyed_total_price, group_applyed_unit_price, group_members_count, expenses_description
     FROM view_calculated_expenses_sections_instances
     WHERE group_rate <> 0
     ORDER BY sections_position ASC, expenses_instances_position ASC",
@@ -795,7 +804,8 @@ pub fn get_group_calculated_expenses() -> Vec<CalculatedExpense> {
                 total_inital_price: row.get(22)?,
                 group_applyed_total_price: row.get(23)?,
                 group_applyed_unit_price: row.get(24)?,
-                group_members_count:row.get(25)?,
+                group_members_count: row.get(25)?,
+                expenses_description: row.get(26)?,
             })
         },
         &conn)
@@ -912,6 +922,7 @@ sections.members_count AS expenses_units,
 sections.adults_count AS expenses_units_adults,
 expenses.unit_price AS expenses_unit_price,
 expenses.rate AS expenses_rate,
+expenses.description AS expenses_description,
 
 expenses_instances.units AS expenses_instances_units,
 expenses_instances.units_adults AS expenses_instances_units_adults,
@@ -964,7 +975,7 @@ ROUND((view_expenses_sections_instances.live_units + view_expenses_sections_inst
 ROUND((view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults) * view_expenses_sections_instances.live_unit_price, 2) AS total_inital_price,
 ROUND((view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults) * view_expenses_sections_instances.live_unit_price - (view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults) * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100),2) AS group_applyed_total_price,
 ROUND((((view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults) * view_expenses_sections_instances.live_unit_price - (view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults) * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100)) / group_members_count), 2) AS group_applyed_unit_price,
-group_members_count, group_adults_count, live_units_adults, expenses_instances_position, expenses_position, sections_position
+group_members_count, group_adults_count, live_units_adults, expenses_instances_position, expenses_position, sections_position, expenses_description
 FROM view_expenses_sections_instances",
 "DROP TRIGGER IF EXISTS \"update_group_members_count_after_update\";",
 "CREATE TRIGGER update_group_members_count_after_update
