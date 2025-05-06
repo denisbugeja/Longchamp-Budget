@@ -18,3 +18,7 @@
 [data-matrix-section-expense-uid-expense-value="{{ uidExpense }}"] td button {
     border-color: #fff !important;
 }
+
+[data-matrix-section-target="clearLink"] {
+    display: block !important;
+}

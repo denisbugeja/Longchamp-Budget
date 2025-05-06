@@ -665,7 +665,7 @@ Stimulus.register("matrix", class extends Controller {
 })
 
 Stimulus.register("matrix-section", class extends Controller {
-    static targets = ['expenseList', 'expenseInstanceList', 'expenseGroupRatioTotal', 'expenseGroupInstanceList', 'expenseGroupInstanceListContainer', 'sectionMembersCount', 'sectionAdultsCount', 'expenseInstanceGroupTotal', 'expenseInstanceTotal', 'expenseInstanceMemberTotal', 'groupSumContainer']
+    static targets = ['expenseList', 'expenseInstanceList', 'expenseGroupRatioTotal', 'expenseGroupInstanceList', 'expenseGroupInstanceListContainer', 'sectionMembersCount', 'sectionAdultsCount', 'expenseInstanceGroupTotal', 'expenseInstanceTotal', 'expenseInstanceMemberTotal', 'groupSumContainer', 'clearLink']
     static outlets = ['matrix']
     static values = {
         uid: String
@@ -888,6 +888,11 @@ Stimulus.register("matrix-section", class extends Controller {
         await this.triggerGlobalRefresh()
     }
 
+    async reinitFilter(e) {
+        await e.preventDefault()
+        document.getElementById('tempstyle').innerText = ''
+    }
+
     validateMembersCount() {
         this.sectionMembersCountTarget.classList.remove('invalid')
         if ('' !== this.sectionMembersCountTarget.value.trim()
@@ -949,10 +954,11 @@ Stimulus.register("matrix-section-expense", class extends Controller {
     async highlightExpense() {
         const expenseObject = {
             uidExpense: this.uidExpenseValue
-        }
+        },
+            itemStyle = document.getElementById('tempstyle'),
+            applyedStyle = await generateFromFilePath('_parts/_components/_matrix_expense_style.css', expenseObject, true)
 
-        const applyedStyle = await generateFromFilePath('_parts/_components/_matrix_expense_style.css', expenseObject, true)
-        document.getElementById('tempstyle').innerText = (applyedStyle == document.getElementById('tempstyle').innerText) ? '' : applyedStyle
+        itemStyle.innerText = applyedStyle
     }
 })
 
