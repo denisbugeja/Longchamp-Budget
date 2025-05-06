@@ -79,3 +79,18 @@ html {
         color: #fff;
     }
 }
+
+
+input,
+textarea {
+
+    font-style: normal !important;
+    font-weight: bolder !important;
+    color: #000000 !important;
+
+    &::placeholder {
+        font-style: italic;
+        font-weight: normal;
+        color: #3a3434
+    }
+}
