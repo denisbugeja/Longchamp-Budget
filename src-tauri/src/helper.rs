@@ -8,8 +8,8 @@ pub struct Section {
     pub uid: String,
     pub title: String,
     pub color: String,
-    pub members_count: i32,
-    pub adults_count: i32,
+    pub members_count: f32,
+    pub adults_count: f32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -40,12 +40,12 @@ pub struct CalculatedExpense {
     pub title_expense: Option<String>,
     pub comments: Option<String>,
     pub section_color: Option<String>,
-    pub expenses_units: Option<i32>,
-    pub expenses_units_adults: Option<i32>,
+    pub expenses_units: Option<f32>,
+    pub expenses_units_adults: Option<f32>,
     pub expenses_unit_price: Option<f32>,
     pub expenses_rate: Option<f32>,
-    pub expenses_instances_units: Option<i32>,
-    pub expenses_instances_units_adults: Option<i32>,
+    pub expenses_instances_units: Option<f32>,
+    pub expenses_instances_units_adults: Option<f32>,
     pub expenses_instances_unit_price: Option<f32>,
     pub expenses_instances_rate: Option<f32>,
     pub live_units: Option<f32>,

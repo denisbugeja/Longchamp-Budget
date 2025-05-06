@@ -80,17 +80,21 @@ html {
     }
 }
 
+#main-matrix {
+    tbody {
 
-input,
-textarea {
+        input,
+        textarea {
 
-    font-style: normal !important;
-    font-weight: bolder !important;
-    color: #000000 !important;
+            font-style: normal !important;
+            font-weight: bolder !important;
+            color: #000000 !important;
 
-    &::placeholder {
-        font-style: italic;
-        font-weight: normal;
-        color: #3a3434
+            &::placeholder {
+                font-style: italic;
+                font-weight: normal;
+                color: #3a3434
+            }
+        }
     }
 }

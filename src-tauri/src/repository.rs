@@ -319,14 +319,14 @@ pub fn update_expense_instance(uid_expense_instance: &str, unit_price: &str, uni
     let conn = get_connection().expect("Cannot get connection");
 
     let unit_price_f32 = parse_f_or_none(unit_price);
-    let units_i32 = parse_i_or_none(units);
-    let units_adults_i32 = parse_i_or_none(units_adults);
+    let units_f32 = parse_f_or_none(units);
+    let units_adults_f32 = parse_f_or_none(units_adults);
     let rate_f32 = parse_f_or_none(rate);
     let comments_s = parse_s_or_none(comments);
     
     execute_write_sql(
         "UPDATE expenses_instances SET units = ?1, units_adults=?2, unit_price = ?3, rate = ?4, comments=?5 WHERE uid = ?6",
-        params!(units_i32, units_adults_i32, unit_price_f32, rate_f32, comments_s, uid_expense_instance),
+        params!(units_f32, units_adults_f32, unit_price_f32, rate_f32, comments_s, uid_expense_instance),
         &conn
     );
 }
@@ -851,8 +851,8 @@ pub fn execute_migrations(conn: Connection) {
 	\"uid\"	TEXT NOT NULL UNIQUE,
 	\"title\"	TEXT NOT NULL,
 	\"color\"	TEXT,
-    \"members_count\" INTEGER NOT NULL DEFAULT 0,
-    \"adults_count\" INTEGER NOT NULL DEFAULT 0,
+    \"members_count\" NUMERIC NOT NULL DEFAULT 0,
+    \"adults_count\" NUMERIC NOT NULL DEFAULT 0,
 	\"position\"	INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY(\"uid\"),
     UNIQUE(\"title\")
@@ -878,8 +878,8 @@ pub fn execute_migrations(conn: Connection) {
 	\"uid_expense\"	TEXT NOT NULL,
 	\"uid_section\"	TEXT NOT NULL,
     \"comments\" TEXT,
-	\"units\"	INTEGER,
-    \"units_adults\"	INTEGER,
+	\"units\"	NUMERIC,
+    \"units_adults\"	NUMERIC,
 	\"unit_price\"	NUMERIC,
 	\"rate\"	NUMERIC,
     \"position\"	INTEGER NOT NULL DEFAULT 0,
