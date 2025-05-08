@@ -289,11 +289,11 @@ Stimulus.register("section-edit", class extends Controller {
         }
     }
 
-    update(e) {
+    async update(e) {
         if (!this.validate()) {
             return
         }
-        invoke("update_section", { uid: this.uidValue, title: this.titleTarget.value.trim(), color: this.colorTarget.value.trim(), membersCount: parseInt(this.sectionMembersCountTarget.value), adultsCount: parseInt(this.sectionAdultsCountTarget.value) })
+        await invoke("update_section", { uid: this.uidValue, title: this.titleTarget.value.trim(), color: this.colorTarget.value.trim(), membersCount: parseInt(this.sectionMembersCountTarget.value), adultsCount: parseInt(this.sectionAdultsCountTarget.value) })
         this.sectionOutlet.sectionListLoad()
     }
 
@@ -302,7 +302,7 @@ Stimulus.register("section-edit", class extends Controller {
             alert("Tu ne peux pas supprimer cette section.\nElle est déja utilisée à une dépense.")
             return
         }
-        invoke("delete_section", { uid: this.uidValue })
+        await invoke("delete_section", { uid: this.uidValue })
         this.sectionOutlet.sectionListLoad()
     }
 
@@ -547,12 +547,12 @@ Stimulus.register("expense-edit", class extends Controller {
         section.checked = 0 !== expenseFromAssociation.length
     }
 
-    update(e) {
+    async update(e) {
         if (!this.validate()) {
             return
         }
 
-        invoke("update_expense", { uid: this.uidValue, title: this.titleTarget.value, description: this.descriptionTarget.value, rate: this.rateTarget.value, unitPrice: this.unitPriceTarget.value })
+        await invoke("update_expense", { uid: this.uidValue, title: this.titleTarget.value, description: this.descriptionTarget.value, rate: this.rateTarget.value, unitPrice: this.unitPriceTarget.value })
     }
 
     async deleteTargetConnected(element) {
@@ -581,7 +581,7 @@ Stimulus.register("expense-edit", class extends Controller {
             alert("Tu ne peux pas supprimer cette dépense.\nElle est déja utilisée par une section.")
             return
         }
-        invoke("delete_expense", { uid: this.uidValue })
+        await invoke("delete_expense", { uid: this.uidValue })
         this.expenseOutlet.expenseListLoad()
     }
 
@@ -988,8 +988,8 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
         this.element.classList.remove('table-active')
     }
 
-    copyExpenseInstance() {
-        invoke("copy_expense_instance", { uidExpenseInstance: this.uidValue })
+    async copyExpenseInstance() {
+        await invoke("copy_expense_instance", { uidExpenseInstance: this.uidValue })
         this.matrixSectionOutlet.triggerGlobalRefresh()
     }
 
