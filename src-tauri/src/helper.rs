@@ -358,7 +358,7 @@ fn handle_worksheet(
                 let _ =
                     worksheet.write_with_format(row, 3, group_expense.group_rate, &border_format);
 
-                let formula_group_unit = Formula::new(format!("=ROUND((F{}/$B$3),2)", row + 1))
+                let formula_group_unit = Formula::new(format!("=IF($B$3=0,0,ROUND((F{}/$B$3),2))", row + 1))
                     .set_result(
                         group_expense
                             .group_applyed_unit_price
