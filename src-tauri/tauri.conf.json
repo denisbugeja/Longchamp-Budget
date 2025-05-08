@@ -12,7 +12,8 @@
             {
                 "title": "Longchamp Budget",
                 "width": 1100,
-                "height": 600
+                "height": 600,
+                "dragDropEnabled": false
             }
         ],
         "security": {
