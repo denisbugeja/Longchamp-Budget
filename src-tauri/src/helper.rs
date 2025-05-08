@@ -251,7 +251,7 @@ fn handle_worksheet(
 
         row += 1;
         row_total_unite = row + 1;
-        let formula_sum_units = Formula::new(format!("=ROUND((G{}/$B$3),2)", row))
+        let formula_sum_units = Formula::new(format!("=IF($B$3=0,0,ROUND((G{}/$B$3),2))", row))
             .set_result(sum_calculated.sum_unit.to_string());
 
         let mut total_label = String::from("Total Unité par enfant");
