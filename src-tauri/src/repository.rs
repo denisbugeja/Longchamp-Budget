@@ -326,8 +326,8 @@ pub fn update_expense_instance(uid_expense_instance: &str, unit_price: &str, uni
     let comments_s = parse_s_or_none(comments);
     
     execute_write_sql(
-        "UPDATE expenses_instances SET units = ?1, units_adults=?2, unit_price = ?3, rate = ?4, comments=?5 WHERE uid = ?6",
-        params!(units_f32, units_adults_f32, unit_price_f32, rate_f32, comments_s, uid_expense_instance),
+        "UPDATE expenses_instances SET units = ?1, units_adults=?2, unit_price = ?3, rate = ?4, comments=?5, number = ?6 WHERE uid = ?7",
+        params!(units_f32, units_adults_f32, unit_price_f32, rate_f32, comments_s, 1, uid_expense_instance),
         &conn
     );
 }
@@ -346,7 +346,7 @@ pub fn copy_expense_instance(uid_expense_instance: &str) {
     let conn = get_connection().expect("Cannot get connection");
 
     execute_write_sql(
-        "INSERT INTO  expenses_instances (uid, uid_expense, uid_section, comments, units, units_adults, unit_price, rate, position) SELECT ?1 AS uid, uid_expense, uid_section, comments, units, units_adults, unit_price, rate, (SELECT COALESCE(MAX(position), -1) + 1 FROM expenses_instances) AS position FROM expenses_instances WHERE uid = ?2",
+        "INSERT INTO  expenses_instances (uid, uid_expense, uid_section, comments, number, units, units_adults, unit_price, rate, position) SELECT ?1 AS uid, uid_expense, uid_section, comments, number, units, units_adults, unit_price, rate, (SELECT COALESCE(MAX(position), -1) + 1 FROM expenses_instances) AS position FROM expenses_instances WHERE uid = ?2",
         params!(Uuid::new_v4().to_string(), uid_expense_instance), 
         &conn
     );
@@ -543,10 +543,11 @@ fn get_section_expense_from_instances(expense_uid: &str, conn: &Connection) -> V
 pub fn get_section_expense_from_expenses_instances() -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, COUNT(uid_expense) AS cnt_uid_expense, expenses.description
+        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, SUM(uid_expense) AS cnt_uid_expense, expenses.description
         FROM expenses_instances
         INNER JOIN sections ON expenses_instances.uid_section = sections.uid
         INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
+        GROUP BY expenses_instances.uid_expense
         ORDER BY expenses_instances.position ASC",
         [],
         |row| {
@@ -566,12 +567,12 @@ pub fn get_section_expense_from_expenses_instances() -> Vec<SectionExpense> {
 pub fn get_section_expense_from_expenses_instances_and_section(section_uid: &str) -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, COUNT(uid_expense) AS cnt_uid_expense, expenses.description
+        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, SUM(uid_expense) AS cnt_uid_expense, expenses.description
         FROM expenses_instances
         INNER JOIN sections ON expenses_instances.uid_section = sections.uid
         INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
         WHERE expenses_instances.uid_section = ?1
-        GROUP BY uid_expense
+        GROUP BY expenses_instances.uid_expense
         ORDER BY expenses.position ASC
         ",
         params!(section_uid),
@@ -649,7 +650,7 @@ pub fn get_calculated_expenses(section_uid: &str)-> Vec<CalculatedExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql("SELECT uid_expense_instance, uid_section, uid_expense, title_section, title_expense, comments, section_color, expenses_units, expenses_units_adults,
 expenses_unit_price, expenses_rate, expenses_instances_units, expenses_instances_units_adults, expenses_instances_unit_price, expenses_instances_rate,
-live_units, live_units_adults, live_unit_price, live_rate, group_rate, applyed_price, total_applyed_price, total_inital_price, group_applyed_total_price, group_applyed_unit_price, group_members_count, expenses_description
+live_units, live_units_adults, live_unit_price, live_rate, group_rate, applyed_price, total_applyed_price, total_inital_price, group_applyed_total_price, group_applyed_unit_price, group_members_count, expenses_description, expenses_instances_number
 FROM view_calculated_expenses_sections_instances
 WHERE uid_section = ?1
 ORDER BY expenses_instances_position ASC",
@@ -682,7 +683,8 @@ ORDER BY expenses_instances_position ASC",
                 group_applyed_total_price: row.get(23)?,
                 group_applyed_unit_price: row.get(24)?,
                 group_members_count: row.get(25)?,
-                expenses_description: row.get(26)?
+                expenses_description: row.get(26)?,
+                expenses_instances_number: row.get(27)?
             })
         },
         &conn
@@ -772,7 +774,7 @@ pub fn get_group_calculated_expenses() -> Vec<CalculatedExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql("SELECT uid_expense_instance, uid_section, uid_expense, title_section, title_expense, comments, section_color, expenses_units, expenses_units_adults,
     expenses_unit_price, expenses_rate, expenses_instances_units, expenses_instances_units_adults, expenses_instances_unit_price, expenses_instances_rate,
-    live_units, live_units_adults, live_unit_price, live_rate, group_rate, applyed_price, total_applyed_price, total_inital_price, group_applyed_total_price, group_applyed_unit_price, group_members_count, expenses_description
+    live_units, live_units_adults, live_unit_price, live_rate, group_rate, applyed_price, total_applyed_price, total_inital_price, group_applyed_total_price, group_applyed_unit_price, group_members_count, expenses_description, expenses_instances_number
     FROM view_calculated_expenses_sections_instances
     WHERE group_rate <> 0
     ORDER BY sections_position ASC, expenses_instances_position ASC",
@@ -806,6 +808,7 @@ pub fn get_group_calculated_expenses() -> Vec<CalculatedExpense> {
                 group_applyed_unit_price: row.get(24)?,
                 group_members_count: row.get(25)?,
                 expenses_description: row.get(26)?,
+                expenses_instances_number: row.get(27)?
             })
         },
         &conn)
@@ -888,10 +891,11 @@ pub fn execute_migrations(conn: Connection) {
 	\"uid_expense\"	TEXT NOT NULL,
 	\"uid_section\"	TEXT NOT NULL,
     \"comments\" TEXT,
-	\"units\"	NUMERIC,
-    \"units_adults\"	NUMERIC,
-	\"unit_price\"	NUMERIC,
-	\"rate\"	NUMERIC,
+    \"number\" NUMERIC NOT NULL DEFAULT 1,
+	\"units\" NUMERIC,
+    \"units_adults\" NUMERIC,
+	\"unit_price\" NUMERIC,
+	\"rate\" NUMERIC,
     \"position\"	INTEGER NOT NULL DEFAULT 0,
 	FOREIGN KEY(\"uid_expense\") REFERENCES \"expenses\"(\"uid\"),
 	FOREIGN KEY(\"uid_section\") REFERENCES \"sections\"(\"uid\"),
@@ -916,6 +920,7 @@ expenses.title AS title_expense,
 expenses.position AS expenses_position,
 expenses_instances.comments AS comments,
 expenses_instances.position AS expenses_instances_position,
+expenses_instances.number AS expenses_instances_number,
 sections.color AS section_color,
 
 sections.members_count AS expenses_units,
@@ -928,7 +933,6 @@ expenses_instances.units AS expenses_instances_units,
 expenses_instances.units_adults AS expenses_instances_units_adults,
 expenses_instances.unit_price AS expenses_instances_unit_price,
 expenses_instances.rate AS expenses_instances_rate,
-expenses_instances.position AS expenses_instances_position,
 
 CASE WHEN expenses_instances.units IS NOT NULL AND TRIM(expenses_instances.units,\" \") != \"\"
     THEN expenses_instances.units
@@ -971,11 +975,11 @@ expenses_unit_price, expenses_rate, expenses_instances_units, expenses_instances
 live_units, live_unit_price, live_rate,
 (100 - view_expenses_sections_instances.live_rate) AS group_rate,
 ROUND(view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100), 2) AS applyed_price,
-ROUND((view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults)* view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100), 2) AS total_applyed_price,
-ROUND((view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults) * view_expenses_sections_instances.live_unit_price, 2) AS total_inital_price,
-ROUND((view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults) * view_expenses_sections_instances.live_unit_price - (view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults) * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100),2) AS group_applyed_total_price,
-ROUND((((view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults) * view_expenses_sections_instances.live_unit_price - (view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults) * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100)) / group_members_count), 2) AS group_applyed_unit_price,
-group_members_count, group_adults_count, live_units_adults, expenses_instances_position, expenses_position, sections_position, expenses_description
+ROUND((view_expenses_sections_instances.expenses_instances_number * (view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults)) * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100), 2) AS total_applyed_price,
+ROUND((view_expenses_sections_instances.expenses_instances_number * (view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults)) * view_expenses_sections_instances.live_unit_price, 2) AS total_inital_price,
+ROUND((view_expenses_sections_instances.expenses_instances_number * (view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults)) * view_expenses_sections_instances.live_unit_price - (view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults) * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100),2) AS group_applyed_total_price,
+ROUND((((view_expenses_sections_instances.expenses_instances_number * (view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults)) * view_expenses_sections_instances.live_unit_price - (view_expenses_sections_instances.live_units + view_expenses_sections_instances.live_units_adults) * view_expenses_sections_instances.live_unit_price * (view_expenses_sections_instances.live_rate / 100)) / group_members_count), 2) AS group_applyed_unit_price,
+group_members_count, group_adults_count, live_units_adults, expenses_instances_position, expenses_position, sections_position, expenses_description, expenses_instances_number
 FROM view_expenses_sections_instances",
 "DROP TRIGGER IF EXISTS \"update_group_members_count_after_update\";",
 "CREATE TRIGGER update_group_members_count_after_update
