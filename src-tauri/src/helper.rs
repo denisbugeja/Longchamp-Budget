@@ -154,7 +154,7 @@ fn handle_worksheet(
         .set_name(&section.title)
         .expect("Impossible to set the sheet's name");
 
-    let _ = worksheet.merge_range(0, 0, 0, 6, &section.title, &title_format);
+    let _ = worksheet.merge_range(0, 0, 0, 7, &section.title, &title_format);
 
     let _ = worksheet.write_with_format(row, 0, "Enfants/Ados:", &border_bold_format);
     let _ = worksheet.write_number_with_format(row, 1, section.members_count, &border_format);

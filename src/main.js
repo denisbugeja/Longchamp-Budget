@@ -942,8 +942,8 @@ Stimulus.register("matrix-section-expense", class extends Controller {
     }
 
     async countTargetConnected() {
-        let expenseFromInstance = JSON.parse(await invoke("get_section_expense_from_instance", { sectionUid: this.uidSectionValue, expenseUid: this.uidExpenseValue }))
-        this.countTarget.innerHTML = expenseFromInstance.length
+        let expenseFromInstance = await invoke("get_section_expense_cnt_from_instance", { sectionUid: this.uidSectionValue, expenseUid: this.uidExpenseValue })
+        this.countTarget.innerHTML = expenseFromInstance
     }
 
     async addExpenseInstance(e) {

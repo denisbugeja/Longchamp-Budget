@@ -461,29 +461,25 @@ pub fn get_section_expense() -> Vec<SectionExpense> {
     )
 }
 
-pub fn get_section_expense_from_instance(section_uid: &str, expense_uid: &str) -> Vec<SectionExpense> {
+pub fn get_section_expense_cnt_from_instance(section_uid: &str, expense_uid: &str) -> f32 {
     let conn = get_connection().expect("Cannot get connection");
-    execute_read_sql(
-        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, expenses.description
+    let result = execute_read_sql(
+        "SELECT ROUND(SUM(number),2) AS cnt
         FROM expenses_instances
-        INNER JOIN sections ON expenses_instances.uid_section = sections.uid
-        INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
-        WHERE expenses_instances.uid_section = ?1 
-        AND expenses_instances.uid_expense = ?2
-        ORDER BY expenses_instances.position ASC",
+        WHERE uid_section = ?1
+        AND uid_expense = ?2
+        GROUP BY expenses_instances.uid_expense",
         params!(section_uid, expense_uid),
         |row| {
-            Ok(SectionExpense {
-                uid_section: row.get(0)?,
-                uid_expense: row.get(1)?,
-                title_section: row.get(2)?,
-                title_expense: row.get(3)?,
-                count: 0,
-                description: row.get(4)?,
-            })
+            row.get(0)
         },
         &conn
-    )
+    );
+    let mut count: f32 = 0.0;
+    if !result.is_empty() {
+        count = result[0];
+    }
+    count
 }
 
 pub fn get_section_expense_from_association(section_uid: &str, expense_uid: &str) -> Vec<SectionExpense> {
