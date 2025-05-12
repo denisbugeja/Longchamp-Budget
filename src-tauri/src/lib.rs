@@ -96,6 +96,16 @@ fn get_section_expense() -> String {
     helper::vec_to_json(repository::get_section_expense())
 }
 
+
+#[tauri::command]
+fn get_section_expense_from_instance(section_uid: &str, expense_uid: &str) -> String {
+    helper::struct_to_json(repository::get_section_expense_from_instance(
+        section_uid,
+        expense_uid,
+    ))
+}
+
+
 #[tauri::command]
 fn get_section_expense_from_instances_by_expense(expense_uid: &str) -> String {
     helper::vec_to_json(repository::get_section_expense_from_instances_wrapper(
@@ -271,6 +281,7 @@ pub fn run() {
             get_sum_calculated_expenses,
             get_total_per_member,
             get_section_expense_cnt_from_instance,
+            get_section_expense_from_instance,
             get_section_expense_from_association,
             get_section_expense_from_expenses_instances_and_section,
             generate_xls_file,

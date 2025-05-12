@@ -212,6 +212,7 @@ Stimulus.register("section", class extends Controller {
             return
         }
 
+
         uidList.splice(targetPosition, 0, element)
         await invoke("update_section_order", { sectionList: JSON.stringify(uidList) })
         this.sectionListLoad()
@@ -459,6 +460,7 @@ Stimulus.register("expense", class extends Controller {
         if (-1 === sourcePosition) {
             return
         }
+
 
         uidList.splice(targetPosition, 0, element)
         await invoke("update_expense_order", { expenseList: JSON.stringify(uidList) })
@@ -882,6 +884,7 @@ Stimulus.register("matrix-section", class extends Controller {
         if (-1 === sourcePosition) {
             return
         }
+
 
         uidList.splice(targetPosition, 0, element)
         await invoke("update_expense_instance_order", { expenseInstanceList: JSON.stringify(uidList) })

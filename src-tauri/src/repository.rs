@@ -482,6 +482,31 @@ pub fn get_section_expense_cnt_from_instance(section_uid: &str, expense_uid: &st
     count
 }
 
+pub fn get_section_expense_from_instance(section_uid: &str, expense_uid: &str) -> Vec<SectionExpense> {
+    let conn = get_connection().expect("Cannot get connection");
+    execute_read_sql(
+        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, expenses.description
+        FROM expenses_instances
+        INNER JOIN sections ON expenses_instances.uid_section = sections.uid
+        INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
+        WHERE expenses_instances.uid_section = ?1 
+        AND expenses_instances.uid_expense = ?2
+        ORDER BY expenses_instances.position ASC",
+        params!(section_uid, expense_uid),
+        |row| {
+            Ok(SectionExpense {
+                uid_section: row.get(0)?,
+                uid_expense: row.get(1)?,
+                title_section: row.get(2)?,
+                title_expense: row.get(3)?,
+                count: 0,
+                description: row.get(4)?,
+            })
+        },
+        &conn
+    )
+}
+
 pub fn get_section_expense_from_association(section_uid: &str, expense_uid: &str) -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
