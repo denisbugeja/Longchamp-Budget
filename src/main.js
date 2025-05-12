@@ -763,7 +763,7 @@ Stimulus.register("matrix-section", class extends Controller {
             groupTotal = await this.getGroupTotal(),
             data = { ratio: ratioTotal.sum_unit, total: total.sum_unit, groupTotal: groupTotal.sum_unit }
 
-        renderElement(this.groupSumContainerTarget, await generateFromFilePath('_parts/_components/_matric_section_group_sum.html', data))
+        renderElement(this.groupSumContainerTarget, await generateFromFilePath('_parts/_components/_matrix_section_group_sum.html', data))
     }
 
     async expenseGroupRatioTotalLoad() {
@@ -1076,7 +1076,9 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
 
     numberValid() {
         this.numberTarget.classList.remove('invalid')
-        if (!isNaN(this.numberTarget.value)) {
+        if ('' !== this.numberTarget.value.trim()
+            || !isNaN(this.numberTarget.value)
+        ) {
             return true
         }
         this.numberTarget.classList.add('invalid')

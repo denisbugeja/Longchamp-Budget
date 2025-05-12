@@ -324,8 +324,12 @@ pub fn update_expense_instance(uid_expense_instance: &str, unit_price: &str, num
     let units_adults_f32 = parse_f_or_none(units_adults);
     let rate_f32 = parse_f_or_none(rate);
     let comments_s = parse_s_or_none(comments);
-    let number_f32: f32 = number.trim().parse().expect("Impossible to parse number as f32");
-    
+    let number_f32 = parse_f_or_none(number);
+
+    if number_f32.is_none() {
+        return;
+    }
+
     execute_write_sql(
         "UPDATE expenses_instances SET units = ?1, units_adults=?2, unit_price = ?3, rate = ?4, comments=?5, number = ?6 WHERE uid = ?7",
         params!(units_f32, units_adults_f32, unit_price_f32, rate_f32, comments_s, number_f32, uid_expense_instance),

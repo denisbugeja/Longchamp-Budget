@@ -29,9 +29,9 @@
             class="form-control w-100 text-end"
             type="number"
             value="{{ expenses_instances_number }}"
-            required="required"
             data-matrix-expense-instance-target="number"
             step="1"
+            pattern="[0-9\.,\-]+"
             data-action="change->matrix-expense-instance#updateExpenseInstance"
         />
     </td>
