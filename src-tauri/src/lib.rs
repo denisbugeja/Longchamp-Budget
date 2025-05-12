@@ -142,6 +142,7 @@ fn get_adults_count(section_uid: &str) -> i32 {
 fn update_expense_instance(
     uid_expense_instance: &str,
     unit_price: &str,
+    number: &str,
     units: &str,
     units_adults: &str,
     rate: &str,
@@ -150,6 +151,7 @@ fn update_expense_instance(
     repository::update_expense_instance(
         uid_expense_instance,
         unit_price,
+        number,
         units,
         units_adults,
         rate,

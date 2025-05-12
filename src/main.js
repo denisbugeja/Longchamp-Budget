@@ -963,7 +963,7 @@ Stimulus.register("matrix-section-expense", class extends Controller {
 })
 
 Stimulus.register("matrix-expense-instance", class extends Controller {
-    static targets = ["label", "unitPrice", "units", "unitsAdults", "rate", "comments"]
+    static targets = ["label", "unitPrice", "number", "units", "unitsAdults", "rate", "comments"]
     static outlets = ["matrix-section"]
     static values = {
         uid: String,
@@ -1001,6 +1001,7 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
         await invoke("update_expense_instance", {
             uidExpenseInstance: this.uidValue,
             unitPrice: this.unitPriceTarget.value,
+            number: this.numberTarget.value,
             units: this.unitsTarget.value,
             unitsAdults: this.unitsAdultsTarget.value,
             rate: this.rateTarget.value,
@@ -1070,12 +1071,22 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
         return false
     }
 
+    numberValid() {
+        this.numberTarget.classList.remove('invalid')
+        if (!isNaN(this.numberTarget.value)) {
+            return true
+        }
+        this.numberTarget.classList.add('invalid')
+        return false
+    }
+
     validate() {
         const validateArray = [
             this.unitPriceValid(),
             this.unitsValid(),
             this.unitsAdultsValid(),
-            this.rateValid()
+            this.rateValid(),
+            this.numberValid()
         ]
         return validateArray.filter((item) => item).length === validateArray.length
     }

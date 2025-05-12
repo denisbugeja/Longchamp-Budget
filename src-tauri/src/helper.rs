@@ -166,7 +166,7 @@ fn handle_worksheet(
     row += 2;
     let _ = worksheet.write_with_format(row, 0, "Libellé", &border_bold_format);
     let _ = worksheet.write_with_format(row, 1, "Prix unitaire", &border_bold_format);
-    let _ = worksheet.write_with_format(row, 2, "Occurences", &border_bold_format);
+    let _ = worksheet.write_with_format(row, 2, "Occurrences", &border_bold_format);
 
     let _ = worksheet.write_with_format(row, 3, "Enfants/Ados", &border_bold_format);
     let _ = worksheet.write_with_format(row, 4, "Chefs", &border_bold_format);

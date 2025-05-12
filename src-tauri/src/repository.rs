@@ -316,7 +316,7 @@ pub fn update_expense_instance_order(vec_expense_instance_list: Vec<&str>)
     tx.commit().expect("Failed to commit transaction");
 }
 
-pub fn update_expense_instance(uid_expense_instance: &str, unit_price: &str, units: &str, units_adults: &str, rate: &str, comments: &str) {
+pub fn update_expense_instance(uid_expense_instance: &str, unit_price: &str, number: &str, units: &str, units_adults: &str, rate: &str, comments: &str) {
     let conn = get_connection().expect("Cannot get connection");
 
     let unit_price_f32 = parse_f_or_none(unit_price);
@@ -324,10 +324,11 @@ pub fn update_expense_instance(uid_expense_instance: &str, unit_price: &str, uni
     let units_adults_f32 = parse_f_or_none(units_adults);
     let rate_f32 = parse_f_or_none(rate);
     let comments_s = parse_s_or_none(comments);
+    let number_f32: f32 = number.trim().parse().expect("Impossible to parse number as f32");
     
     execute_write_sql(
         "UPDATE expenses_instances SET units = ?1, units_adults=?2, unit_price = ?3, rate = ?4, comments=?5, number = ?6 WHERE uid = ?7",
-        params!(units_f32, units_adults_f32, unit_price_f32, rate_f32, comments_s, 1, uid_expense_instance),
+        params!(units_f32, units_adults_f32, unit_price_f32, rate_f32, comments_s, number_f32, uid_expense_instance),
         &conn
     );
 }
@@ -543,7 +544,7 @@ fn get_section_expense_from_instances(expense_uid: &str, conn: &Connection) -> V
 pub fn get_section_expense_from_expenses_instances() -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, SUM(uid_expense) AS cnt_uid_expense, expenses.description
+        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, COUNT(uid_expense) AS cnt_uid_expense, expenses.description
         FROM expenses_instances
         INNER JOIN sections ON expenses_instances.uid_section = sections.uid
         INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
@@ -567,7 +568,7 @@ pub fn get_section_expense_from_expenses_instances() -> Vec<SectionExpense> {
 pub fn get_section_expense_from_expenses_instances_and_section(section_uid: &str) -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, SUM(uid_expense) AS cnt_uid_expense, expenses.description
+        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, COUNT(uid_expense) AS cnt_uid_expense, expenses.description
         FROM expenses_instances
         INNER JOIN sections ON expenses_instances.uid_section = sections.uid
         INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
