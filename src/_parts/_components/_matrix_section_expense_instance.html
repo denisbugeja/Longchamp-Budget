@@ -28,6 +28,17 @@
         <input
             class="form-control w-100 text-end"
             type="number"
+            value="{{ expenses_instances_number }}"
+            required="required"
+            data-matrix-expense-instance-target="number"
+            step="1"
+            data-action="change->matrix-expense-instance#updateExpenseInstance"
+        />
+    </td>
+    <td>
+        <input
+            class="form-control w-100 text-end"
+            type="number"
             placeholder="{{ expenses_units }}"
             value="{{ expenses_instances_units }}"
             min="0"
