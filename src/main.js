@@ -507,7 +507,7 @@ Stimulus.register("expense", class extends Controller {
         this.unitPriceTarget.classList.remove('invalid')
         if ('' !== this.unitPriceTarget.value.trim()
             && !isNaN(this.unitPriceTarget.value)
-            && parseFloat(this.unitPriceTarget.value) >= 0) {
+        ) {
             return true
         }
         this.unitPriceTarget.classList.add('invalid')
@@ -617,7 +617,7 @@ Stimulus.register("expense-edit", class extends Controller {
         this.unitPriceTarget.classList.remove('invalid')
         if ("" !== this.unitPriceTarget.value.trim()
             && !isNaN(this.unitPriceTarget.value)
-            && parseFloat(this.unitPriceTarget.value) >= 0) {
+        ) {
             return true
         }
         this.unitPriceTarget.classList.add('invalid')
@@ -1034,9 +1034,7 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
     unitPriceValid() {
         this.unitPriceTarget.classList.remove('invalid')
         if ('' === this.unitPriceTarget.value.trim()
-            || (
-                !isNaN(this.unitPriceTarget.value)
-                && parseFloat(this.unitPriceTarget.value) > 0)
+            || !isNaN(this.unitPriceTarget.value)
         ) {
             return true
         }
