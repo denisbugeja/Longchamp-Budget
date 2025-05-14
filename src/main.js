@@ -305,7 +305,7 @@ Stimulus.register("section-edit", class extends Controller {
 
     async delete(e) {
         if (await this.isUsed()) {
-            alert("Tu ne peux pas supprimer cette section.\nElle est déja utilisée à une dépense.")
+            alert("Vous ne pouvez pas supprimer cette unité.\nElle est déja utilisée à une dépense.")
             return
         }
         await invoke("delete_section", { uid: this.uidValue })
@@ -585,7 +585,7 @@ Stimulus.register("expense-edit", class extends Controller {
 
     async delete(e) {
         if (await this.isUsed()) {
-            alert("Tu ne peux pas supprimer cette dépense.\nElle est déja utilisée par une section.")
+            alert("Vous ne pouvez pas supprimer cette dépense.\nElle est déja utilisée par une unité.")
             return
         }
         await invoke("delete_expense", { uid: this.uidValue })
@@ -989,7 +989,7 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
 
     async deleteExpenseInstance() {
         this.element.classList.add('table-active')
-        if (await confirm("Veux-tu vraiment supprimer cette dépense ?")) {
+        if (await confirm("Voulez-vous vraiment supprimer cette dépense ?")) {
             await invoke("delete_expense_instance", { uidExpenseInstance: this.uidValue })
             this.matrixSectionOutlet.triggerGlobalRefresh()
         }
