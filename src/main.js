@@ -85,6 +85,7 @@ Stimulus.register("budget", class extends Controller {
 
     async connect() {
         this.filePathLoaded()
+        this.loadHelp()
     }
 
     async filePathLoaded() {
@@ -95,8 +96,8 @@ Stimulus.register("budget", class extends Controller {
         }
     }
 
-    resetDisplay() {
-        this.mainTarget.innerHTML = ''
+    async resetDisplay() {
+        this.loadHelp()
         this.linksTarget.classList.add('d-none')
         this.exportTarget.classList.add('d-none')
     }
@@ -110,7 +111,7 @@ Stimulus.register("budget", class extends Controller {
         })
 
         if (file) {
-            this.resetDisplay()
+            await this.resetDisplay()
             await invoke("update_db_path", { path: file, eraseIfExists: false })
             await this.filePathLoaded()
         }
@@ -125,7 +126,7 @@ Stimulus.register("budget", class extends Controller {
         })
 
         if (file) {
-            this.resetDisplay()
+            await this.resetDisplay()
             await invoke("update_db_path", { path: file, eraseIfExists: true })
             await this.filePathLoaded()
         }
@@ -146,6 +147,10 @@ Stimulus.register("budget", class extends Controller {
 
     loadMatrix() {
         loadPart('_parts/_windows/_matrix.html', this.mainTarget)
+    }
+
+    loadHelp() {
+        loadPart('_parts/_windows/_help.html', this.mainTarget)
     }
 })
 

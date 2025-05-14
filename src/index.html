@@ -5,7 +5,7 @@
         <link rel="stylesheet" href="bootstrap/bootstrap-icons.min.css" />
         <link rel="stylesheet" href="styles.min.css" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Budget</title>
+        <title>Longchamp Budget</title>
         <style id="globalstyle"></style>
         <style id="tempstyle"></style>
     </head>
@@ -23,7 +23,7 @@
                     <button data-budget-target="export" type="button" class=" d-none btn btn-secondary m-1" data-action="click->budget#export" title="Exporter vers excel">
                         <i class="bi bi-filetype-xlsx"></i>
                     </button>
-                    <a class="nav-link text-white text-decoration-underline active" aria-current="page" href="index.html">Accueil</a>
+                    <a class="nav-link text-white text-decoration-underline active" aria-current="page" href="#" data-action="click->budget#loadHelp">Aide</a>
                 </nav>
                 <nav class="nav nav-masthead d-none" data-budget-target="links">
                   <a class="nav-link text-white text-decoration-underline" href="#" data-action="click->budget#loadSections">Unités</a>
@@ -34,7 +34,7 @@
             </header>
             <main class="px-3 align-top" data-budget-target="main">
             </main>
-            <footer class="mt-auto text-white-50">
+            <footer class="mt-auto text-white-50">                
             </footer>
         </div>
         <script src="/bootstrap/bootstrap.min.js"></script>
