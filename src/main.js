@@ -8,6 +8,11 @@ import { Application, Controller } from "/stimulus.min.js"
 
 let assetPath = {}
 
+document.addEventListener('contextmenu', (e) => {
+    e.preventDefault()
+    return false
+}, false)
+
 function renderTemplate(templateString, data, raw = false) {
     return templateString.replace(/{{(.*?)}}/g, (match, p1) => {
         const key = p1.trim()
