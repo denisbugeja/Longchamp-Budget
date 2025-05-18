@@ -103,6 +103,7 @@ Stimulus.register("budget", class extends Controller {
 
     async resetDisplay() {
         this.loadHelp()
+        document.getElementById('tempstyle').innerText = ''
         this.linksTarget.classList.add('d-none')
         this.exportTarget.classList.add('d-none')
     }
@@ -143,18 +144,22 @@ Stimulus.register("budget", class extends Controller {
     }
 
     loadExpenses() {
+        document.getElementById('tempstyle').innerText = ''
         loadPart('_parts/_windows/_expenses.html', this.mainTarget)
     }
 
     loadSections() {
+        document.getElementById('tempstyle').innerText = ''
         loadPart('_parts/_windows/_sections.html', this.mainTarget)
     }
 
     loadMatrix() {
+        document.getElementById('tempstyle').innerText = ''
         loadPart('_parts/_windows/_matrix.html', this.mainTarget)
     }
 
     loadHelp() {
+        document.getElementById('tempstyle').innerText = ''
         loadPart('_parts/_windows/_help.html', this.mainTarget)
     }
 })
@@ -475,6 +480,16 @@ Stimulus.register("expense", class extends Controller {
         uidList.splice(targetPosition, 0, element)
         await invoke("update_expense_order", { expenseList: JSON.stringify(uidList) })
         this.expenseListLoad()
+    }
+
+    async compact(e) {
+        e.preventDefault()
+        document.getElementById('tempstyle').innerText = await generateFromFilePath('_parts/_components/_expense_style.css', {}, true)
+    }
+
+    async decompact(e) {
+        e.preventDefault()
+        document.getElementById('tempstyle').innerText = ''
     }
 
     hasAtLeastOneSectionChecked() {

@@ -1,0 +1,12 @@
+.js-decompact {
+    display: block;
+}
+.js-compact {
+    display: none;
+}
+
+[data-controller="expense-edit"] textarea,
+[data-controller="expense-edit"] js-action,
+[data-controller="expense-edit"] [data-expense-edit-target="sectionList"] {
+    display: none;
+}
