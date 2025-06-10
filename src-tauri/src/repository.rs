@@ -1009,7 +1009,7 @@ group_members_count, group_adults_count, live_units_adults, expenses_instances_p
 FROM view_expenses_sections_instances",
 "DROP TRIGGER IF EXISTS \"update_group_members_count_after_update\";",
 "CREATE TRIGGER update_group_members_count_after_update
-AFTER UPDATE OF members_count ON sections
+AFTER UPDATE ON sections
 FOR EACH ROW
 BEGIN
     UPDATE sections
@@ -1036,7 +1036,6 @@ BEGIN
     SET members_count = COALESCE((SELECT SUM(COALESCE(members_count, 0)) FROM sections WHERE uid != 'group'), 0),
         adults_count = COALESCE((SELECT SUM(COALESCE(adults_count, 0)) FROM sections WHERE uid != 'group'), 0)
     WHERE uid = 'group';
-
 END;",
     ];
 
