@@ -17,53 +17,70 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: "macos-latest" # for Arm based macs (M1 and above).
-            args: "--target aarch64-apple-darwin"
+          - platform: macos-latest
+            args: --target aarch64-apple-darwin
             target: aarch64-apple-darwin
             runner: macos-latest
-
-          - platform: "macos-latest" # for Intel based macs.
-            args: "--target x86_64-apple-darwin"
+            binary_name: longchamp-budget
+            binary_extension: ""
+            upload_name: longchamp-budget-macos-arm64
+          
+          - platform: macos-latest
+            args: --target x86_64-apple-darwin
             target: x86_64-apple-darwin
             runner: macos-latest
-
-          - platform: "ubuntu-22.04" # for Linux
-            args: ""
+            binary_name: longchamp-budget
+            binary_extension: ""
+            upload_name: longchamp-budget-macos-intel
+          
+          - platform: ubuntu-22.04
+            args: --target x86_64-unknown-linux-gnu
             target: x86_64-unknown-linux-gnu
             runner: ubuntu-latest
-
-          - platform: "windows-latest" # for Windows
+            binary_name: longchamp-budget
+            binary_extension: ""
+            upload_name: longchamp-budget-linux-x64
+          
+          - platform: windows-latest
             runner: windows-latest
-            args: ""
+            args: --target x86_64-pc-windows-msvc
             target: x86_64-pc-windows-msvc
+            binary_name: longchamp-budget
+            binary_extension: .exe
+            upload_name: longchamp-budget.exe
 
-    runs-on: ${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
+
       - name: install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
+        if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-      - name: install Rust stable 
-      - uses: dtolnay/rust-toolchain@stable # Set this to dtolnay/rust-toolchain@nightly with: # Those targets are only used on macos runners so it's in an if to slightly speed up windows and linux builds. 
-        targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
-      
-      - uses: tauri-apps/tauri-action@v0
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            tagName: vVERSION # the action automatically replaces \_\_VERSION\_\_ with the app version
-            releaseName: "vVERSION"
-            # releaseBody: "See the assets to download this version and install."
-            # releaseDraft: false
-            # prerelease: false
-      - name: Create Release
-        run: gh release create v${{ github.ref_name }}
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
 
-      - name: Manage Binaries (Windows)
-        if: ${{ matrix.runner == 'windows-latest' }}
+      - name: Create Release (first runner only)
+        if: matrix.runner == 'windows-latest'
+        run: gh release create v${{ github.ref_name }} --generate-notes || echo "Release already exists"
+
+      - name: Build Binary
         run: |
-          cd ./src-tauri && cargo build --release
-          gh release upload v${{ github.ref_name }} ./target/release/longchamp-budget.exe --clobber
+          cd ./src-tauri
+          cargo build --release --target ${{ matrix.target }}
+
+      - name: Upload Binary
+        run: |
+          $source_path = "./src-tauri/target/${{ matrix.target }}/release/${{ matrix.binary_name }}${{ matrix.binary_extension }}"
+          if ("${{ matrix.runner }}" -eq "windows-latest") {
+            gh release upload v${{ github.ref_name }} $source_path --clobber
+          } else {
+            $renamed_path = "./src-tauri/target/${{ matrix.target }}/release/${{ matrix.upload_name }}"
+            Move-Item $source_path $renamed_path
+            gh release upload v${{ github.ref_name }} $renamed_path --clobber
+          }
+        shell: pwsh
