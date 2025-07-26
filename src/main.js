@@ -162,6 +162,11 @@ Stimulus.register("budget", class extends Controller {
         document.getElementById('tempstyle').innerText = ''
         loadPart('_parts/_windows/_help.html', this.mainTarget)
     }
+
+    loadQFs() {
+        document.getElementById('tempstyle').innerText = ''
+        loadPart('_parts/_windows/_qfs.html', this.mainTarget)
+    }
 })
 
 
