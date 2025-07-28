@@ -72,6 +72,14 @@ pub struct SumExpenseInstance {
     pub sum_total: f32,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Fq {
+    pub uid: String,
+    pub title: String,
+    pub coeff: f32,
+    pub national_contribution: f32,
+}
+
 pub fn vec_to_json<T: Serialize>(vec_data: Vec<T>) -> String {
     serde_json::to_string(&vec_data).expect("Cannot serialize section list")
 }

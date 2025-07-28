@@ -1,4 +1,4 @@
-use crate::helper::{CalculatedExpense, Expense, Section, SectionExpense, SumExpenseInstance};
+use crate::helper::{CalculatedExpense, Expense, Section, SectionExpense, SumExpenseInstance, Fq};
 use lazy_static::lazy_static;
 use rusqlite::{params, Connection, Result, Row};
 use std::sync::RwLock;
@@ -86,6 +86,39 @@ pub fn insert_new_section(title: &str, color: &str, members_count: i32, adults_c
     );
 }
 
+
+pub fn insert_new_fq(title: &str, coeff: &str, national_contribution: &str) {
+    let conn = get_connection().expect("Cannot get connection");
+
+    let existing_fqs: Vec<Fq> = execute_read_sql(
+        "SELECT uid, title, coeff, national_contribution FROM fqs WHERE title = ?1",
+        params!(title),
+        |row| {
+            Ok(Fq {
+                uid: row.get(0)?,
+                title: row.get(1)?,
+                coeff: row.get(2)?,
+                national_contribution: row.get(3)?,
+            })
+        },
+        &conn,
+    );
+
+    if !existing_fqs.is_empty(){
+        return;
+    }
+
+    let coeff_f32: f32 = coeff.parse().expect("Failed to parse coeff as f32");
+    let national_contribution_f32: f32 = national_contribution.parse().expect("Failed to parse national_contribution as f32");
+
+    execute_write_sql(
+        "INSERT INTO fqs (uid, title, coeff, national_contribution, position) VALUES (?1, ?2, ?3, ?4, (SELECT COALESCE(MAX(position), -1) + 1 FROM fqs))",
+        params!(Uuid::new_v4().to_string(), title, coeff_f32, national_contribution_f32),
+        &conn,
+    );
+}
+
+
 pub fn section_list() -> Vec<Section> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
@@ -98,6 +131,23 @@ pub fn section_list() -> Vec<Section> {
                 color: row.get(2)?,
                 members_count: row.get(3)?,
                 adults_count: row.get(4)?,
+            })
+        },
+        &conn,
+    )
+}
+
+pub fn fq_list() -> Vec<Fq> {
+    let conn = get_connection().expect("Cannot get connection");
+    execute_read_sql(
+        "SELECT uid, title, coeff, national_contribution FROM fqs ORDER BY position ASC",
+        [],
+        |row| {
+            Ok(Fq {
+                uid: row.get(0)?,
+                title: row.get(1)?,
+                coeff: row.get(2)?,
+                national_contribution: row.get(3)?,
             })
         },
         &conn,
@@ -926,6 +976,15 @@ pub fn execute_migrations(conn: Connection) {
 	FOREIGN KEY(\"uid_expense\") REFERENCES \"expenses\"(\"uid\"),
 	FOREIGN KEY(\"uid_section\") REFERENCES \"sections\"(\"uid\"),
 	PRIMARY KEY(\"uid\")
+);",
+        "CREATE TABLE IF NOT EXISTS \"fqs\" (
+	\"uid\"	TEXT NOT NULL UNIQUE,
+	\"title\"	TEXT NOT NULL,
+    \"national_contribution\" NUMERIC NOT NULL DEFAULT 0,
+    \"coeff\" NUMERIC NOT NULL DEFAULT 0,
+	\"position\"	INTEGER NOT NULL DEFAULT 0,
+	PRIMARY KEY(\"uid\"),
+    UNIQUE(\"title\")
 );",
         "CREATE INDEX IF NOT EXISTS \"IX_EXPENSE_SECTION_UID_EXPENSE\" ON \"expense_section\" (\"uid_expense\");",
         "CREATE INDEX IF NOT EXISTS \"IX_EXPENSE_SECTION_UID_SECTION\" ON \"expense_section\" (\"uid_section\");",

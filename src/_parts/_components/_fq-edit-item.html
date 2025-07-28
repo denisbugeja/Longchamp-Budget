@@ -12,7 +12,19 @@
             class="form-control"
             placeholder="Saisissez ici le libellé du quotient familial"
             title="Vous devez saisir le libellé du quotient familial"
-            data-fq-target="title"
+            data-fq-edit-target="title"
+            required="required"
+            value="{{ title }}"
+        />
+    </td>
+    <td>
+        <input
+            class="form-control w-100 text-end"
+            type="number"
+            min="0"
+            step="0.1"
+            data-fq-edit-target="nationalContribution"
+            value="{{ national_contribution }}"
             required="required"
         />
     </td>
@@ -21,20 +33,9 @@
             class="form-control w-100 text-end"
             type="number"
             min="0"
-            step="1"
-            data-fq-target="nationalContribution"
-            value="0"
-            required="required"
-        />
-    </td>
-    <td>
-        <input
-            class="form-control w-100 text-end"
-            type="number"
-            min="0"
-            step="1"
-            data-fq-target="coeff"
-            value="0"
+            step="0.1"
+            data-fq-edit-target="coeff"
+            value="{{ coeff }}"
             required="required"
         />
     </td>

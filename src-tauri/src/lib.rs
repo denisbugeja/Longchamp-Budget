@@ -245,6 +245,16 @@ fn get_global_file_path() -> String {
     repository::get_global_file_path()
 }
 
+#[tauri::command]
+fn fq_list_load() -> String {
+    helper::vec_to_json(repository::fq_list())
+}
+
+#[tauri::command]
+fn insert_new_fq(title: &str, coeff: &str, national_contribution: &str) {
+    repository::insert_new_fq(title, coeff, national_contribution);
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -288,7 +298,9 @@ pub fn run() {
             get_global_file_path,
             update_expense_order,
             update_section_order,
-            update_expense_instance_order
+            update_expense_instance_order,
+            fq_list_load,
+            insert_new_fq
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");

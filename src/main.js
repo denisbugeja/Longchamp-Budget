@@ -1145,3 +1145,102 @@ Stimulus.register("matrix-group-expense-instance", class extends Controller {
         targetItem.classList.add('show')
     }
 })
+
+
+
+Stimulus.register("fq", class extends Controller {
+    static targets = ['title', 'fqList', 'coeff', 'nationalContribution']
+    static outlets = ["budget"]
+
+    connect() {
+    }
+
+    fqListTargetConnected(element) {
+        this.fqListLoad()
+    }
+
+    async create(e) {
+        e.preventDefault()
+        if (!this.validate()) {
+            return
+        }
+        await invoke("insert_new_fq", { title: this.titleTarget.value, coeff: this.coeffTarget.value, nationalContribution: this.nationalContributionTarget.value })
+        this.budgetOutlet.loadFqs()
+    }
+
+    async fqListLoad() {
+        this.fqList = JSON.parse(await invoke("fq_list_load"))
+
+        if (!this.fqList) {
+            return
+        }
+
+        renderElement(this.fqListTarget, await generateFromFilePath('_parts/_components/_fq-edit-item.html', this.fqList))
+    }
+
+    async dragstart(e) {
+        await e.dataTransfer.setData("text/plain", e.target.getAttribute("data-fq-edit-uid-value"))
+    }
+
+    async dragover(e) {
+        await e.preventDefault()
+    }
+
+    async drop(e) {
+        await e.preventDefault()
+        const tr = e.target.closest('tr') ?? e.target,
+            uidList = this.fqList.map((item) => item.uid),
+            draggedElementUid = e.dataTransfer.getData("text/plain"),
+            sourcePosition = uidList.indexOf(draggedElementUid),
+            element = uidList.splice(sourcePosition, 1)[0],
+            targetPosition = uidList.indexOf(tr.getAttribute('data-fq-edit-uid-value'))
+
+        if (-1 === sourcePosition) {
+            return
+        }
+
+
+        uidList.splice(targetPosition, 0, element)
+        await invoke("update_fq_order", { sectionList: JSON.stringify(uidList) })
+        this.fqListLoad()
+    }
+
+    validateTitle() {
+        this.titleTarget.classList.remove('invalid')
+        if ('' !== this.titleTarget.value.trim()) {
+            return true
+        }
+        this.titleTarget.classList.add('invalid')
+        return false
+    }
+
+    validateCoeff() {
+        this.coeffTarget.classList.remove('invalid')
+        if ('' !== this.coeffTarget.value.trim()
+            && !isNaN(this.coeffTarget.value)
+        ) {
+            return true
+        }
+        this.coeffTarget.classList.add('invalid')
+        return false
+    }
+
+    validateNationalContribution() {
+        this.nationalContributionTarget.classList.remove('invalid')
+        if ('' !== this.nationalContributionTarget.value.trim()
+            && !isNaN(this.nationalContributionTarget.value)) {
+            return true
+        }
+        this.nationalContributionTarget.classList.add('invalid')
+        return false
+    }
+
+    validate() {
+        const validateArray = [
+            this.validateTitle(),
+            this.validateCoeff(),
+            this.validateNationalContribution(),
+        ]
+        return validateArray.filter((item) => item).length === validateArray.length
+    }
+})
