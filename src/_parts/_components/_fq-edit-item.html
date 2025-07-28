@@ -1,0 +1,52 @@
+<tr
+    data-controller="fq-edit"
+    data-fq-edit-uid-value="{{ uid }}"
+    data-fq-edit-fq-outlet="[data-controller='fq']"
+    draggable="true"
+    droppable="true"
+    data-action="dragstart->fq#dragstart dragover->fq#dragover drop->fq#drop"
+>
+    <td>
+        <input
+            type="text"
+            class="form-control"
+            placeholder="Saisissez ici le libellé du quotient familial"
+            title="Vous devez saisir le libellé du quotient familial"
+            data-fq-target="title"
+            required="required"
+        />
+    </td>
+    <td>
+        <input
+            class="form-control w-100 text-end"
+            type="number"
+            min="0"
+            step="1"
+            data-fq-target="nationalContribution"
+            value="0"
+            required="required"
+        />
+    </td>
+    <td>
+        <input
+            class="form-control w-100 text-end"
+            type="number"
+            min="0"
+            step="1"
+            data-fq-target="coeff"
+            value="0"
+            required="required"
+        />
+    </td>
+    <td class="text-end">
+        <button
+            type="button"
+            class="btn btn-outline-danger text-align-center px-1"
+            title="Supprimer"
+            data-action="fq-edit#delete"
+            data-fq-edit-target="delete"
+        >
+            <i class="bi bi-trash"></i>
+        </button>
+    </td>
+</tr>

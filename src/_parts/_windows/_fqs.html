@@ -1,7 +1,4 @@
-<div
-    data-controller="section"
-    data-section-budget-outlet="[data-controller='budget']"
->
+<div data-controller="fq">
     <div class="py-4">
         <h3 class="h4 text-center">Liste des Quotients Familiaux</h3>
         <table class="table table-striped table-hover table-bordered">
@@ -11,26 +8,22 @@
                         Libellé <strong class="text-danger">*</strong>
                     </th>
                     <th class="text-center" scope="col">
-                        Cotisation Nationale
+                        Montant de la cotisation Nationale
                         <strong class="text-danger">*</strong>
                     </th>
                     <th class="text-center" scope="col">
-                        Coeff multiplisateur
+                        Coefficient multiplicateur
                         <strong class="text-danger">*</strong>
                     </th>
                     <th scope="col" class="text-center">Action</th>
                 </tr>
             </thead>
-            <tbody data-section-target="sectionList"></tbody>
+            <tbody data-fq-target="fqList"></tbody>
         </table>
     </div>
     <div>
         <h3 class="h4 text-center">Créer un nouveau Quotient Familial</h3>
-        <form
-            action=""
-            id="section-add-form"
-            data-action="submit->section#create"
-        >
+        <form action="" id="fq-add-form" data-action="submit->fq#create">
             <table class="table table-striped table-hover table-bordered">
                 <thead>
                     <tr>
@@ -38,7 +31,7 @@
                             Libellé <strong class="text-danger">*</strong>
                         </th>
                         <th class="text-center" scope="col">
-                            Cotisation Nationale
+                            Montant de la cotisation Nationale
                             <strong class="text-danger">*</strong>
                         </th>
                         <th class="text-center" scope="col">
@@ -56,7 +49,7 @@
                                 class="form-control"
                                 placeholder="Saisissez ici le libellé du quotient familial"
                                 title="Vous devez saisir le libellé du quotient familial"
-                                data-section-target="title"
+                                data-fq-target="title"
                                 required="required"
                             />
                         </td>
@@ -66,7 +59,7 @@
                                 type="number"
                                 min="0"
                                 step="1"
-                                data-section-target="sectionMembersCount"
+                                data-fq-target="nationalContribution"
                                 value="0"
                                 required="required"
                             />
@@ -77,8 +70,8 @@
                                 type="number"
                                 min="0"
                                 step="1"
-                                data-section-target="sectionAdultsCount"
-                                value="0"
+                                data-fq-target="coeff"
+                                value="1"
                                 required="required"
                             />
                         </td>

@@ -8,10 +8,10 @@ import { Application, Controller } from "/stimulus.min.js"
 
 let assetPath = {}
 
-document.addEventListener('contextmenu', (e) => {
-    e.preventDefault()
-    return false
-}, false)
+// document.addEventListener('contextmenu', (e) => {
+//     e.preventDefault()
+//     return false
+// }, false)
 
 function renderTemplate(templateString, data, raw = false) {
     return templateString.replace(/{{(.*?)}}/g, (match, p1) => {
@@ -163,9 +163,9 @@ Stimulus.register("budget", class extends Controller {
         loadPart('_parts/_windows/_help.html', this.mainTarget)
     }
 
-    loadQFs() {
+    loadFqs() {
         document.getElementById('tempstyle').innerText = ''
-        loadPart('_parts/_windows/_qfs.html', this.mainTarget)
+        loadPart('_parts/_windows/_fqs.html', this.mainTarget)
     }
 })
 
