@@ -8,10 +8,10 @@ import { Application, Controller } from "/stimulus.min.js"
 
 let assetPath = {}
 
-// document.addEventListener('contextmenu', (e) => {
-//     e.preventDefault()
-//     return false
-// }, false)
+document.addEventListener('contextmenu', (e) => {
+    e.preventDefault()
+    return false
+}, false)
 
 function renderTemplate(templateString, data, raw = false) {
     return templateString.replace(/{{(.*?)}}/g, (match, p1) => {
@@ -1146,11 +1146,11 @@ Stimulus.register("matrix-group-expense-instance", class extends Controller {
     }
 })
 
-
-
 Stimulus.register("fq", class extends Controller {
     static targets = ['title', 'fqList', 'coeff', 'nationalContribution']
     static outlets = ["budget"]
+
+    fqList = null
 
     connect() {
     }
@@ -1201,7 +1201,7 @@ Stimulus.register("fq", class extends Controller {
 
 
         uidList.splice(targetPosition, 0, element)
-        await invoke("update_fq_order", { sectionList: JSON.stringify(uidList) })
+        await invoke("update_fq_order", { fqList: JSON.stringify(uidList) })
         this.fqListLoad()
     }
 
@@ -1241,6 +1241,67 @@ Stimulus.register("fq", class extends Controller {
             this.validateCoeff(),
             this.validateNationalContribution(),
         ]
+        return validateArray.filter((item) => item).length === validateArray.length
+    }
+})
+
+
+Stimulus.register("fq-edit", class extends Controller {
+    static targets = ['title', 'coeff', 'nationalContribution']
+    static outlets = ["fq"]
+    static values = {
+        uid: String
+    }
+
+    async update(e) {
+        if (!this.validate()) {
+            return
+        }
+        await invoke("update_fq", { uid: this.uidValue, title: this.titleTarget.value.trim(), coeff: this.coeffTarget.value, nationalContribution: this.nationalContributionTarget.value })
+        this.fqOutlet.fqListLoad()
+    }
+
+    async delete(e) {
+        await invoke("delete_fq", { uid: this.uidValue })
+        this.fqOutlet.fqListLoad()
+    }
+
+    validateTitle() {
+        this.titleTarget.classList.remove('invalid')
+        if ('' !== this.titleTarget.value.trim()) {
+            return true
+        }
+        this.titleTarget.classList.add('invalid')
+        return false
+    }
+
+    validateCoeff() {
+        this.coeffTarget.classList.remove('invalid')
+        if ('' !== this.coeffTarget.value.trim()
+            && !isNaN(this.coeffTarget.value)) {
+            return true
+        }
+        this.coeffTarget.classList.add('invalid')
+        return false
+    }
+
+    validateNationalContribution() {
+        this.nationalContributionTarget.classList.remove('invalid')
+        if ('' !== this.nationalContributionTarget.value.trim()
+            && !isNaN(this.nationalContributionTarget.value)) {
+            return true
+        }
+        this.nationalContributionTarget.classList.add('invalid')
+        return false
+    }
+
+    validate() {
+        const validateArray = [
+            this.validateTitle(),
+            this.validateCoeff(),
+            this.validateNationalContribution(),
+        ]
+
         return validateArray.filter((item) => item).length === validateArray.length
     }
 })

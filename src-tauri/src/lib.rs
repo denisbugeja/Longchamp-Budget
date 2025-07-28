@@ -255,6 +255,23 @@ fn insert_new_fq(title: &str, coeff: &str, national_contribution: &str) {
     repository::insert_new_fq(title, coeff, national_contribution);
 }
 
+#[tauri::command]
+fn update_fq(uid: &str, title: &str, coeff: &str, national_contribution: &str) {
+    repository::update_fq(uid, title, coeff, national_contribution);
+}
+
+#[tauri::command]
+fn delete_fq(uid: &str) {
+    repository::delete_fq(uid);
+}
+
+
+#[tauri::command]
+fn update_fq_order(fq_list: &str) {
+    let vec_fq_list: Vec<&str> = helper::json_to_vec(fq_list);
+    repository::update_fq_order(vec_fq_list);
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -300,7 +317,10 @@ pub fn run() {
             update_section_order,
             update_expense_instance_order,
             fq_list_load,
-            insert_new_fq
+            insert_new_fq,
+            delete_fq,
+            update_fq,
+            update_fq_order
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");

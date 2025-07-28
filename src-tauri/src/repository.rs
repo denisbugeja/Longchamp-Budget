@@ -205,6 +205,19 @@ pub fn delete_section(uid: &str) {
     tx.commit().expect("Failed to commit transaction");
 }
 
+pub fn delete_fq(uid: &str) {
+    let mut conn = get_connection().expect("Cannot get connection");
+    let tx = conn.transaction().expect("Impossible to create transaction");
+
+    tx.execute(
+        "DELETE FROM fqs WHERE uid = ?1",
+        params!(uid),
+    )
+    .expect("Failed to add query to transaction");
+
+    tx.commit().expect("Failed to commit transaction");
+}
+
 pub fn update_section(uid: &str, title: &str, color: &str, members_count: i32, adults_count: i32) {
     let conn = get_connection().expect("Cannot get connection");
 
@@ -234,6 +247,38 @@ pub fn update_section(uid: &str, title: &str, color: &str, members_count: i32, a
     );
 }
 
+
+pub fn update_fq(uid: &str, title: &str, coeff: &str, national_contribution: &str) {
+    let conn = get_connection().expect("Cannot get connection");
+
+    let existing_fqs: Vec<Fq> = execute_read_sql(
+        "SELECT uid, title, coeff, national_contribution FROM fqs WHERE title = ?1 and uid != ?2",
+        params!(title, uid),
+        |row| {
+            Ok(Fq {
+                uid: row.get(0)?,
+                title: row.get(1)?,
+                coeff: row.get(2)?,
+                national_contribution: row.get(3)?,
+            })
+        },
+        &conn,
+    );
+
+    if !existing_fqs.is_empty(){
+        return;
+    }
+
+    let coeff_f32: f32 = coeff.parse().expect("Failed to parse coeff as f32");
+    let national_contribution_f32: f32 = national_contribution.parse().expect("Failed to parse national_contribution as f32");
+
+    execute_write_sql(
+        "UPDATE fqs SET title = ?1, coeff = ?2, national_contribution=?3 WHERE uid = ?4",
+        params!(title, coeff_f32, national_contribution_f32, uid),
+        &conn,
+    );
+}
+
 pub fn update_section_order(section_list: Vec<&str>)
 {
     let mut conn = get_connection().expect("Cannot get connection");
@@ -242,6 +287,22 @@ pub fn update_section_order(section_list: Vec<&str>)
     for (index, uid) in section_list.iter().enumerate() {
         tx.execute(
             "UPDATE sections SET position = ?1 WHERE uid = ?2",
+            params!(index, uid),
+        )
+        .expect("Failed to add query to transaction");
+    }
+
+    tx.commit().expect("Failed to commit transaction");
+}
+
+pub fn update_fq_order(fq_list: Vec<&str>)
+{
+    let mut conn = get_connection().expect("Cannot get connection");
+    let tx = conn.transaction().expect("Impossible to create transaction");
+
+    for (index, uid) in fq_list.iter().enumerate() {
+        tx.execute(
+            "UPDATE fqs SET position = ?1 WHERE uid = ?2",
             params!(index, uid),
         )
         .expect("Failed to add query to transaction");
