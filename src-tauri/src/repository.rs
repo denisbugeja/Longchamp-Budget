@@ -1048,13 +1048,11 @@ pub fn execute_migrations(conn: Connection) {
     UNIQUE(\"title\")
 );",
         "CREATE TABLE IF NOT EXISTS \"sections_fqs\" (
-	\"uid\"	TEXT NOT NULL UNIQUE,
 	\"uid_section\"	TEXT NOT NULL,
     \"uid_fq\"	TEXT NOT NULL,
 	\"members_count\" NUMERIC NOT NULL DEFAULT 0,
 	FOREIGN KEY(\"uid_section\") REFERENCES \"sections\"(\"uid\"),
-    FOREIGN KEY(\"uid_fq\") REFERENCES \"fqs\"(\"uid\"),
-	PRIMARY KEY(\"uid\")
+    FOREIGN KEY(\"uid_fq\") REFERENCES \"fqs\"(\"uid\")
 );",
         "CREATE INDEX IF NOT EXISTS \"IX_EXPENSE_SECTION_UID_EXPENSE\" ON \"expense_section\" (\"uid_expense\");",
         "CREATE INDEX IF NOT EXISTS \"IX_EXPENSE_SECTION_UID_SECTION\" ON \"expense_section\" (\"uid_section\");",
@@ -1167,6 +1165,34 @@ BEGIN
     SET members_count = COALESCE((SELECT SUM(COALESCE(members_count, 0)) FROM sections WHERE uid != 'group'), 0),
         adults_count = COALESCE((SELECT SUM(COALESCE(adults_count, 0)) FROM sections WHERE uid != 'group'), 0)
     WHERE uid = 'group';
+END;",
+"DROP TRIGGER IF EXISTS \"insert_sections_fqs_after_insert_sections\";",
+"CREATE TRIGGER insert_sections_fqs_after_insert_sections
+AFTER INSERT ON sections
+FOR EACH ROW
+BEGIN
+    INSERT INTO sections_fqs (uid_section, uid_fq, members_count) SELECT sections.uid AS uid_section, fqs.uid AS uid_fq, 0 FROM sections, fqs WHERE sections.uid = NEW.uid;
+END;",
+"DROP TRIGGER IF EXISTS \"insert_sections_fqs_after_insert_fqs\";",
+"CREATE TRIGGER insert_sections_fqs_after_insert_fqs
+AFTER INSERT ON fqs
+FOR EACH ROW
+BEGIN
+    INSERT INTO sections_fqs (uid_section, uid_fq, members_count) SELECT sections.uid AS uid_section, fqs.uid AS uid_fq, 0 FROM sections, fqs WHERE fqs.uid = NEW.uid;
+END;",
+"DROP TRIGGER IF EXISTS \"delete_sections_fqs_after_delete_sections\";",
+"CREATE TRIGGER delete_sections_fqs_after_delete_sections
+BEFORE DELETE ON sections
+FOR EACH ROW
+BEGIN
+    DELETE FROM sections_fqs WHERE uid_section = OLD.uid;
+END;",
+"DROP TRIGGER IF EXISTS \"delete_sections_fqs_after_delete_fqs\";",
+"CREATE TRIGGER delete_sections_fqs_after_delete_fqs
+BEFORE DELETE ON fqs
+FOR EACH ROW
+BEGIN
+    DELETE FROM sections_fqs WHERE uid_fq = OLD.uid;
 END;",
     ];
 
