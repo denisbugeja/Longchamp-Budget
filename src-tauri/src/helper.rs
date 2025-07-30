@@ -72,6 +72,10 @@ pub struct SumExpenseInstance {
     pub sum_total: f32,
 }
 
+
+//TODO Ajouter taux pour frais de commision en ligne 
+//TODO Ajouter montant fixe pour frais de commision en ligne 
+// Actuellement =0,4+(0,8%*G90)
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Fq {
     pub uid: String,
