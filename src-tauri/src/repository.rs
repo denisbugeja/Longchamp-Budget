@@ -1047,10 +1047,21 @@ pub fn execute_migrations(conn: Connection) {
 	PRIMARY KEY(\"uid\"),
     UNIQUE(\"title\")
 );",
+        "CREATE TABLE IF NOT EXISTS \"sections_fqs\" (
+	\"uid\"	TEXT NOT NULL UNIQUE,
+	\"uid_section\"	TEXT NOT NULL,
+    \"uid_fq\"	TEXT NOT NULL,
+	\"members_count\" NUMERIC NOT NULL DEFAULT 0,
+	FOREIGN KEY(\"uid_section\") REFERENCES \"sections\"(\"uid\"),
+    FOREIGN KEY(\"uid_fq\") REFERENCES \"fqs\"(\"uid\"),
+	PRIMARY KEY(\"uid\")
+);",
         "CREATE INDEX IF NOT EXISTS \"IX_EXPENSE_SECTION_UID_EXPENSE\" ON \"expense_section\" (\"uid_expense\");",
         "CREATE INDEX IF NOT EXISTS \"IX_EXPENSE_SECTION_UID_SECTION\" ON \"expense_section\" (\"uid_section\");",
         "CREATE INDEX IF NOT EXISTS \"IX_EXPENSES_INSTANCES_UID_SECTION\" ON \"expenses_instances\" (\"uid_section\");",
         "CREATE INDEX IF NOT EXISTS \"IX_EXPENSES_INSTANCES_UID_EXPENSE\" ON \"expenses_instances\" (\"uid_expense\");",
+        "CREATE INDEX IF NOT EXISTS \"IX_SECTIONS_FQS_UID_SECTION\" ON \"sections_fqs\" (\"uid_section\");",
+        "CREATE INDEX IF NOT EXISTS \"IX_SECTIONS_FQS_UID_FQ\" ON \"sections_fqs\" (\"uid_fq\");",
         "INSERT INTO sections (uid, title, color, position)
 SELECT 'group','Groupe','#403f6f',0
 WHERE NOT EXISTS(SELECT uid, title, color, position FROM sections WHERE uid = 'group');",
