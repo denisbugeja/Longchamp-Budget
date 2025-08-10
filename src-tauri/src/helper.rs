@@ -204,8 +204,7 @@ fn handle_worksheet(
         let formula_row = row + 1;
 
         let formula_total_string = format!(
-            "=ROUND((B{}*(C{}*(D{}+E{}))*(F{}/100)),2)",
-            formula_row, formula_row, formula_row, formula_row, formula_row
+            "=ROUND((B{formula_row}*(C{formula_row}*(D{formula_row}+E{formula_row}))*(F{formula_row}/100)),2)"
         );
 
         let result: f32 = expense.total_applyed_price.unwrap();
@@ -262,7 +261,7 @@ fn handle_worksheet(
 
     if !calculated_expenses_list.is_empty() {
         let sum_calculated = repository::get_sum_calculated_expenses(&section.uid);
-        let formula_sum = Formula::new(format!("=SUM(H{}:H{})", first_excel_row, row))
+        let formula_sum = Formula::new(format!("=SUM(H{first_excel_row}:H{row})"))
             .set_result(sum_calculated.sum_total.to_string());
 
         let _ = worksheet.merge_range(row, 4, row, 6, "Total Unité", &border_format);
@@ -275,7 +274,7 @@ fn handle_worksheet(
 
         row += 1;
         row_total_unite = row + 1;
-        let formula_sum_units = Formula::new(format!("=IF($B$3=0,0,ROUND((H{}/$B$3),2))", row))
+        let formula_sum_units = Formula::new(format!("=IF($B$3=0,0,ROUND((H{row}/$B$3),2))"))
             .set_result(sum_calculated.sum_unit.to_string());
 
         let mut total_label = String::from("Total Unité par enfant");
@@ -417,8 +416,7 @@ fn handle_worksheet(
             let _ = worksheet.merge_range(row, 1, row, 3, &total_label_ratio, &border_format);
 
             let formula_total_calculated_group = Formula::new(format!(
-                "=ROUND(SUM(E{}:E{}),2)",
-                sum_row_begin, sum_row_end
+                "=ROUND(SUM(E{sum_row_begin}:E{sum_row_end}),2)"
             ))
             .set_result(
                 group_sum_expense_instance
@@ -436,8 +434,7 @@ fn handle_worksheet(
             if !&calculated_expenses_list.is_empty() {
                 row += 3;
                 let formula_total_group = Formula::new(format!(
-                    "=$H${}+$E${}",
-                    row_total_unite, row_total_rated_group
+                    "=$H${row_total_unite}+$E${row_total_rated_group}"
                 ))
                 .set_result(sum_calculated_group.sum_unit.to_string());
                 let _ = worksheet.write_with_format(
