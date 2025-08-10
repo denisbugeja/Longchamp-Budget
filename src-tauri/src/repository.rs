@@ -144,7 +144,7 @@ pub fn section_list() -> Vec<Section> {
 pub fn fq_list() -> Vec<Fq> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT uid, title, coeff, national_contribution FROM fqs ORDER BY position ASC",
+        "SELECT uid, title, coeff, national_contribution, online_commission_rate, online_commission_fees FROM fqs ORDER BY position ASC",
         [],
         |row| {
             Ok(Fq {
@@ -152,6 +152,8 @@ pub fn fq_list() -> Vec<Fq> {
                 title: row.get(1)?,
                 coeff: row.get(2)?,
                 national_contribution: row.get(3)?,
+                online_commission_rate: row.get(4)?,
+                online_commission_fees: row.get(5)?
             })
         },
         &conn,

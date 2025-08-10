@@ -18,6 +18,14 @@
                         Coefficient multiplicateur
                         <strong class="text-danger">*</strong>
                     </th>
+                     <th class="text-center" scope="col">
+                        Coefficient pour frais de commission en ligne
+                        <strong class="text-danger">*</strong>
+                    </th>
+                     <th class="text-center" scope="col">
+                        Montant fixe pour frais de commission en ligne
+                        <strong class="text-danger">*</strong>
+                    </th>
                     <th scope="col" class="text-center">Action</th>
                 </tr>
             </thead>
@@ -39,6 +47,14 @@
                         </th>
                         <th class="text-center" scope="col">
                             Coefficient multiplicateur
+                            <strong class="text-danger">*</strong>
+                        </th>
+                        <th class="text-center" scope="col">
+                            Coefficient pour frais de commission en ligne
+                            <strong class="text-danger">*</strong>
+                        </th>
+                        <th class="text-center" scope="col">
+                            Montant fixe pour frais de commission en ligne
                             <strong class="text-danger">*</strong>
                         </th>
                         <th scope="col" class="text-center">Action</th>
@@ -75,6 +91,28 @@
                                 step="0.01"
                                 data-fq-target="coeff"
                                 value="1"
+                                required="required"
+                            />
+                        </td>
+                        <td>
+                            <input
+                                class="form-control w-100 text-end"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                data-fq-target="onlineCommissionRate"
+                                value="0"
+                                required="required"
+                            />
+                        </td>
+                        <td>
+                            <input
+                                class="form-control w-100 text-end"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                data-fq-target="onlineCommissionFees"
+                                value="0"
                                 required="required"
                             />
                         </td>

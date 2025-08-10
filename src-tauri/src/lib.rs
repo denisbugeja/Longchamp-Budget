@@ -251,13 +251,13 @@ fn fq_list_load() -> String {
 }
 
 #[tauri::command]
-fn insert_new_fq(title: &str, coeff: &str, national_contribution: &str) {
-    repository::insert_new_fq(title, coeff, national_contribution);
+fn insert_new_fq(title: &str, coeff: &str, national_contribution: &str, online_commission_rate: &str, online_commission_fees: &str) {
+    repository::insert_new_fq(title, coeff, national_contribution, online_commission_rate, online_commission_fees);
 }
 
 #[tauri::command]
-fn update_fq(uid: &str, title: &str, coeff: &str, national_contribution: &str) {
-    repository::update_fq(uid, title, coeff, national_contribution);
+fn update_fq(uid: &str, title: &str, coeff: &str, national_contribution: &str, online_commission_rate: &str, online_commission_fees: &str) {
+    repository::update_fq(uid, title, coeff, national_contribution, online_commission_rate, online_commission_fees);
 }
 
 #[tauri::command]

@@ -1147,7 +1147,7 @@ Stimulus.register("matrix-group-expense-instance", class extends Controller {
 })
 
 Stimulus.register("fq", class extends Controller {
-    static targets = ['title', 'fqList', 'coeff', 'nationalContribution']
+    static targets = ['title', 'fqList', 'coeff', 'nationalContribution', 'onlineCommissionRate', 'onlineCommissionFees']
     static outlets = ["budget"]
 
     fqList = null
@@ -1164,7 +1164,7 @@ Stimulus.register("fq", class extends Controller {
         if (!this.validate()) {
             return
         }
-        await invoke("insert_new_fq", { title: this.titleTarget.value, coeff: this.coeffTarget.value, nationalContribution: this.nationalContributionTarget.value })
+        await invoke("insert_new_fq", { title: this.titleTarget.value, coeff: this.coeffTarget.value, nationalContribution: this.nationalContributionTarget.value, onlineCommissionRate: this.onlineCommissionRateTarget.value, onlineCommissionFees: this.onlineCommissionFeesTarget.value })
         this.budgetOutlet.loadFqs()
     }
 
@@ -1235,11 +1235,33 @@ Stimulus.register("fq", class extends Controller {
         return false
     }
 
+    validateOnlineCommissionRate() {
+        this.onlineCommissionRateTarget.classList.remove('invalid')
+        if ('' !== this.onlineCommissionRateTarget.value.trim()
+            && !isNaN(this.onlineCommissionRateTarget.value)) {
+            return true
+        }
+        this.onlineCommissionRateTarget.classList.add('invalid')
+        return false
+    }
+
+    validateOnlineCommissionFees() {
+        this.onlineCommissionFeesTarget.classList.remove('invalid')
+        if ('' !== this.onlineCommissionFeesTarget.value.trim()
+            && !isNaN(this.onlineCommissionFeesTarget.value)) {
+            return true
+        }
+        this.onlineCommissionFeesTarget.classList.add('invalid')
+        return false
+    }
+
     validate() {
         const validateArray = [
             this.validateTitle(),
             this.validateCoeff(),
             this.validateNationalContribution(),
+            this.validateOnlineCommissionRate(),
+            this.validateOnlineCommissionFees(),
         ]
         return validateArray.filter((item) => item).length === validateArray.length
     }
@@ -1247,7 +1269,7 @@ Stimulus.register("fq", class extends Controller {
 
 
 Stimulus.register("fq-edit", class extends Controller {
-    static targets = ['title', 'coeff', 'nationalContribution']
+    static targets = ['title', 'coeff', 'nationalContribution', 'onlineCommissionRate', 'onlineCommissionFees']
     static outlets = ["fq"]
     static values = {
         uid: String
@@ -1295,11 +1317,33 @@ Stimulus.register("fq-edit", class extends Controller {
         return false
     }
 
+    validateOnlineCommissionRate() {
+        this.onlineCommissionRateTarget.classList.remove('invalid')
+        if ('' !== this.onlineCommissionRateTarget.value.trim()
+            && !isNaN(this.onlineCommissionRateTarget.value)) {
+            return true
+        }
+        this.onlineCommissionRateTarget.classList.add('invalid')
+        return false
+    }
+
+    validateOnlineCommissionFees() {
+        this.onlineCommissionFeesTarget.classList.remove('invalid')
+        if ('' !== this.onlineCommissionFeesTarget.value.trim()
+            && !isNaN(this.onlineCommissionFeesTarget.value)) {
+            return true
+        }
+        this.onlineCommissionFeesTarget.classList.add('invalid')
+        return false
+    }
+
     validate() {
         const validateArray = [
             this.validateTitle(),
             this.validateCoeff(),
             this.validateNationalContribution(),
+            this.validateOnlineCommissionRate(),
+            this.validateOnlineCommissionFees()
         ]
 
         return validateArray.filter((item) => item).length === validateArray.length
