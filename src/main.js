@@ -8,10 +8,10 @@ import { Application, Controller } from "/stimulus.min.js"
 
 let assetPath = {}
 
-document.addEventListener('contextmenu', (e) => {
-    e.preventDefault()
-    return false
-}, false)
+// document.addEventListener('contextmenu', (e) => {
+//     e.preventDefault()
+//     return false
+// }, false)
 
 function renderTemplate(templateString, data, raw = false) {
     return templateString.replace(/{{(.*?)}}/g, (match, p1) => {
@@ -1279,7 +1279,7 @@ Stimulus.register("fq-edit", class extends Controller {
         if (!this.validate()) {
             return
         }
-        await invoke("update_fq", { uid: this.uidValue, title: this.titleTarget.value.trim(), coeff: this.coeffTarget.value, nationalContribution: this.nationalContributionTarget.value })
+        await invoke("update_fq", { uid: this.uidValue, title: this.titleTarget.value.trim(), coeff: this.coeffTarget.value, nationalContribution: this.nationalContributionTarget.value, onlineCommissionRate: this.onlineCommissionRateTarget.value, onlineCommissionFees: this.onlineCommissionFeesTarget.value })
         this.fqOutlet.fqListLoad()
     }
 
