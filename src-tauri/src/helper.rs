@@ -82,6 +82,8 @@ pub struct Fq {
     pub title: String,
     pub coeff: f32,
     pub national_contribution: f32,
+    pub online_commission_rate: f32,
+    pub online_commission_fees: f32,
 }
 
 pub fn vec_to_json<T: Serialize>(vec_data: Vec<T>) -> String {

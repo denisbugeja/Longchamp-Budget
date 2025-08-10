@@ -87,11 +87,11 @@ pub fn insert_new_section(title: &str, color: &str, members_count: i32, adults_c
 }
 
 
-pub fn insert_new_fq(title: &str, coeff: &str, national_contribution: &str) {
+pub fn insert_new_fq(title: &str, coeff: &str, national_contribution: &str, online_commission_rate: &str, online_commission_fees: &str) {
     let conn = get_connection().expect("Cannot get connection");
 
     let existing_fqs: Vec<Fq> = execute_read_sql(
-        "SELECT uid, title, coeff, national_contribution FROM fqs WHERE title = ?1",
+        "SELECT uid, title, coeff, national_contribution, online_commission_rate, online_commission_fees FROM fqs WHERE title = ?1",
         params!(title),
         |row| {
             Ok(Fq {
@@ -99,9 +99,11 @@ pub fn insert_new_fq(title: &str, coeff: &str, national_contribution: &str) {
                 title: row.get(1)?,
                 coeff: row.get(2)?,
                 national_contribution: row.get(3)?,
+                online_commission_rate: row.get(4)?,
+                online_commission_fees: row.get(5)?,
             })
         },
-        &conn,
+        &conn, 
     );
 
     if !existing_fqs.is_empty(){
@@ -110,10 +112,12 @@ pub fn insert_new_fq(title: &str, coeff: &str, national_contribution: &str) {
 
     let coeff_f32: f32 = coeff.parse().expect("Failed to parse coeff as f32");
     let national_contribution_f32: f32 = national_contribution.parse().expect("Failed to parse national_contribution as f32");
+    let online_commission_rate_f32: f32 = online_commission_rate.parse().expect("Failed to parse online_commission_rate as f32");
+    let online_commission_fees_f32: f32 = online_commission_fees.parse().expect("Failed to parse online_commission_fees as f32");
 
     execute_write_sql(
-        "INSERT INTO fqs (uid, title, coeff, national_contribution, position) VALUES (?1, ?2, ?3, ?4, (SELECT COALESCE(MAX(position), -1) + 1 FROM fqs))",
-        params!(Uuid::new_v4().to_string(), title, coeff_f32, national_contribution_f32),
+        "INSERT INTO fqs (uid, title, coeff, national_contribution, online_commission_rate, online_commission_fees, position) VALUES (?1, ?2, ?3, ?4, ?5, ?6, (SELECT COALESCE(MAX(position), -1) + 1 FROM fqs))",
+        params!(Uuid::new_v4().to_string(), title, coeff_f32, national_contribution_f32, online_commission_rate_f32, online_commission_fees_f32),
         &conn,
     );
 }
@@ -248,11 +252,11 @@ pub fn update_section(uid: &str, title: &str, color: &str, members_count: i32, a
 }
 
 
-pub fn update_fq(uid: &str, title: &str, coeff: &str, national_contribution: &str) {
+pub fn update_fq(uid: &str, title: &str, coeff: &str, national_contribution: &str, online_commission_rate: &str, online_commission_fees: &str) {
     let conn = get_connection().expect("Cannot get connection");
 
     let existing_fqs: Vec<Fq> = execute_read_sql(
-        "SELECT uid, title, coeff, national_contribution FROM fqs WHERE title = ?1 and uid != ?2",
+        "SELECT uid, title, coeff, national_contribution, online_commission_rate, online_commission_fees FROM fqs WHERE title = ?1 and uid != ?2",
         params!(title, uid),
         |row| {
             Ok(Fq {
@@ -260,6 +264,8 @@ pub fn update_fq(uid: &str, title: &str, coeff: &str, national_contribution: &st
                 title: row.get(1)?,
                 coeff: row.get(2)?,
                 national_contribution: row.get(3)?,
+                online_commission_rate: row.get(4)?,
+                online_commission_fees: row.get(5)?,
             })
         },
         &conn,
@@ -271,10 +277,12 @@ pub fn update_fq(uid: &str, title: &str, coeff: &str, national_contribution: &st
 
     let coeff_f32: f32 = coeff.parse().expect("Failed to parse coeff as f32");
     let national_contribution_f32: f32 = national_contribution.parse().expect("Failed to parse national_contribution as f32");
+    let online_commission_rate_f32: f32 = online_commission_rate.parse().expect("Failed to parse online_commission_rate as f32");
+    let online_commission_fees_f32: f32 = online_commission_fees.parse().expect("Failed to parse online_commission_fees as f32");
 
     execute_write_sql(
-        "UPDATE fqs SET title = ?1, coeff = ?2, national_contribution=?3 WHERE uid = ?4",
-        params!(title, coeff_f32, national_contribution_f32, uid),
+        "UPDATE fqs SET title = ?1, coeff = ?2, national_contribution=?3, online_commission_rate=?4, online_commission_fees=?5 WHERE uid = ?6",
+        params!(title, coeff_f32, national_contribution_f32, online_commission_rate_f32, online_commission_fees_f32, uid),
         &conn,
     );
 }
@@ -1043,6 +1051,8 @@ pub fn execute_migrations(conn: Connection) {
 	\"title\"	TEXT NOT NULL,
     \"national_contribution\" NUMERIC NOT NULL DEFAULT 0,
     \"coeff\" NUMERIC NOT NULL DEFAULT 0,
+    \"online_commission_rate\" NUMERIC NOT NULL DEFAULT 0,
+    \"online_commission_fees\" NUMERIC NOT NULL DEFAULT 0,
 	\"position\"	INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY(\"uid\"),
     UNIQUE(\"title\")
