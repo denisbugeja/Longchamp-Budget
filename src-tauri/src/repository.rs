@@ -1064,7 +1064,8 @@ pub fn execute_migrations(conn: Connection) {
     \"uid_fq\"	TEXT NOT NULL,
 	\"members_count\" NUMERIC NOT NULL DEFAULT 0,
 	FOREIGN KEY(\"uid_section\") REFERENCES \"sections\"(\"uid\"),
-    FOREIGN KEY(\"uid_fq\") REFERENCES \"fqs\"(\"uid\")
+    FOREIGN KEY(\"uid_fq\") REFERENCES \"fqs\"(\"uid\"),
+    UNIQUE(\"uid_section\",\"uid_fq\")
 );",
         "CREATE INDEX IF NOT EXISTS \"IX_EXPENSE_SECTION_UID_EXPENSE\" ON \"expense_section\" (\"uid_expense\");",
         "CREATE INDEX IF NOT EXISTS \"IX_EXPENSE_SECTION_UID_SECTION\" ON \"expense_section\" (\"uid_section\");",
