@@ -8,10 +8,10 @@ import { Application, Controller } from "/stimulus.min.js"
 
 let assetPath = {}
 
-document.addEventListener('contextmenu', (e) => {
-    e.preventDefault()
-    return false
-}, false)
+// document.addEventListener('contextmenu', (e) => {
+//     e.preventDefault()
+//     return false
+// }, false)
 
 function renderTemplate(templateString, data, raw = false) {
     return templateString.replace(/{{(.*?)}}/g, (match, p1) => {
@@ -1269,10 +1269,26 @@ Stimulus.register("fq", class extends Controller {
 
 
 Stimulus.register("fq-edit", class extends Controller {
-    static targets = ['title', 'coeff', 'nationalContribution', 'onlineCommissionRate', 'onlineCommissionFees']
+    static targets = ['title', 'coeff', 'nationalContribution', 'onlineCommissionRate', 'onlineCommissionFees', 'sectionList']
     static outlets = ["fq"]
     static values = {
         uid: String
+    }
+
+    sectionList = null
+
+    sectionListTargetConnected(element) {
+        this.loadSectionList()
+    }
+
+    async loadSectionList() {
+        this.sectionList = JSON.parse(await invoke("fq_list_load"))
+
+        if (!this.sectionList) {
+            return
+        }
+
+        renderElement(this.sectionListTarget, await generateFromFilePath('_parts/_components/_fq-section-edit-item.html', this.sectionList))
     }
 
     async update(e) {
