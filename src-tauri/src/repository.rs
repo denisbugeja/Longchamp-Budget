@@ -1204,6 +1204,7 @@ FOR EACH ROW
 BEGIN
     DELETE FROM sections_fqs WHERE uid_section = OLD.uid;
 END;",
+"DROP TRIGGER IF EXISTS \"update_sections_fqs_after_update_sections_fqs\";",
 "CREATE TRIGGER update_sections_fqs_after_update_sections_fqs
 AFTER UPDATE ON sections_fqs
 FOR EACH ROW
