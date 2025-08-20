@@ -1178,10 +1178,6 @@ BEGIN
     SET members_count = COALESCE((SELECT SUM(COALESCE(members_count, 0)) FROM sections WHERE uid != 'group'), 0),
         adults_count = COALESCE((SELECT SUM(COALESCE(adults_count, 0)) FROM sections WHERE uid != 'group'), 0)
     WHERE uid = 'group';
-
-    UPDATE sections_fqs
-    SET members_count = COALESCE((SELECT SUM(COALESCE(members_count, 0)) FROM sections_fqs WHERE uid_section != 'group'), 0)
-    WHERE uid_section = 'group';
 END;",
 "DROP TRIGGER IF EXISTS \"insert_sections_fqs_after_insert_sections\";",
 "CREATE TRIGGER insert_sections_fqs_after_insert_sections
@@ -1203,14 +1199,28 @@ BEFORE DELETE ON sections
 FOR EACH ROW
 BEGIN
     DELETE FROM sections_fqs WHERE uid_section = OLD.uid;
+    UPDATE sections_fqs 
+    SET members_count = (
+        SELECT SUM(COALESCE(members_count, 0))
+        FROM sections_fqs s2 
+        WHERE s2.uid_section != 'group' 
+        AND s2.uid_fq = sections_fqs.uid_fq
+    )
+    WHERE uid_section = 'group';
 END;",
 "DROP TRIGGER IF EXISTS \"update_sections_fqs_after_update_sections_fqs\";",
 "CREATE TRIGGER update_sections_fqs_after_update_sections_fqs
 AFTER UPDATE ON sections_fqs
 FOR EACH ROW
 BEGIN
-    #FIX IT
-    WITH req AS (SELECT uid_fq, SUM(COALESCE(members_count, 0)) AS total FROM sections_fqs WHERE uid_section != 'group' GROUP BY uid_section) UPDATE sections_fqs SET members_count = req.total FROM req WHERE sections_fqs.uid_section = 'group' AND sections_fqs.uid_fq = req.uid_fq;
+    UPDATE sections_fqs 
+    SET members_count = (
+        SELECT SUM(COALESCE(members_count, 0))
+        FROM sections_fqs s2 
+        WHERE s2.uid_section != 'group' 
+        AND s2.uid_fq = sections_fqs.uid_fq
+    )
+    WHERE uid_section = 'group';
 END;",
 "DROP TRIGGER IF EXISTS \"delete_sections_fqs_after_delete_fqs\";",
 "CREATE TRIGGER delete_sections_fqs_after_delete_fqs
@@ -1218,8 +1228,14 @@ BEFORE DELETE ON fqs
 FOR EACH ROW
 BEGIN
     DELETE FROM sections_fqs WHERE uid_fq = OLD.uid;
-    #FIX IT
-    WITH req AS (SELECT uid_fq, SUM(COALESCE(members_count, 0)) AS total FROM sections_fqs WHERE uid_section != 'group' GROUP BY uid_section) UPDATE sections_fqs SET members_count = req.total FROM req WHERE sections_fqs.uid_section = 'group' AND sections_fqs.uid_fq = req.uid_fq;
+    UPDATE sections_fqs 
+    SET members_count = (
+        SELECT SUM(COALESCE(members_count, 0))
+        FROM sections_fqs s2 
+        WHERE s2.uid_section != 'group' 
+        AND s2.uid_fq = sections_fqs.uid_fq
+    )
+    WHERE uid_section = 'group';
 END;",
     ];
 
