@@ -1209,8 +1209,7 @@ END;",
 AFTER UPDATE ON sections_fqs
 FOR EACH ROW
 BEGIN
-    WITH req AS (SELECT uid_fq, SUM(COALESCE(members_count, 0)) AS total FROM sections_fqs WHERE uid_section != 'group' GROUP BY uid_section)
-    UPDATE sections_fqs SET members_count = req.total FROM req WHERE sections_fqs.uid_section = 'group' AND sections_fqs.uid_fq = req.uid_fq;
+    WITH req AS (SELECT uid_fq, SUM(COALESCE(members_count, 0)) AS total FROM sections_fqs WHERE uid_section != 'group' GROUP BY uid_section) UPDATE sections_fqs SET members_count = req.total FROM req WHERE sections_fqs.uid_section = 'group' AND sections_fqs.uid_fq = req.uid_fq;
 END;",
 "DROP TRIGGER IF EXISTS \"delete_sections_fqs_after_delete_fqs\";",
 "CREATE TRIGGER delete_sections_fqs_after_delete_fqs
@@ -1218,8 +1217,7 @@ BEFORE DELETE ON fqs
 FOR EACH ROW
 BEGIN
     DELETE FROM sections_fqs WHERE uid_fq = OLD.uid;
-    WITH req AS (SELECT uid_fq, SUM(COALESCE(members_count, 0)) AS total FROM sections_fqs WHERE uid_section != 'group' GROUP BY uid_section)
-    UPDATE sections_fqs SET members_count = req.total FROM req WHERE sections_fqs.uid_section = 'group' AND sections_fqs.uid_fq = req.uid_fq;
+    WITH req AS (SELECT uid_fq, SUM(COALESCE(members_count, 0)) AS total FROM sections_fqs WHERE uid_section != 'group' GROUP BY uid_section) UPDATE sections_fqs SET members_count = req.total FROM req WHERE sections_fqs.uid_section = 'group' AND sections_fqs.uid_fq = req.uid_fq;
 END;",
     ];
 
