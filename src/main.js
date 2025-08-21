@@ -1403,8 +1403,7 @@ Stimulus.register("fq-section-fq-edit", class extends Controller {
     }
 
     membersCountTargetConnected(element) {
-        const readOnly = GROUP_ID === this.uidSectionValue
-        this.membersCountTarget.readOnly = readOnly
+        this.membersCountTarget.readOnly = GROUP_ID === this.uidSectionValue
     }
 
     async update(e) {
