@@ -167,7 +167,7 @@ pub fn fq_section_list_load(section_uid: &str) -> Vec<FqSection> {
         FROM sections_fqs INNER JOIN sections ON sections_fqs.uid_section = sections.uid 
         INNER JOIN fqs ON fqs.uid = sections_fqs.uid_fq
         WHERE sections_fqs.uid_section = ?1 
-        ORDER BY sections.position ASC",
+        ORDER BY fqs.position ASC",
         params!(section_uid),
         |row| {
             Ok(FqSection {
