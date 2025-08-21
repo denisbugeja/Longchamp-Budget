@@ -1,0 +1,21 @@
+<tr
+    data-controller="fq-section-fq-edit"
+    data-fq-section-fq-edit-uid-fq-value="{{ uid_fq }}"
+    data-fq-section-fq-edit-uid-section-value="{{ uid_section }}"
+    data-fq-section-fq-edit-uid-members-count-value="{{ section_members_count }}"
+>
+    <td>{{ title_fq }}</td>
+    <td>
+        <input
+            data-fq-section-fq-edit-target="membersCount"
+            class="form-control w-100 text-end"
+            type="number"
+            min="0"
+            max="{{ section_members_count }}"
+            step="1"
+            value="{{ members_count }}"
+            required="required"
+            data-action="change->fq-section-fq-edit#update"
+        />
+    </td>
+</tr>

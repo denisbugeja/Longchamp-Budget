@@ -251,6 +251,11 @@ fn fq_list_load() -> String {
 }
 
 #[tauri::command]
+fn fq_section_list_load(section_uid: &str) -> String {
+    helper::vec_to_json(repository::fq_section_list_load(section_uid))
+}
+
+#[tauri::command]
 fn insert_new_fq(title: &str, coeff: &str, national_contribution: &str, online_commission_rate: &str, online_commission_fees: &str) {
     repository::insert_new_fq(title, coeff, national_contribution, online_commission_rate, online_commission_fees);
 }
@@ -264,7 +269,6 @@ fn update_fq(uid: &str, title: &str, coeff: &str, national_contribution: &str, o
 fn delete_fq(uid: &str) {
     repository::delete_fq(uid);
 }
-
 
 #[tauri::command]
 fn update_fq_order(fq_list: &str) {
@@ -317,10 +321,11 @@ pub fn run() {
             update_section_order,
             update_expense_instance_order,
             fq_list_load,
+            fq_section_list_load,
             insert_new_fq,
             delete_fq,
             update_fq,
-            update_fq_order
+            update_fq_order,
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");

@@ -26,7 +26,6 @@
                         Montant fixe pour frais de commission en ligne
                         <strong class="text-danger">*</strong>
                     </th>
-                    <th scope="col" class="text-center">Nombre d'enfants/ados par unité</th>
                     <th scope="col" class="text-center">Action</th>
                 </tr>
             </thead>
@@ -34,7 +33,7 @@
         </table>
     </div>
     <div>
-        <h3 class="h4 text-center">Créer un nouveau Quotient Familial</h3>
+        <h3 class="h4 text-center">Créer un nouveau quotient familial</h3>
         <form action="" id="fq-add-form" data-action="submit->fq#create">
             <table class="table table-striped table-hover table-bordered">
                 <thead>
@@ -130,6 +129,27 @@
                 </tbody>
             </table>
         </form>
+    </div>
+
+    <div class="py-4">
+        <h3 class="h4 text-center">Répartir les quotients familiaux par unité</h3>
+        <table class="table table-striped table-hover table-bordered">
+            <thead>
+                <tr>
+                    <th class="text-center" scope="col">
+                        Unité <strong class="text-danger">*</strong>
+                    </th>
+                    <th class="text-center" scope="col">
+                        Enfants/Ados <strong class="text-danger">*</strong>
+                    </th>
+                    <th class="text-center" scope="col">
+                        Quotients familiaux <strong class="text-danger">*</strong>
+                    </th>
+                </tr>
+            </thead>
+            <tbody data-fq-target="sectionList">
+            </tbody>
+        </table>
     </div>
     <div class="text-end">
         <strong class="text-danger">*</strong>
