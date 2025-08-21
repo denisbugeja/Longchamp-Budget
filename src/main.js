@@ -1401,4 +1401,13 @@ Stimulus.register("fq-section-fq-edit", class extends Controller {
         uidFq: String,
         uidSection: String
     }
+
+    membersCountTargetConnected(element) {
+        const readOnly = GROUP_ID === this.uidSectionValue
+        this.membersCountTarget.readOnly = readOnly
+    }
+
+    async update(e) {
+        //await invoke("update_fq", { uid: this.uidValue, title: this.titleTarget.value.trim(), coeff: this.coeffTarget.value, nationalContribution: this.nationalContributionTarget.value, onlineCommissionRate: this.onlineCommissionRateTarget.value, onlineCommissionFees: this.onlineCommissionFeesTarget.value })
+    }
 })
