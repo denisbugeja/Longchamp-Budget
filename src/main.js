@@ -1288,7 +1288,6 @@ Stimulus.register("fq", class extends Controller {
     }
 })
 
-
 Stimulus.register("fq-edit", class extends Controller {
     static targets = ['title', 'coeff', 'nationalContribution', 'onlineCommissionRate', 'onlineCommissionFees']
     static outlets = ["fq"]
