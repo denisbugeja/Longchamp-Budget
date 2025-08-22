@@ -1152,6 +1152,8 @@ Stimulus.register("fq", class extends Controller {
     static targets = ['title', 'fqList', 'coeff', 'nationalContribution', 'onlineCommissionRate', 'onlineCommissionFees', 'sectionList']
     static outlets = ["budget"]
 
+    fqList = null
+
     fqListTargetConnected(element) {
         this.fqListLoad()
     }
@@ -1170,15 +1172,14 @@ Stimulus.register("fq", class extends Controller {
     }
 
     async fqListLoad() {
-        const fqList = JSON.parse(await invoke("fq_list_load"))
-        renderElement(this.fqListTarget, await generateFromFilePath('_parts/_components/_fq-edit-item.html', fqList))
+        this.fqList = JSON.parse(await invoke("fq_list_load"))
+        renderElement(this.fqListTarget, await generateFromFilePath('_parts/_components/_fq-edit-item.html', this.fqList))
     }
 
     async globalRefresh() {
         await this.fqListLoad()
         await this.sectionListLoad()
     }
-
 
     async loadFqForSection(section) {
         let fqList = JSON.parse(await invoke("fq_section_list_load", { sectionUid: section.uid }))
