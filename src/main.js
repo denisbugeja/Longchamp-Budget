@@ -1170,7 +1170,7 @@ Stimulus.register("fq", class extends Controller {
             return
         }
         await invoke("insert_new_fq", { title: this.titleTarget.value, coeff: this.coeffTarget.value, nationalContribution: this.nationalContributionTarget.value, onlineCommissionRate: this.onlineCommissionRateTarget.value, onlineCommissionFees: this.onlineCommissionFeesTarget.value })
-        this.budgetOutlet.loadFqs()
+        await this.globalRefresh()
     }
 
     async fqListLoad() {
@@ -1181,6 +1181,11 @@ Stimulus.register("fq", class extends Controller {
         }
 
         renderElement(this.fqListTarget, await generateFromFilePath('_parts/_components/_fq-edit-item.html', this.fqList))
+    }
+
+    async globalRefresh() {
+        this.fqListLoad()
+        this.sectionListLoad()
     }
 
     async sectionListLoad() {
@@ -1217,7 +1222,7 @@ Stimulus.register("fq", class extends Controller {
 
         uidList.splice(targetPosition, 0, element)
         await invoke("update_fq_order", { fqList: JSON.stringify(uidList) })
-        this.fqListLoad()
+        await this.globalRefresh()
     }
 
     validateTitle() {
@@ -1295,12 +1300,12 @@ Stimulus.register("fq-edit", class extends Controller {
             return
         }
         await invoke("update_fq", { uid: this.uidValue, title: this.titleTarget.value.trim(), coeff: this.coeffTarget.value, nationalContribution: this.nationalContributionTarget.value, onlineCommissionRate: this.onlineCommissionRateTarget.value, onlineCommissionFees: this.onlineCommissionFeesTarget.value })
-        this.fqOutlet.fqListLoad()
+        await this.fqOutlet.globalRefresh()
     }
 
     async delete(e) {
         await invoke("delete_fq", { uid: this.uidValue })
-        this.fqOutlet.fqListLoad()
+        await this.fqOutlet.globalRefresh()
     }
 
     validateTitle() {
@@ -1366,7 +1371,8 @@ Stimulus.register("fq-edit", class extends Controller {
 })
 
 Stimulus.register("fq-section", class extends Controller {
-    static targets = ['fqSectionList']
+    static targets = ['fqSectionList', 'membersCount']
+    static outlets = ["fq"]
     static values = {
         sectionUid: String,
         sectionMembersCount: Number
@@ -1376,6 +1382,30 @@ Stimulus.register("fq-section", class extends Controller {
 
     fqSectionListTargetConnected(element) {
         this.loadSectionFqList()
+    }
+
+    membersCountTargetConnected(element) {
+        this.membersCountTarget.readOnly = GROUP_ID === this.sectionUidValue
+    }
+
+    async updateMembersCount() {
+        if (!this.membersCountValid()) {
+            return;
+        }
+
+        await invoke("update_members_count", { uid: this.sectionUidValue, membersCount: parseInt(this.membersCountTarget.value) })
+        await this.fqOutlet.globalRefresh()
+    }
+
+    membersCountValid() {
+        this.membersCountTarget.classList.remove('invalid')
+        if ('' === this.membersCountTarget.value.trim()
+            || !isNaN(this.membersCountTarget.value)
+        ) {
+            return true
+        }
+        this.membersCountTarget.classList.add('invalid')
+        return false
     }
 
     async loadSectionFqList() {
@@ -1396,6 +1426,7 @@ Stimulus.register("fq-section", class extends Controller {
 
 Stimulus.register("fq-section-fq-edit", class extends Controller {
     static targets = ['membersCount']
+    static outlets = ["fq"]
     static values = {
         membersCount: Number,
         uidFq: String,
@@ -1408,5 +1439,6 @@ Stimulus.register("fq-section-fq-edit", class extends Controller {
 
     async update(e) {
         //await invoke("update_fq", { uid: this.uidValue, title: this.titleTarget.value.trim(), coeff: this.coeffTarget.value, nationalContribution: this.nationalContributionTarget.value, onlineCommissionRate: this.onlineCommissionRateTarget.value, onlineCommissionFees: this.onlineCommissionFeesTarget.value })
+        await this.fqOutlet.sectionListLoad()
     }
 })

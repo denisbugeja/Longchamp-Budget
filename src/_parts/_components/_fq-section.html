@@ -2,9 +2,21 @@
     data-controller="fq-section"
     data-fq-section-section-uid-value="{{ uid }}"
     data-fq-section-section-members-count-value="{{ members_count }}"
+    data-fq-section-fq-outlet="[data-controller='fq']"
 >
     <td>{{ title }}</td>
-    <td class="text-end">{{ members_count }}</td>
+    <td class="text-end">
+        <input
+            data-fq-section-target="membersCount"
+            class="form-control w-100 text-end"
+            type="number"
+            min="0"
+            step="1"
+            value="{{ members_count }}"
+            required="required"
+            data-action="change->fq-section#updateMembersCount"
+        />
+    </td>
     <td>
         <table class="table table-striped">
             <tbody data-fq-section-target="fqSectionList"></tbody>
