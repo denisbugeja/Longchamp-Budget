@@ -14,7 +14,9 @@ let assetPath = {}
 // }, false)
 
 function renderTemplate(templateString, data, raw = false) {
-    return templateString.replace(/{{(.*?)}}/g, (match, p1) => {
+    return templateString
+        .replace(/{%(.*?)%}/g, (match, p1) => data[p1.trim()])
+        .replace(/{{(.*?)}}/g, (match, p1) => {
         const key = p1.trim()
         return raw ? data[key] ?? '' : escapeHtmlAttribute(data[key] ?? '')
     })
@@ -1177,8 +1179,23 @@ Stimulus.register("fq", class extends Controller {
         await this.sectionListLoad()
     }
 
+
+    async loadFqForSection(section) {
+        let fqList = JSON.parse(await invoke("fq_section_list_load", { sectionUid: section.uid }))
+        fqList = fqList.map((x) => {
+            x.section_members_count = section.members_count
+            return x
+        })
+        section.fqContent = await generateFromFilePath('_parts/_components/_fq-section-fq.html', fqList, true)
+        return section
+    }
+
     async sectionListLoad() {
-        const sectionList = JSON.parse(await invoke("section_list_load"))
+        let sectionList = JSON.parse(await invoke("section_list_load"))
+        for (let i = 0, j = sectionList.length; i < j; i++) {
+            sectionList[i] = await this.loadFqForSection(sectionList[i])
+        }
+
         renderElement(this.sectionListTarget, await generateFromFilePath('_parts/_components/_fq-section.html', sectionList))
     }
 
@@ -1361,11 +1378,6 @@ Stimulus.register("fq-section", class extends Controller {
         sectionMembersCount: Number
     }
 
-
-    async fqSectionListTargetConnected(element) {
-        await this.loadSectionFqList()
-    }
-
     async membersCountTargetConnected(element) {
         this.membersCountTarget.readOnly = GROUP_ID === this.sectionUidValue
     }
@@ -1388,16 +1400,6 @@ Stimulus.register("fq-section", class extends Controller {
         }
         this.membersCountTarget.classList.add('invalid')
         return false
-    }
-
-    async loadSectionFqList() {
-        let fqList = JSON.parse(await invoke("fq_section_list_load", { sectionUid: this.sectionUidValue }))
-        fqList = fqList.map((x) => {
-            x.section_members_count = this.sectionMembersCountValue
-            return x
-        })
-
-        renderElement(this.fqSectionListTarget, await generateFromFilePath('_parts/_components/_fq-section-fq.html', fqList))
     }
 })
 
