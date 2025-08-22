@@ -1417,8 +1417,23 @@ Stimulus.register("fq-section-fq-edit", class extends Controller {
         this.membersCountTarget.readOnly = GROUP_ID === this.uidSectionValue
     }
 
+    validateMembersCount() {
+        this.membersCountTarget.classList.remove('invalid')
+        if ('' === this.membersCountTarget.value.trim()
+            || !isNaN(this.membersCountTarget.value)
+        ) {
+            return true
+        }
+        this.membersCountTarget.classList.add('invalid')
+        return false
+    }
+
     async update(e) {
-        //await invoke("update_fq", { uid: this.uidValue, title: this.titleTarget.value.trim(), coeff: this.coeffTarget.value, nationalContribution: this.nationalContributionTarget.value, onlineCommissionRate: this.onlineCommissionRateTarget.value, onlineCommissionFees: this.onlineCommissionFeesTarget.value })
+        if (!this.validateMembersCount()) {
+            return;
+        }
+
+        await invoke("update_fq_section_members_count", { sectionUid: this.uidSectionValue, fqUid: this.uidFqValue, membersCount: parseInt(this.membersCountTarget.value) });
         await this.fqOutlet.globalRefresh()
     }
 })

@@ -361,6 +361,15 @@ pub fn update_adults_count(uid: &str, adults_count: i32) {
     );
 }
 
+pub fn update_fq_section_members_count(section_uid: &str, fq_uid: &str, members_count: i32) {
+    let conn = get_connection().expect("Cannot get connection");
+    execute_write_sql(
+        "UPDATE sections_fqs SET members_count = ?1 WHERE uid_section = ?2 AND uid_fq = ?3",
+        params!(members_count.abs(), section_uid, fq_uid),
+        &conn,
+    );
+}
+
 pub fn insert_new_expense(
     title: &str,
     description: &str,

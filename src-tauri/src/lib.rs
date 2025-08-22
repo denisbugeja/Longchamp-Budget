@@ -276,6 +276,12 @@ fn update_fq_order(fq_list: &str) {
     repository::update_fq_order(vec_fq_list);
 }
 
+#[tauri::command]
+fn update_fq_section_members_count(section_uid: &str, fq_uid: &str, members_count: i32) {
+    repository::update_fq_section_members_count(section_uid, fq_uid, members_count);
+}
+
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -326,6 +332,7 @@ pub fn run() {
             delete_fq,
             update_fq,
             update_fq_order,
+            update_fq_section_members_count
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");
