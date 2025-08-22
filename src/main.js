@@ -1150,12 +1150,6 @@ Stimulus.register("fq", class extends Controller {
     static targets = ['title', 'fqList', 'coeff', 'nationalContribution', 'onlineCommissionRate', 'onlineCommissionFees', 'sectionList']
     static outlets = ["budget"]
 
-    fqList = null
-    sectionList = null
-
-    connect() {
-    }
-
     fqListTargetConnected(element) {
         this.fqListLoad()
     }
@@ -1174,28 +1168,18 @@ Stimulus.register("fq", class extends Controller {
     }
 
     async fqListLoad() {
-        this.fqList = JSON.parse(await invoke("fq_list_load"))
-
-        if (!this.fqList) {
-            return
-        }
-
-        renderElement(this.fqListTarget, await generateFromFilePath('_parts/_components/_fq-edit-item.html', this.fqList))
+        const fqList = JSON.parse(await invoke("fq_list_load"))
+        renderElement(this.fqListTarget, await generateFromFilePath('_parts/_components/_fq-edit-item.html', fqList))
     }
 
     async globalRefresh() {
-        this.fqListLoad()
-        this.sectionListLoad()
+        await this.fqListLoad()
+        await this.sectionListLoad()
     }
 
     async sectionListLoad() {
-        this.sectionList = JSON.parse(await invoke("section_list_load"))
-
-        if (!this.sectionList) {
-            return
-        }
-
-        renderElement(this.sectionListTarget, await generateFromFilePath('_parts/_components/_fq-section.html', this.sectionList))
+        const sectionList = JSON.parse(await invoke("section_list_load"))
+        renderElement(this.sectionListTarget, await generateFromFilePath('_parts/_components/_fq-section.html', sectionList))
     }
 
     async dragstart(e) {
@@ -1218,7 +1202,6 @@ Stimulus.register("fq", class extends Controller {
         if (-1 === sourcePosition) {
             return
         }
-
 
         uidList.splice(targetPosition, 0, element)
         await invoke("update_fq_order", { fqList: JSON.stringify(uidList) })
@@ -1380,11 +1363,11 @@ Stimulus.register("fq-section", class extends Controller {
 
     fqList = null
 
-    fqSectionListTargetConnected(element) {
-        this.loadSectionFqList()
+    async fqSectionListTargetConnected(element) {
+        await this.loadSectionFqList()
     }
 
-    membersCountTargetConnected(element) {
+    async membersCountTargetConnected(element) {
         this.membersCountTarget.readOnly = GROUP_ID === this.sectionUidValue
     }
 
@@ -1433,12 +1416,12 @@ Stimulus.register("fq-section-fq-edit", class extends Controller {
         uidSection: String
     }
 
-    membersCountTargetConnected(element) {
+    async membersCountTargetConnected(element) {
         this.membersCountTarget.readOnly = GROUP_ID === this.uidSectionValue
     }
 
     async update(e) {
         //await invoke("update_fq", { uid: this.uidValue, title: this.titleTarget.value.trim(), coeff: this.coeffTarget.value, nationalContribution: this.nationalContributionTarget.value, onlineCommissionRate: this.onlineCommissionRateTarget.value, onlineCommissionFees: this.onlineCommissionFeesTarget.value })
-        await this.fqOutlet.sectionListLoad()
+        await this.fqOutlet.globalRefresh()
     }
 })
