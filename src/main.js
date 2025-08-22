@@ -1361,7 +1361,6 @@ Stimulus.register("fq-section", class extends Controller {
         sectionMembersCount: Number
     }
 
-    fqList = null
 
     async fqSectionListTargetConnected(element) {
         await this.loadSectionFqList()
@@ -1392,18 +1391,13 @@ Stimulus.register("fq-section", class extends Controller {
     }
 
     async loadSectionFqList() {
-        this.fqList = JSON.parse(await invoke("fq_section_list_load", { sectionUid: this.sectionUidValue }))
-
-        if (!this.fqList) {
-            return
-        }
-
-        this.fqList = this.fqList.map((x) => {
+        let fqList = JSON.parse(await invoke("fq_section_list_load", { sectionUid: this.sectionUidValue }))
+        fqList = fqList.map((x) => {
             x.section_members_count = this.sectionMembersCountValue
             return x
         })
 
-        renderElement(this.fqSectionListTarget, await generateFromFilePath('_parts/_components/_fq-section-fq.html', this.fqList))
+        renderElement(this.fqSectionListTarget, await generateFromFilePath('_parts/_components/_fq-section-fq.html', fqList))
     }
 })
 
