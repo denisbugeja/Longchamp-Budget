@@ -2,6 +2,7 @@
     data-controller="fq-section"
     data-fq-section-section-uid-value="{{ uid }}"
     data-fq-section-section-members-count-value="{{ members_count }}"
+    data-fq-section-section-members-fq-count-value="{{ membersFqCount }}"
     data-fq-section-fq-outlet="[data-controller='fq']"
 >
     <td>{{ title }}</td>
@@ -22,5 +23,8 @@
         <table class="table table-striped">
             <tbody>{% fqContent %}</tbody>
         </table>
+        <div data-fq-section-target="displayMessage" class="d-none alert alert-warning" role="alert">
+            Vous avez {{ members_count }} enfants/ados dans cette unité et vous avez saisi les QF pour {{ membersFqCount }}
+        </div>
     </td>
 </tr>

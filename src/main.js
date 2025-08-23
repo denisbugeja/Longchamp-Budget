@@ -1182,13 +1182,13 @@ Stimulus.register("fq", class extends Controller {
     }
 
     async loadFqForSection(section) {
-        let fqList = JSON.parse(await invoke("fq_section_list_load", { sectionUid: section.uid })),
-            members_fq_count = await invoke("fq_section_list_load", { sectionUid: section.uid })
+        let fqList = JSON.parse(await invoke("fq_section_list_load", { sectionUid: section.uid }))            
         fqList = fqList.map((x) => {
             x.section_members_count = section.members_count
             return x
         })
         section.fqContent = await generateFromFilePath('_parts/_components/_fq-section-fq.html', fqList, true)
+        section.membersFqCount = await invoke("get_members_fq_count_by_section", { sectionUid: section.uid })
         return section
     }
 
@@ -1372,11 +1372,16 @@ Stimulus.register("fq-edit", class extends Controller {
 })
 
 Stimulus.register("fq-section", class extends Controller {
-    static targets = ['fqSectionList', 'membersCount']
+    static targets = ['fqSectionList', 'membersCount', 'displayMessage']
     static outlets = ["fq"]
     static values = {
         sectionUid: String,
-        sectionMembersCount: Number
+        sectionMembersCount: Number,
+        membersFqCount: Number
+    }
+
+    connect() {
+        this.displayMessageTarget.classList.toggle('d-none', parseInt(this.sectionMembersCountValue) === parseInt(this.membersFqCountValue))
     }
 
     async membersCountTargetConnected(element) {
