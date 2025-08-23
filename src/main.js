@@ -1377,11 +1377,11 @@ Stimulus.register("fq-section", class extends Controller {
     static values = {
         sectionUid: String,
         sectionMembersCount: Number,
-        membersFqCount: Number
+        sectionMembersFqCount: Number
     }
 
     connect() {
-        if (parseInt(this.sectionMembersCountValue) !== parseInt(this.membersFqCountValue)) {
+        if (parseInt(this.sectionMembersCountValue) !== parseInt(this.sectionMembersFqCountValue)) {
             this.displayMessageTarget.classList.remove('d-none')
         }
     }
