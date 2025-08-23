@@ -1182,7 +1182,8 @@ Stimulus.register("fq", class extends Controller {
     }
 
     async loadFqForSection(section) {
-        let fqList = JSON.parse(await invoke("fq_section_list_load", { sectionUid: section.uid }))
+        let fqList = JSON.parse(await invoke("fq_section_list_load", { sectionUid: section.uid })),
+            members_fq_count = await invoke("fq_section_list_load", { sectionUid: section.uid })
         fqList = fqList.map((x) => {
             x.section_members_count = section.members_count
             return x
