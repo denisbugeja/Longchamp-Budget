@@ -1381,7 +1381,9 @@ Stimulus.register("fq-section", class extends Controller {
     }
 
     connect() {
-        this.displayMessageTarget.classList.toggle('d-none', parseInt(this.sectionMembersCountValue) === parseInt(this.membersFqCountValue))
+        if (parseInt(this.sectionMembersCountValue) === parseInt(this.membersFqCountValue)) {
+            this.displayMessageTarget.classList.remove('d-none')
+        }
     }
 
     async membersCountTargetConnected(element) {
