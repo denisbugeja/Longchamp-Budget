@@ -964,6 +964,7 @@ fn sum_expense_instance_from_vec(vec : Vec<SumExpenseInstance>) -> SumExpenseIns
 
 //TODO continue this part
 //TODO apply online commission rate and fees
+//warning GROUP calculated IS false !! APPLY group rate <> 0 check
 // pub fn get_calculated_fq_unit_price_per_section(section: &str)
 // {
 //     let conn = get_connection().expect("Cannot get connection");
