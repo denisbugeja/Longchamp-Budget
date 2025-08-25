@@ -435,7 +435,7 @@ fn section_list_from_uid_vec(section_list: Vec<&str>, conn: &Connection) -> Vec<
 pub fn get_members_fq_count_by_section(section_uid: &str) -> i32{
     let conn = get_connection().expect("Cannot get connection");
     let count: i32 = execute_read_sql(
-        "SELECT SUM(members_count ) AS total FROM sections_fqs WHERE uid_section = ?1",
+        "SELECT COALESCE(SUM(members_count),0) AS total FROM sections_fqs WHERE uid_section = ?1",
         params!(section_uid),
         |row| row.get(0),
         &conn,
