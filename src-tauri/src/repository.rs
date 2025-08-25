@@ -962,6 +962,22 @@ fn sum_expense_instance_from_vec(vec : Vec<SumExpenseInstance>) -> SumExpenseIns
     }
 }
 
+//TODO continue this part
+//TODO apply online commission rate and fees
+// pub fn get_calculated_fq_unit_price_per_section(section: &str)
+// {
+//     let conn = get_connection().expect("Cannot get connection");
+//     let results = execute_read_sql("SELECT fqs.title, s.uid_fq, s.uid_section, s.declared_unit_price, s.coeff, s.calculated_unit_price_with_coeff,
+// g.calculated_unit_price_with_coeff AS group_calculated_unit_price,
+// ROUND(s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff,2) AS total_unit_price
+// FROM view_declared_calculated_fqs_sections_unit_price AS s INNER JOIN view_declared_calculated_fqs_sections_unit_price AS g ON s.uid_fq = g.uid_fq
+// INNER JOIN fqs ON s.uid_fq = fqs.uid
+// WHERE s.uid_section  = ?
+// AND g.uid_section = 'group'
+// ORDER BY fqs.position ASC",
+// params!(section_uid), |row| {}, &conn);
+// }
+
 pub fn get_group_calculated_expenses() -> Vec<CalculatedExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql("SELECT uid_expense_instance, uid_section, uid_expense, title_section, title_expense, comments, section_color, expenses_units, expenses_units_adults,
@@ -1282,6 +1298,33 @@ BEGIN
     )
     WHERE uid_section = 'group';
 END;",
+"DROP VIEW IF EXISTS \"view_declared_sections_fq_members\";",
+"CREATE VIEW \"view_declared_sections_fq_members\" AS
+SELECT uid_section, COALESCE(SUM(members_count),0) AS total_members_fq_declared
+FROM sections_fqs
+GROUP BY uid_section",
+"DROP VIEW IF EXISTS \"view_declared_fqs_sections_total_price\";",
+"CREATE VIEW \"view_declared_fqs_sections_total_price\" AS
+SELECT view_declared_sections_fq_members.uid_section, 
+ROUND(SUM(total_applyed_price / expenses_units * view_declared_sections_fq_members.total_members_fq_declared),2) AS total_declared
+FROM view_calculated_expenses_sections_instances INNER JOIN view_declared_sections_fq_members ON view_calculated_expenses_sections_instances.uid_section = view_declared_sections_fq_members.uid_section
+GROUP BY view_declared_sections_fq_members.uid_section",
+"DROP VIEW IF EXISTS \"view_declared_fqs_sections_total_members\";",
+"CREATE VIEW \"view_declared_fqs_sections_total_members\" AS
+SELECT sections_fqs.uid_section, ROUND(COALESCE(SUM(fqs.coeff * sections_fqs.members_count),0),2) as fqs_total_members FROM sections_fqs
+INNER JOIN fqs ON sections_fqs.uid_fq = fqs.uid
+GROUP BY sections_fqs.uid_section",
+"DROP VIEW IF EXISTS \"view_declared_fqs_sections_unit_price\";",
+"CREATE VIEW \"view_declared_fqs_sections_unit_price\" AS
+SELECT view_declared_fqs_sections_total_price.uid_section, ROUND(view_declared_fqs_sections_total_price.total_declared / view_declared_fqs_sections_total_members.fqs_total_members,2) AS declared_unit_price
+FROM view_declared_fqs_sections_total_price INNER JOIN view_declared_fqs_sections_total_members ON view_declared_fqs_sections_total_price.uid_section  = view_declared_fqs_sections_total_members.uid_section",
+"DROP VIEW IF EXISTS \"view_declared_calculated_fqs_sections_unit_price\";",
+"CREATE VIEW \"view_declared_calculated_fqs_sections_unit_price\" AS
+SELECT sections_fqs.uid_fq, sections_fqs.uid_section, view_declared_fqs_sections_unit_price.declared_unit_price, 
+ROUND(fqs.coeff,2) as coeff, 
+ROUND(view_declared_fqs_sections_unit_price.declared_unit_price * fqs.coeff,2) AS calculated_unit_price_with_coeff
+FROM view_declared_fqs_sections_unit_price INNER JOIN sections_fqs ON view_declared_fqs_sections_unit_price.uid_section = sections_fqs.uid_section 
+INNER JOIN fqs ON sections_fqs.uid_fq = fqs.uid"
     ];
 
     for sql in arr_sql {
