@@ -102,6 +102,7 @@ pub struct FqTotal {
     pub uid_fq: String,
     pub uid_section: String,
     pub declared_unit_price: f32,
+    pub declared_group_unit_price: f32,
     pub coeff: f32,
     pub calculated_unit_price_with_coeff: f32,
     pub group_calculated_unit_price: f32,

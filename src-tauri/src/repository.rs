@@ -185,7 +185,7 @@ pub fn fq_section_list_load(section_uid: &str) -> Vec<FqSection> {
 pub fn get_fqs_calculated_by_section(section_uid: &str) -> Vec<FqTotal> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT title_section, title_fq, uid_fq, uid_section, declared_unit_price, coeff, calculated_unit_price_with_coeff, group_calculated_unit_price, total_group_member_price, national_contribution, total_member_price, national_commission, total FROM view_calculated_fqs_total WHERE uid_section = ?",
+        "SELECT title_section, title_fq, uid_fq, uid_section, declared_unit_price, declared_group_unit_price, coeff, calculated_unit_price_with_coeff, group_calculated_unit_price, total_group_member_price, national_contribution, total_member_price, national_commission, total FROM view_calculated_fqs_total WHERE uid_section = ?",
         params!(section_uid),
         |row| {
             Ok(FqTotal {
@@ -194,14 +194,15 @@ pub fn get_fqs_calculated_by_section(section_uid: &str) -> Vec<FqTotal> {
                 uid_fq: row.get(2)?,
                 uid_section: row.get(3)?,
                 declared_unit_price: row.get(4)?,
-                coeff: row.get(5)?,
-                calculated_unit_price_with_coeff: row.get(6)?,
-                group_calculated_unit_price: row.get(7)?,
-                total_group_member_price: row.get(8)?,
-                national_contribution: row.get(9)?,
-                total_member_price: row.get(10)?,
-                national_commission: row.get(11)?,
-                total: row.get(12)?,
+                declared_group_unit_price: row.get(5)?,
+                coeff: row.get(6)?,
+                calculated_unit_price_with_coeff: row.get(7)?,
+                group_calculated_unit_price: row.get(8)?,
+                total_group_member_price: row.get(9)?,
+                national_contribution: row.get(10)?,
+                total_member_price: row.get(11)?,
+                national_commission: row.get(12)?,
+                total: row.get(13)?,
             })
         },
         &conn,
@@ -1325,6 +1326,7 @@ SELECT sections_fqs.uid_section, ROUND(COALESCE(SUM(fqs.coeff * sections_fqs.mem
 INNER JOIN fqs ON sections_fqs.uid_fq = fqs.uid
 GROUP BY sections_fqs.uid_section",
 "DROP VIEW IF EXISTS \"view_declared_fqs_group_unit_price\";",
+//TODO FIX THIS VIEW TO GET EXACT DATA - PONDERATED GROUP UNIT VALUE IS NOT CALCULATED - THIS IS ONLY GROUP UNIT PRICE
 "CREATE VIEW \"view_declared_fqs_group_unit_price\" AS
 SELECT 'group' AS uid_section, ROUND(SUM(sum_group_applyed_unit_price),2) AS declared_unit_price
 FROM 
@@ -1355,7 +1357,7 @@ FROM view_declared_fqs_sections_unit_price INNER JOIN sections_fqs ON view_decla
 INNER JOIN fqs ON sections_fqs.uid_fq = fqs.uid",
 "DROP VIEW IF EXISTS \"view_calculated_fqs_total\";",
 "CREATE VIEW \"view_calculated_fqs_total\" AS
-SELECT sections.title as title_section, fqs.title as title_fq, s.uid_fq, s.uid_section, s.declared_unit_price, s.coeff, s.calculated_unit_price_with_coeff,
+SELECT sections.title as title_section, fqs.title as title_fq, s.uid_fq, s.uid_section, s.declared_unit_price, g.declared_unit_price as declared_group_unit_price, s.coeff, s.calculated_unit_price_with_coeff,
 g.calculated_unit_price_with_coeff AS group_calculated_unit_price,
 ROUND(s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff,2) AS total_group_member_price,
 fqs.national_contribution,
