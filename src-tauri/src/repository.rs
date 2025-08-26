@@ -1,4 +1,4 @@
-use crate::helper::{CalculatedExpense, Expense, Fq, FqSection, Section, SectionExpense, SumExpenseInstance};
+use crate::helper::{CalculatedExpense, Expense, Fq, FqSection, Section, SectionExpense, SumExpenseInstance, FqTotal};
 use lazy_static::lazy_static;
 use rusqlite::{params, Connection, Result, Row};
 use std::sync::RwLock;
@@ -176,6 +176,32 @@ pub fn fq_section_list_load(section_uid: &str) -> Vec<FqSection> {
                 members_count: row.get(2)?,
                 title_section: row.get(3)?,
                 title_fq: row.get(4)?,
+            })
+        },
+        &conn,
+    )
+}
+
+pub fn get_fqs_calculated_by_section(section_uid: &str) -> Vec<FqTotal> {
+    let conn = get_connection().expect("Cannot get connection");
+    execute_read_sql(
+        "SELECT title_section, title_fq, uid_fq, uid_section, declared_unit_price, coeff, calculated_unit_price_with_coeff, group_calculated_unit_price, total_group_member_price, national_contribution, total_member_price, national_commission, total FROM view_calculated_fqs_total WHERE uid_section = ?",
+        params!(section_uid),
+        |row| {
+            Ok(FqTotal {
+                title_section: row.get(0)?,
+                title_fq: row.get(1)?,
+                uid_fq: row.get(2)?,
+                uid_section: row.get(3)?,
+                declared_unit_price: row.get(4)?,
+                coeff: row.get(5)?,
+                calculated_unit_price_with_coeff: row.get(6)?,
+                group_calculated_unit_price: row.get(7)?,
+                total_group_member_price: row.get(8)?,
+                national_contribution: row.get(9)?,
+                total_member_price: row.get(10)?,
+                national_commission: row.get(11)?,
+                total: row.get(12)?,
             })
         },
         &conn,
@@ -961,22 +987,6 @@ fn sum_expense_instance_from_vec(vec : Vec<SumExpenseInstance>) -> SumExpenseIns
         SumExpenseInstance{sum_unit: 0 as f32, sum_total: 0 as f32}
     }
 }
-
-//TODO continue this part
-//TODO apply online commission rate and fees
-// pub fn get_calculated_fq_unit_price_per_section(section: &str)
-// {
-//     let conn = get_connection().expect("Cannot get connection");
-//     let results = execute_read_sql("SELECT fqs.title, s.uid_fq, s.uid_section, s.declared_unit_price, s.coeff, s.calculated_unit_price_with_coeff,
-// g.calculated_unit_price_with_coeff AS group_calculated_unit_price,
-// ROUND(s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff,2) AS total_unit_price
-// FROM view_declared_calculated_fqs_sections_unit_price AS s INNER JOIN view_declared_calculated_fqs_sections_unit_price AS g ON s.uid_fq = g.uid_fq
-// INNER JOIN fqs ON s.uid_fq = fqs.uid
-// WHERE s.uid_section  = ?
-// AND g.uid_section = 'group'
-// ORDER BY fqs.position ASC",
-// params!(section_uid), |row| {}, &conn);
-// }
 
 pub fn get_group_calculated_expenses() -> Vec<CalculatedExpense> {
     let conn = get_connection().expect("Cannot get connection");

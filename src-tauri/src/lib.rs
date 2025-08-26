@@ -286,6 +286,13 @@ fn get_members_fq_count_by_section(section_uid: &str) -> String {
     repository::get_members_fq_count_by_section(section_uid).to_string()
 }
 
+#[tauri::command]
+fn get_fqs_calculated_by_section(section_uid: &str) -> String {
+    helper::struct_to_json(
+        repository::get_fqs_calculated_by_section(section_uid)
+    )
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -337,7 +344,8 @@ pub fn run() {
             update_fq,
             update_fq_order,
             update_fq_section_members_count,
-            get_members_fq_count_by_section
+            get_members_fq_count_by_section,
+            get_fqs_calculated_by_section
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");

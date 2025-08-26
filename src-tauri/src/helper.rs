@@ -95,6 +95,24 @@ pub struct FqSection {
     pub title_fq: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FqTotal {
+    pub title_section: String,
+    pub title_fq: String,
+    pub uid_fq: String,
+    pub uid_section: String,
+    pub declared_unit_price: f32,
+    pub coeff: f32,
+    pub calculated_unit_price_with_coeff: f32,
+    pub group_calculated_unit_price: f32,
+    pub total_group_member_price: f32,
+    pub national_contribution: f32,
+    pub total_member_price: f32,
+    pub national_commission: f32,
+    pub total: f32,
+}
+
+
 pub fn vec_to_json<T: Serialize>(vec_data: Vec<T>) -> String {
     serde_json::to_string(&vec_data).expect("Cannot serialize section list")
 }
