@@ -699,7 +699,7 @@ Stimulus.register("matrix", class extends Controller {
 })
 
 Stimulus.register("matrix-section", class extends Controller {
-    static targets = ['expenseList', 'expenseInstanceList', 'expenseGroupRatioTotal', 'expenseGroupInstanceList', 'expenseGroupInstanceListContainer', 'sectionMembersCount', 'sectionAdultsCount', 'expenseInstanceGroupTotal', 'expenseInstanceTotal', 'expenseInstanceMemberTotal', 'groupSumContainer', 'clearLink']
+    static targets = ['expenseList', 'expenseInstanceList', 'expenseGroupRatioTotal', 'expenseGroupInstanceList', 'expenseGroupInstanceListContainer', 'sectionMembersCount', 'sectionAdultsCount', 'expenseInstanceGroupTotal', 'expenseInstanceTotal', 'expenseInstanceMemberTotal', 'groupSumContainer', 'clearLink', 'fqMatrix']
     static outlets = ['matrix']
     static values = {
         uid: String
@@ -781,6 +781,24 @@ Stimulus.register("matrix-section", class extends Controller {
 
     async groupSumContainerTargetConnected() {
         await this.groupSumContainerLoad()
+    }
+
+    async fqMatrixTargetConnected() {
+        await this.fqMatrixLoad()
+    }
+
+    async fqMatrixLoad() {
+        let fqMatrix = JSON.parse(await invoke('get_fqs_calculated_by_section', { sectionUid: this.uidValue }))
+
+        if (0 === fqMatrix.length) {
+            return
+        }
+
+        let fqHead = fqMatrix[0],
+            fqHeadHtmlContent = await generateFromFilePath('_parts/_components/_matrix_section_fq_head.html', fqHead),
+            fqBodyHtmlContent = await generateFromFilePath('_parts/_components/_matrix_section_fq_body.html', fqMatrix)
+
+        renderElement(this.fqMatrixTarget, fqHeadHtmlContent + fqBodyHtmlContent)
     }
 
     async groupSumContainerLoad() {
@@ -965,6 +983,7 @@ Stimulus.register("matrix-section", class extends Controller {
         this.expenseInstanceMemberTotalLoad()
         this.expenseGroupRatioTotalLoad()
         this.groupSumContainerLoad()
+        this.fqMatrixLoad()
     }
 })
 
