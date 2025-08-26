@@ -1341,12 +1341,16 @@ UNION ALL
 )",
 "DROP VIEW IF EXISTS \"view_declared_fqs_sections_unit_price\";",
 "CREATE VIEW \"view_declared_fqs_sections_unit_price\" AS
-    SELECT view_declared_fqs_sections_total_price.uid_section, ROUND(view_declared_fqs_sections_total_price.total_declared / view_declared_fqs_sections_total_members.fqs_total_members,2) AS declared_unit_price
+   SELECT view_declared_fqs_sections_total_price.uid_section, 
+   ROUND(view_declared_fqs_sections_total_price.total_declared / view_declared_fqs_sections_total_members.fqs_total_members,2) AS declared_unit_price
     FROM view_declared_fqs_sections_total_price INNER JOIN view_declared_fqs_sections_total_members ON view_declared_fqs_sections_total_price.uid_section  = view_declared_fqs_sections_total_members.uid_section
     WHERE view_declared_fqs_sections_total_price.uid_section <> 'group'
 UNION ALL
-    SELECT view_declared_fqs_group_unit_price.uid_section, view_declared_fqs_group_unit_price.declared_unit_price
-    FROM view_declared_fqs_group_unit_price
+    SELECT view_declared_fqs_group_unit_price.uid_section, 
+    ROUND(view_declared_fqs_group_unit_price.declared_unit_price * sections.members_count / view_declared_fqs_sections_total_members.fqs_total_members, 2) AS declared_unit_price
+    FROM view_declared_fqs_group_unit_price 
+    INNER JOIN view_declared_fqs_sections_total_members ON view_declared_fqs_group_unit_price.uid_section = view_declared_fqs_sections_total_members.uid_section
+    INNER JOIN sections ON view_declared_fqs_group_unit_price.uid_section = sections.uid
 ",
 "DROP VIEW IF EXISTS \"view_declared_calculated_fqs_sections_unit_price\";",
 "CREATE VIEW \"view_declared_calculated_fqs_sections_unit_price\" AS
