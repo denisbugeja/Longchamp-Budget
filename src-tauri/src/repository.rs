@@ -964,19 +964,19 @@ fn sum_expense_instance_from_vec(vec : Vec<SumExpenseInstance>) -> SumExpenseIns
 
 //TODO continue this part
 //TODO apply online commission rate and fees
-pub fn get_calculated_fq_unit_price_per_section(section: &str)
-{
-    let conn = get_connection().expect("Cannot get connection");
-    let results = execute_read_sql("SELECT fqs.title, s.uid_fq, s.uid_section, s.declared_unit_price, s.coeff, s.calculated_unit_price_with_coeff,
-g.calculated_unit_price_with_coeff AS group_calculated_unit_price,
-ROUND(s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff,2) AS total_unit_price
-FROM view_declared_calculated_fqs_sections_unit_price AS s INNER JOIN view_declared_calculated_fqs_sections_unit_price AS g ON s.uid_fq = g.uid_fq
-INNER JOIN fqs ON s.uid_fq = fqs.uid
-WHERE s.uid_section  = ?
-AND g.uid_section = 'group'
-ORDER BY fqs.position ASC",
-params!(section_uid), |row| {}, &conn);
-}
+// pub fn get_calculated_fq_unit_price_per_section(section: &str)
+// {
+//     let conn = get_connection().expect("Cannot get connection");
+//     let results = execute_read_sql("SELECT fqs.title, s.uid_fq, s.uid_section, s.declared_unit_price, s.coeff, s.calculated_unit_price_with_coeff,
+// g.calculated_unit_price_with_coeff AS group_calculated_unit_price,
+// ROUND(s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff,2) AS total_unit_price
+// FROM view_declared_calculated_fqs_sections_unit_price AS s INNER JOIN view_declared_calculated_fqs_sections_unit_price AS g ON s.uid_fq = g.uid_fq
+// INNER JOIN fqs ON s.uid_fq = fqs.uid
+// WHERE s.uid_section  = ?
+// AND g.uid_section = 'group'
+// ORDER BY fqs.position ASC",
+// params!(section_uid), |row| {}, &conn);
+// }
 
 pub fn get_group_calculated_expenses() -> Vec<CalculatedExpense> {
     let conn = get_connection().expect("Cannot get connection");
@@ -1342,7 +1342,21 @@ SELECT sections_fqs.uid_fq, sections_fqs.uid_section, view_declared_fqs_sections
 ROUND(fqs.coeff,2) as coeff, 
 ROUND(view_declared_fqs_sections_unit_price.declared_unit_price * fqs.coeff,2) AS calculated_unit_price_with_coeff
 FROM view_declared_fqs_sections_unit_price INNER JOIN sections_fqs ON view_declared_fqs_sections_unit_price.uid_section = sections_fqs.uid_section 
-INNER JOIN fqs ON sections_fqs.uid_fq = fqs.uid"
+INNER JOIN fqs ON sections_fqs.uid_fq = fqs.uid",
+"DROP VIEW IF EXISTS \"view_calculated_fqs_total\";",
+"CREATE VIEW \"view_calculated_fqs_total\" AS
+SELECT sections.title as title_section, fqs.title as title_fq, s.uid_fq, s.uid_section, s.declared_unit_price, s.coeff, s.calculated_unit_price_with_coeff,
+g.calculated_unit_price_with_coeff AS group_calculated_unit_price,
+ROUND(s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff,2) AS total_group_member_price,
+fqs.national_contribution,
+ROUND(s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff + fqs.national_contribution ,2) AS total_member_price,
+ROUND((s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff + fqs.national_contribution) * fqs.online_commission_rate + fqs.online_commission_fees,2) AS national_commission,
+ROUND(s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff + fqs.national_contribution ,2) + ROUND((s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff + fqs.national_contribution) * fqs.online_commission_rate + fqs.online_commission_fees,2) AS total
+FROM view_declared_calculated_fqs_sections_unit_price AS s INNER JOIN view_declared_calculated_fqs_sections_unit_price AS g ON s.uid_fq = g.uid_fq
+INNER JOIN fqs ON s.uid_fq = fqs.uid
+INNER JOIN sections ON s.uid_section  = sections.uid
+AND g.uid_section = 'group'
+ORDER BY sections.position, fqs.position ASC"
     ];
 
     for sql in arr_sql {
