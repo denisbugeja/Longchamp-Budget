@@ -796,7 +796,8 @@ Stimulus.register("matrix-section", class extends Controller {
 
         let fqHead = fqMatrix[0],
             fqHeadHtmlContent = await generateFromFilePath('_parts/_components/_matrix_section_fq_head.html', fqHead),
-            fqBodyHtmlContent = await generateFromFilePath('_parts/_components/_matrix_section_fq_body.html', fqMatrix)
+            fqTableContent = await generateFromFilePath('_parts/_components/_matrix_section_fq_body.html', fqMatrix),
+            fqBodyHtmlContent = await generateFromFilePath('_parts/_components/_matrix_section_fq_table.html', { fqTableContent: fqTableContent })
 
         renderElement(this.fqMatrixTarget, fqHeadHtmlContent + fqBodyHtmlContent)
     }
