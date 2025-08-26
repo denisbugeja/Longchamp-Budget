@@ -788,6 +788,10 @@ Stimulus.register("matrix-section", class extends Controller {
     }
 
     async fqMatrixLoad() {
+        if (GROUP_ID === this.uidValue) {
+            return
+        }
+
         let fqMatrix = JSON.parse(await invoke('get_fqs_calculated_by_section', { sectionUid: this.uidValue }))
 
         if (0 === fqMatrix.length) {
