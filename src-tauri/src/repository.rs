@@ -964,20 +964,19 @@ fn sum_expense_instance_from_vec(vec : Vec<SumExpenseInstance>) -> SumExpenseIns
 
 //TODO continue this part
 //TODO apply online commission rate and fees
-//warning GROUP calculated IS false !! APPLY group rate <> 0 check
-// pub fn get_calculated_fq_unit_price_per_section(section: &str)
-// {
-//     let conn = get_connection().expect("Cannot get connection");
-//     let results = execute_read_sql("SELECT fqs.title, s.uid_fq, s.uid_section, s.declared_unit_price, s.coeff, s.calculated_unit_price_with_coeff,
-// g.calculated_unit_price_with_coeff AS group_calculated_unit_price,
-// ROUND(s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff,2) AS total_unit_price
-// FROM view_declared_calculated_fqs_sections_unit_price AS s INNER JOIN view_declared_calculated_fqs_sections_unit_price AS g ON s.uid_fq = g.uid_fq
-// INNER JOIN fqs ON s.uid_fq = fqs.uid
-// WHERE s.uid_section  = ?
-// AND g.uid_section = 'group'
-// ORDER BY fqs.position ASC",
-// params!(section_uid), |row| {}, &conn);
-// }
+pub fn get_calculated_fq_unit_price_per_section(section: &str)
+{
+    let conn = get_connection().expect("Cannot get connection");
+    let results = execute_read_sql("SELECT fqs.title, s.uid_fq, s.uid_section, s.declared_unit_price, s.coeff, s.calculated_unit_price_with_coeff,
+g.calculated_unit_price_with_coeff AS group_calculated_unit_price,
+ROUND(s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff,2) AS total_unit_price
+FROM view_declared_calculated_fqs_sections_unit_price AS s INNER JOIN view_declared_calculated_fqs_sections_unit_price AS g ON s.uid_fq = g.uid_fq
+INNER JOIN fqs ON s.uid_fq = fqs.uid
+WHERE s.uid_section  = ?
+AND g.uid_section = 'group'
+ORDER BY fqs.position ASC",
+params!(section_uid), |row| {}, &conn);
+}
 
 pub fn get_group_calculated_expenses() -> Vec<CalculatedExpense> {
     let conn = get_connection().expect("Cannot get connection");
@@ -1315,10 +1314,28 @@ GROUP BY view_declared_sections_fq_members.uid_section",
 SELECT sections_fqs.uid_section, ROUND(COALESCE(SUM(fqs.coeff * sections_fqs.members_count),0),2) as fqs_total_members FROM sections_fqs
 INNER JOIN fqs ON sections_fqs.uid_fq = fqs.uid
 GROUP BY sections_fqs.uid_section",
+"DROP VIEW IF EXISTS \"view_declared_fqs_group_unit_price\";",
+"CREATE VIEW \"view_declared_fqs_group_unit_price\" AS
+SELECT 'group' AS uid_section, ROUND(SUM(sum_group_applyed_unit_price),2) AS declared_unit_price
+FROM 
+(
+    SELECT SUM(group_applyed_unit_price) AS sum_group_applyed_unit_price
+    FROM view_calculated_expenses_sections_instances
+    WHERE group_rate <> 0
+UNION ALL
+    SELECT SUM(total_applyed_price / group_members_count) AS sum_group_applyed_unit_price
+    FROM view_calculated_expenses_sections_instances
+    WHERE uid_section = 'group'
+)",
 "DROP VIEW IF EXISTS \"view_declared_fqs_sections_unit_price\";",
 "CREATE VIEW \"view_declared_fqs_sections_unit_price\" AS
-SELECT view_declared_fqs_sections_total_price.uid_section, ROUND(view_declared_fqs_sections_total_price.total_declared / view_declared_fqs_sections_total_members.fqs_total_members,2) AS declared_unit_price
-FROM view_declared_fqs_sections_total_price INNER JOIN view_declared_fqs_sections_total_members ON view_declared_fqs_sections_total_price.uid_section  = view_declared_fqs_sections_total_members.uid_section",
+    SELECT view_declared_fqs_sections_total_price.uid_section, ROUND(view_declared_fqs_sections_total_price.total_declared / view_declared_fqs_sections_total_members.fqs_total_members,2) AS declared_unit_price
+    FROM view_declared_fqs_sections_total_price INNER JOIN view_declared_fqs_sections_total_members ON view_declared_fqs_sections_total_price.uid_section  = view_declared_fqs_sections_total_members.uid_section
+    WHERE view_declared_fqs_sections_total_price.uid_section <> 'group'
+UNION ALL
+    SELECT view_declared_fqs_group_unit_price.uid_section, view_declared_fqs_group_unit_price.declared_unit_price
+    FROM view_declared_fqs_group_unit_price
+",
 "DROP VIEW IF EXISTS \"view_declared_calculated_fqs_sections_unit_price\";",
 "CREATE VIEW \"view_declared_calculated_fqs_sections_unit_price\" AS
 SELECT sections_fqs.uid_fq, sections_fqs.uid_section, view_declared_fqs_sections_unit_price.declared_unit_price, 
