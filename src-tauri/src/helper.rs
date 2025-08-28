@@ -193,7 +193,7 @@ fn handle_worksheet(
         Formula::new(formula_adults_string).set_result(section.adults_count.to_string());
 
     let _ = worksheet
-        .set_name(&section.title)
+        .set_name(format!("Unité {}", &section.title))
         .expect("Impossible to set the sheet's name");
 
     let _ = worksheet.merge_range(0, 0, 0, 7, &section.title, &title_format);
