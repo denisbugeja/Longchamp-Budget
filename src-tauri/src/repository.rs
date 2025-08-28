@@ -1326,9 +1326,8 @@ SELECT sections_fqs.uid_section, ROUND(COALESCE(SUM(fqs.coeff * sections_fqs.mem
 INNER JOIN fqs ON sections_fqs.uid_fq = fqs.uid
 GROUP BY sections_fqs.uid_section",
 "DROP VIEW IF EXISTS \"view_declared_fqs_group_unit_price\";",
-//TODO FIX THIS VIEW TO GET EXACT DATA - PONDERATED GROUP UNIT VALUE IS NOT CALCULATED - THIS IS ONLY GROUP UNIT PRICE
 "CREATE VIEW \"view_declared_fqs_group_unit_price\" AS
-SELECT 'group' AS uid_section, ROUND(SUM(sum_group_applyed_unit_price),2) AS declared_unit_price
+SELECT 'group' AS uid_section, ROUND(SUM(COALESCE(sum_group_applyed_unit_price, 0)),2) AS declared_unit_price
 FROM 
 (
     SELECT SUM(group_applyed_unit_price) AS sum_group_applyed_unit_price
