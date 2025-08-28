@@ -1341,17 +1341,16 @@ UNION ALL
 )",
 "DROP VIEW IF EXISTS \"view_declared_fqs_sections_unit_price\";",
 "CREATE VIEW \"view_declared_fqs_sections_unit_price\" AS
-   SELECT view_declared_fqs_sections_total_price.uid_section, 
-   ROUND(view_declared_fqs_sections_total_price.total_declared / view_declared_fqs_sections_total_members.fqs_total_members,2) AS declared_unit_price
-    FROM view_declared_fqs_sections_total_price INNER JOIN view_declared_fqs_sections_total_members ON view_declared_fqs_sections_total_price.uid_section  = view_declared_fqs_sections_total_members.uid_section
-    WHERE view_declared_fqs_sections_total_price.uid_section <> 'group'
+SELECT view_declared_fqs_sections_total_price.uid_section, 
+ROUND(view_declared_fqs_sections_total_price.total_declared / view_declared_fqs_sections_total_members.fqs_total_members,2) AS declared_unit_price
+FROM view_declared_fqs_sections_total_price INNER JOIN view_declared_fqs_sections_total_members ON view_declared_fqs_sections_total_price.uid_section  = view_declared_fqs_sections_total_members.uid_section
+WHERE view_declared_fqs_sections_total_price.uid_section <> 'group'
 UNION ALL
-    SELECT view_declared_fqs_group_unit_price.uid_section, 
-    ROUND(view_declared_fqs_group_unit_price.declared_unit_price * sections.members_count / view_declared_fqs_sections_total_members.fqs_total_members, 2) AS declared_unit_price
-    FROM view_declared_fqs_group_unit_price 
-    INNER JOIN view_declared_fqs_sections_total_members ON view_declared_fqs_group_unit_price.uid_section = view_declared_fqs_sections_total_members.uid_section
-    INNER JOIN sections ON view_declared_fqs_group_unit_price.uid_section = sections.uid
-",
+SELECT view_declared_fqs_group_unit_price.uid_section, 
+ROUND(view_declared_fqs_group_unit_price.declared_unit_price * view_declared_sections_fq_members.total_members_fq_declared / view_declared_fqs_sections_total_members.fqs_total_members, 2) AS declared_unit_price
+FROM view_declared_fqs_group_unit_price 
+INNER JOIN view_declared_fqs_sections_total_members ON view_declared_fqs_group_unit_price.uid_section = view_declared_fqs_sections_total_members.uid_section
+INNER JOIN view_declared_sections_fq_members ON view_declared_fqs_group_unit_price.uid_section = view_declared_sections_fq_members.uid_section",
 "DROP VIEW IF EXISTS \"view_declared_calculated_fqs_sections_unit_price\";",
 "CREATE VIEW \"view_declared_calculated_fqs_sections_unit_price\" AS
 SELECT sections_fqs.uid_fq, sections_fqs.uid_section, view_declared_fqs_sections_unit_price.declared_unit_price, 
