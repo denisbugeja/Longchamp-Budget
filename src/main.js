@@ -800,10 +800,10 @@ Stimulus.register("matrix-section", class extends Controller {
 
         let fqHead = fqMatrix[0],
             fqHeadHtmlContent = await generateFromFilePath('_parts/_components/_matrix_section_fq_head.html', fqHead),
-            fqTableContent = await generateFromFilePath('_parts/_components/_matrix_section_fq_body.html', fqMatrix),
-            fqBodyHtmlContent = await generateFromFilePath('_parts/_components/_matrix_section_fq_table.html', { fqTableContent: fqTableContent })
+            fqBodyHtmlContent = await generateFromFilePath('_parts/_components/_matrix_section_fq_body.html', fqMatrix),
+            fqTableHtmlContent = await generateFromFilePath('_parts/_components/_matrix_section_fq_table.html', { fqBodyHtmlContent: fqBodyHtmlContent })
 
-        renderElement(this.fqMatrixTarget, fqHeadHtmlContent + fqBodyHtmlContent)
+        renderElement(this.fqMatrixTarget, fqHeadHtmlContent + fqTableHtmlContent)
     }
 
     async groupSumContainerLoad() {
