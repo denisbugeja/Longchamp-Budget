@@ -613,14 +613,38 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
     let mut row = 2;
     let _ = worksheet.write_with_format(row, 0, "Unité", &border_bold_center_format);
     let _ = worksheet.write_with_format(row, 1, "QF", &border_bold_center_format);
-    let _ = worksheet.write_with_format(row, 2, "Cotisation unité moyenne pondérée", &border_bold_center_format);
-    let _ = worksheet.write_with_format(row, 3, "Cotisation groupe moyenne pondérée", &border_bold_center_format);
-    let _ = worksheet.write_with_format(row, 4, "Coefficient multiplicateur QF", &border_bold_center_format);
-    let _ = worksheet.write_with_format(row, 5, "Montant unité calculé", &border_bold_center_format);
-    let _ = worksheet.write_with_format(row, 6, "Montant groupe calculé", &border_bold_center_format);
-    let _ = worksheet.write_with_format(row, 7, "Montant total calculé", &border_bold_center_format);
-    let _ = worksheet.write_with_format(row, 8, "Contribution nationale", &border_bold_center_format);
-    let _ = worksheet.write_with_format(row, 9, "Total groupe + national", &border_bold_center_format);
+    let _ = worksheet.write_with_format(
+        row,
+        2,
+        "Cotisation unité moyenne pondérée",
+        &border_bold_center_format,
+    );
+    let _ = worksheet.write_with_format(
+        row,
+        3,
+        "Cotisation groupe moyenne pondérée",
+        &border_bold_center_format,
+    );
+    let _ = worksheet.write_with_format(
+        row,
+        4,
+        "Coefficient multiplicateur QF",
+        &border_bold_center_format,
+    );
+    let _ =
+        worksheet.write_with_format(row, 5, "Montant unité calculé", &border_bold_center_format);
+    let _ =
+        worksheet.write_with_format(row, 6, "Montant groupe calculé", &border_bold_center_format);
+    let _ =
+        worksheet.write_with_format(row, 7, "Montant total calculé", &border_bold_center_format);
+    let _ =
+        worksheet.write_with_format(row, 8, "Contribution nationale", &border_bold_center_format);
+    let _ = worksheet.write_with_format(
+        row,
+        9,
+        "Total groupe + national",
+        &border_bold_center_format,
+    );
     let _ = worksheet.write_with_format(row, 10, "Frais de commision", &border_bold_center_format);
     let _ = worksheet.write_with_format(row, 11, "Cotisation totale", &border_bold_center_format);
 
@@ -628,15 +652,63 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         row += 1;
         let _ = worksheet.write_with_format(row, 0, fq.title_section, &border_format);
         let _ = worksheet.write_with_format(row, 1, fq.title_fq, &border_format);
-        let _ = worksheet.write_with_format(row, 2, fq.declared_unit_price, &border_number_right_format);
-        let _ = worksheet.write_with_format(row, 3, fq.declared_group_unit_price, &border_number_right_format);
+        let _ = worksheet.write_with_format(
+            row,
+            2,
+            fq.declared_unit_price,
+            &border_number_right_format,
+        );
+        let _ = worksheet.write_with_format(
+            row,
+            3,
+            fq.declared_group_unit_price,
+            &border_number_right_format,
+        );
         let _ = worksheet.write_with_format(row, 4, fq.coeff, &border_number_right_format);
-        let _ = worksheet.write_with_format(row, 5, fq.calculated_unit_price_with_coeff, &border_number_right_format);
-        let _ = worksheet.write_with_format(row, 6, fq.group_calculated_unit_price, &border_number_right_format);
-        let _ = worksheet.write_with_format(row, 7, fq.total_group_member_price, &border_number_right_format);
-        let _ = worksheet.write_with_format(row, 8, fq.national_contribution, &border_number_right_format);
-        let _ = worksheet.write_with_format(row, 9, fq.total_member_price, &border_number_right_format);
-        let _ = worksheet.write_with_format(row, 10, fq.national_commission, &border_number_right_format);
+
+        let _ = worksheet.write_with_format(
+            row,
+            5,
+            Formula::new(format!("=ROUND(C{row}*E{row},2)")).set_result(
+                fq.calculated_unit_price_with_coeff
+                    .to_string()
+                    .replace(".", ","),
+            ),
+            &border_number_right_format,
+        );
+
+        let _ = worksheet.write_with_format(
+            row,
+            5,
+            fq.calculated_unit_price_with_coeff,
+            &border_number_right_format,
+        );
+        let _ = worksheet.write_with_format(
+            row,
+            6,
+            fq.group_calculated_unit_price,
+            &border_number_right_format,
+        );
+        let _ = worksheet.write_with_format(
+            row,
+            7,
+            fq.total_group_member_price,
+            &border_number_right_format,
+        );
+        let _ = worksheet.write_with_format(
+            row,
+            8,
+            fq.national_contribution,
+            &border_number_right_format,
+        );
+        let _ =
+            worksheet.write_with_format(row, 9, fq.total_member_price, &border_number_right_format);
+        let _ = worksheet.write_with_format(
+            row,
+            10,
+            fq.national_commission,
+            &border_number_right_format,
+        );
         let _ = worksheet.write_with_format(row, 11, fq.total, &border_bold_number_right_format);
     }
 }
