@@ -611,6 +611,7 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
     let _ = worksheet.merge_range(0, 0, 0, 11, "QF", &title_format);
 
     let mut row = 2;
+    let mut formula_row = row + 1;
     let _ = worksheet.write_with_format(row, 0, "Unité", &border_bold_center_format);
     let _ = worksheet.write_with_format(row, 1, "QF", &border_bold_center_format);
     let _ = worksheet.write_with_format(
@@ -650,6 +651,8 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
 
     for fq in fq_list {
         row += 1;
+        formula_row = row + 1;
+
         let _ = worksheet.write_with_format(row, 0, fq.title_section, &border_format);
         let _ = worksheet.write_with_format(row, 1, fq.title_fq, &border_format);
         let _ = worksheet.write_with_format(
@@ -668,26 +671,24 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         let _ = worksheet.write_with_format(
             row,
             5,
-            Formula::new(format!("=ROUND(C{row}*E{row},2)")).set_result(
+            Formula::new(format!("=ROUND(C{formula_row}*E{formula_row},2)")).set_result(
                 fq.calculated_unit_price_with_coeff
                     .to_string()
                     .replace(".", ","),
             ),
             &border_number_right_format,
         );
-
         let _ = worksheet.write_with_format(
             row,
             6,
-            Formula::new(format!("=ROUND(D{row}*E{row},2)"))
+            Formula::new(format!("=ROUND(D{formula_row}*E{formula_row},2)"))
                 .set_result(fq.group_calculated_unit_price.to_string().replace(".", ",")),
             &border_number_right_format,
         );
-
         let _ = worksheet.write_with_format(
             row,
             7,
-            Formula::new(format!("=ROUND(F{row}+G{row},2)"))
+            Formula::new(format!("=ROUND(F{formula_row}+G{formula_row},2)"))
                 .set_result(fq.total_group_member_price.to_string().replace(".", ",")),
             &border_number_right_format,
         );
@@ -700,7 +701,7 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         let _ = worksheet.write_with_format(
             row,
             9,
-            Formula::new(format!("=ROUND(H{row}+I{row},2)"))
+            Formula::new(format!("=ROUND(H{formula_row}+I{formula_row},2)"))
                 .set_result(fq.total_member_price.to_string().replace(".", ",")),
             &border_number_right_format,
         );
@@ -713,7 +714,7 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         let _ = worksheet.write_with_format(
             row,
             11,
-            Formula::new(format!("=ROUND(J{row}+K{row},2)"))
+            Formula::new(format!("=ROUND(J{formula_row}+K{formula_row},2)"))
                 .set_result(fq.total.to_string().replace(".", ",")),
             &border_bold_number_right_format,
         );
