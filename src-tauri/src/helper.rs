@@ -72,9 +72,8 @@ pub struct SumExpenseInstance {
     pub sum_total: f32,
 }
 
-
-//TODO Ajouter taux pour frais de commision en ligne 
-//TODO Ajouter montant fixe pour frais de commision en ligne 
+//TODO Ajouter taux pour frais de commision en ligne
+//TODO Ajouter montant fixe pour frais de commision en ligne
 // Actuellement =0,4+(0,8%*G90)
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Fq {
@@ -113,7 +112,6 @@ pub struct FqTotal {
     pub total: f32,
 }
 
-
 pub fn vec_to_json<T: Serialize>(vec_data: Vec<T>) -> String {
     serde_json::to_string(&vec_data).expect("Cannot serialize section list")
 }
@@ -142,6 +140,12 @@ pub fn generate_xls_file() {
     for section in section_list {
         handle_worksheet(&section, &mut workbook, &group_expense_list);
     }
+
+    let fq_list = repository::fq_list();
+    if !fq_list.is_empty() {
+        add_fq_data_to_work_book(&mut workbook);
+    }
+
     let _ = workbook.save(final_path);
 }
 
@@ -192,8 +196,13 @@ fn handle_worksheet(
     let formula_adults =
         Formula::new(formula_adults_string).set_result(section.adults_count.to_string());
 
+    let mut title_tab = format!("Unité {}", &section.title);
+    if "group" == section.uid {
+        title_tab = format!("Agrégat {}", &section.title);
+    }
+
     let _ = worksheet
-        .set_name(format!("Unité {}", &section.title))
+        .set_name(title_tab)
         .expect("Impossible to set the sheet's name");
 
     let _ = worksheet.merge_range(0, 0, 0, 7, &section.title, &title_format);
@@ -249,7 +258,7 @@ fn handle_worksheet(
             );
         }
 
-        let _ = worksheet.write_number_with_format(row, 1, unit_price, &border_format);
+        let _ = worksheet.write_number_with_format(row, 1, unit_price, &border_number_right_format);
 
         let _ = worksheet.write_number_with_format(
             row,
@@ -443,15 +452,13 @@ fn handle_worksheet(
                 repository::get_group_sum_calculated_expenses();
             let _ = worksheet.merge_range(row, 1, row, 3, &total_label_ratio, &border_format);
 
-            let formula_total_calculated_group = Formula::new(format!(
-                "=ROUND(SUM(E{sum_row_begin}:E{sum_row_end}),2)"
-            ))
-            .set_result(
-                group_sum_expense_instance
-                    .sum_unit
-                    .to_string()
-                    .replace(".", ","),
-            );
+            let formula_total_calculated_group =
+                Formula::new(format!("=ROUND(SUM(E{sum_row_begin}:E{sum_row_end}),2)")).set_result(
+                    group_sum_expense_instance
+                        .sum_unit
+                        .to_string()
+                        .replace(".", ","),
+                );
             let _ = worksheet.write_formula_with_format(
                 row,
                 4,
@@ -461,10 +468,9 @@ fn handle_worksheet(
 
             if !&calculated_expenses_list.is_empty() {
                 row += 3;
-                let formula_total_group = Formula::new(format!(
-                    "=$H${row_total_unite}+$E${row_total_rated_group}"
-                ))
-                .set_result(sum_calculated_group.sum_unit.to_string());
+                let formula_total_group =
+                    Formula::new(format!("=$H${row_total_unite}+$E${row_total_rated_group}"))
+                        .set_result(sum_calculated_group.sum_unit.to_string());
                 let _ = worksheet.write_with_format(
                     row,
                     0,
@@ -481,5 +487,156 @@ fn handle_worksheet(
         }
     }
 
+    // FQ
+    if !calculated_expenses_list.is_empty() {
+        let fq_list: Vec<FqTotal> = repository::get_fqs_calculated_by_section(&section.uid);
+        if !fq_list.is_empty() {
+            row += 4;
+            let _ = worksheet.merge_range(row, 0, 0, 7, "Prise en charge des QF", &title_format);
+
+            row += 2;
+            let _ = worksheet.write_with_format(row, 0, "QF", &border_bold_format);
+            let _ = worksheet.write_with_format(
+                row,
+                1,
+                "Coefficient multiplicateur",
+                &border_bold_format,
+            );
+
+            if "group" != section.uid {
+                let _ =
+                    worksheet.write_with_format(row, 2, "Cotisation unité", &border_bold_format);
+                let _ = worksheet.write_with_format(
+                    row,
+                    3,
+                    "Total cotisations groupe + unité",
+                    &border_bold_format,
+                );
+                let _ = worksheet.write_with_format(
+                    row,
+                    4,
+                    "Cotisation nationale",
+                    &border_bold_format,
+                );
+                let _ = worksheet.write_with_format(row, 5, "Total", &border_bold_format);
+                let _ = worksheet.insert_note(
+                    row,
+                    5,
+                    &Note::new("Le total comprend les frais de commission en ligne"),
+                );
+            } else {
+                let _ =
+                    worksheet.write_with_format(row, 2, "Cotisation groupe", &border_bold_format);
+            }
+
+            for fq in fq_list {
+                row += 1;
+                let _ =
+                    worksheet.write_with_format(row, 0, fq.title_fq, &border_number_right_format);
+                let _ = worksheet.write_with_format(row, 1, fq.coeff, &border_number_right_format);
+                let _ = worksheet.write_with_format(
+                    row,
+                    2,
+                    fq.calculated_unit_price_with_coeff,
+                    &border_number_right_format,
+                );
+                if "group" != section.uid {
+                    let _ = worksheet.write_with_format(
+                        row,
+                        3,
+                        fq.total_group_member_price,
+                        &border_number_right_format,
+                    );
+                    let _ = worksheet.write_with_format(
+                        row,
+                        4,
+                        fq.national_contribution,
+                        &border_number_right_format,
+                    );
+                    let _ = worksheet.write_with_format(
+                        row,
+                        5,
+                        fq.total,
+                        &border_bold_number_right_format,
+                    );
+                }
+            }
+        }
+    }
+
     let _ = worksheet.autofit();
+}
+
+fn add_fq_data_to_work_book(workbook: &mut Workbook) {
+    let fq_list = repository::get_calculated_fqs_total_without_group();
+    if fq_list.is_empty() {
+        return;
+    }
+
+    let title_format = Format::new().set_bold().set_align(FormatAlign::Center);
+    let border_format = Format::new()
+        .set_border(FormatBorder::Thin)
+        .set_border_color(Color::Black);
+
+    let border_bold_format = Format::new()
+        .set_border(FormatBorder::Thin)
+        .set_border_color(Color::Black)
+        .set_bold();
+
+    let border_bold_center_format = Format::new()
+        .set_border(FormatBorder::Thin)
+        .set_border_color(Color::Black)
+        .set_align(FormatAlign::Center)
+        .set_num_format("0.00")
+        .set_bold();
+
+    let border_number_right_format = Format::new()
+        .set_border(FormatBorder::Thin)
+        .set_border_color(Color::Black)
+        .set_align(FormatAlign::Right)
+        .set_num_format("0.00");
+
+    let border_bold_number_right_format = Format::new()
+        .set_border(FormatBorder::Thin)
+        .set_border_color(Color::Black)
+        .set_align(FormatAlign::Right)
+        .set_num_format("0.00")
+        .set_bold();
+
+    let worksheet: &mut Worksheet = workbook
+        .add_worksheet()
+        .set_name("QF")
+        .expect("Impossible to set the sheet's name");
+
+    let _ = worksheet.merge_range(0, 0, 0, 11, "QF", &title_format);
+
+    let mut row = 2;
+    let _ = worksheet.write_with_format(row, 0, "Unité", &border_bold_center_format);
+    let _ = worksheet.write_with_format(row, 1, "QF", &border_bold_center_format);
+    let _ = worksheet.write_with_format(row, 2, "Cotisation unité moyenne pondérée", &border_bold_center_format);
+    let _ = worksheet.write_with_format(row, 3, "Cotisation groupe moyenne pondérée", &border_bold_center_format);
+    let _ = worksheet.write_with_format(row, 4, "Coefficient multiplicateur QF", &border_bold_center_format);
+    let _ = worksheet.write_with_format(row, 5, "Montant unité calculé", &border_bold_center_format);
+    let _ = worksheet.write_with_format(row, 6, "Montant groupe calculé", &border_bold_center_format);
+    let _ = worksheet.write_with_format(row, 7, "Montant total calculé", &border_bold_center_format);
+    let _ = worksheet.write_with_format(row, 8, "Contribution nationale", &border_bold_center_format);
+    let _ = worksheet.write_with_format(row, 9, "Total groupe + national", &border_bold_center_format);
+    let _ = worksheet.write_with_format(row, 10, "Frais de commision", &border_bold_center_format);
+    let _ = worksheet.write_with_format(row, 11, "Cotisation totale", &border_bold_center_format);
+
+    for fq in fq_list {
+        row += 1;
+        let _ = worksheet.write_with_format(row, 0, fq.title_section, &border_format);
+        let _ = worksheet.write_with_format(row, 1, fq.title_fq, &border_format);
+        let _ = worksheet.write_with_format(row, 2, fq.declared_unit_price, &border_number_right_format);
+        let _ = worksheet.write_with_format(row, 3, fq.declared_group_unit_price, &border_number_right_format);
+        let _ = worksheet.write_with_format(row, 4, fq.coeff, &border_number_right_format);
+        let _ = worksheet.write_with_format(row, 5, fq.calculated_unit_price_with_coeff, &border_number_right_format);
+        let _ = worksheet.write_with_format(row, 6, fq.group_calculated_unit_price, &border_number_right_format);
+        let _ = worksheet.write_with_format(row, 7, fq.total_group_member_price, &border_number_right_format);
+        let _ = worksheet.write_with_format(row, 8, fq.national_contribution, &border_number_right_format);
+        let _ = worksheet.write_with_format(row, 9, fq.total_member_price, &border_number_right_format);
+        let _ = worksheet.write_with_format(row, 10, fq.national_commission, &border_number_right_format);
+        let _ = worksheet.write_with_format(row, 11, fq.total, &border_bold_number_right_format);
+    }
 }

@@ -209,6 +209,33 @@ pub fn get_fqs_calculated_by_section(section_uid: &str) -> Vec<FqTotal> {
     )
 }
 
+pub fn get_calculated_fqs_total_without_group() -> Vec<FqTotal> {
+    let conn = get_connection().expect("Cannot get connection");
+    execute_read_sql(
+        "SELECT title_section, title_fq, uid_fq, uid_section, declared_unit_price, declared_group_unit_price, coeff, calculated_unit_price_with_coeff, group_calculated_unit_price, total_group_member_price, national_contribution, total_member_price, national_commission, total FROM view_calculated_fqs_total WHERE uid_section <> 'group'",
+        [],
+        |row| {
+            Ok(FqTotal {
+                title_section: row.get(0)?,
+                title_fq: row.get(1)?,
+                uid_fq: row.get(2)?,
+                uid_section: row.get(3)?,
+                declared_unit_price: row.get(4)?,
+                declared_group_unit_price: row.get(5)?,
+                coeff: row.get(6)?,
+                calculated_unit_price_with_coeff: row.get(7)?,
+                group_calculated_unit_price: row.get(8)?,
+                total_group_member_price: row.get(9)?,
+                national_contribution: row.get(10)?,
+                total_member_price: row.get(11)?,
+                national_commission: row.get(12)?,
+                total: row.get(13)?,
+            })
+        },
+        &conn,
+    )
+}
+
 pub fn expense_list() -> Vec<Expense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
