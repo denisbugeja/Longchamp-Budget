@@ -665,7 +665,6 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
             &border_number_right_format,
         );
         let _ = worksheet.write_with_format(row, 4, fq.coeff, &border_number_right_format);
-
         let _ = worksheet.write_with_format(
             row,
             5,
@@ -679,16 +678,12 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
 
         let _ = worksheet.write_with_format(
             row,
-            5,
-            fq.calculated_unit_price_with_coeff,
-            &border_number_right_format,
-        );
-        let _ = worksheet.write_with_format(
-            row,
             6,
-            fq.group_calculated_unit_price,
+            Formula::new(format!("=ROUND(D{row}*E{row},2)"))
+                .set_result(fq.group_calculated_unit_price.to_string().replace(".", ",")),
             &border_number_right_format,
         );
+
         let _ = worksheet.write_with_format(
             row,
             7,
