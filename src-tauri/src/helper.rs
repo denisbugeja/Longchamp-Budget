@@ -578,11 +578,6 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         .set_border(FormatBorder::Thin)
         .set_border_color(Color::Black);
 
-    let border_bold_format = Format::new()
-        .set_border(FormatBorder::Thin)
-        .set_border_color(Color::Black)
-        .set_bold();
-
     let border_bold_center_format = Format::new()
         .set_border(FormatBorder::Thin)
         .set_border_color(Color::Black)
@@ -611,7 +606,7 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
     let _ = worksheet.merge_range(0, 0, 0, 11, "QF", &title_format);
 
     let mut row = 2;
-    let mut formula_row = row + 1;
+    let mut formula_row;
     let _ = worksheet.write_with_format(row, 0, "Unité", &border_bold_center_format);
     let _ = worksheet.write_with_format(row, 1, "QF", &border_bold_center_format);
     let _ = worksheet.write_with_format(
