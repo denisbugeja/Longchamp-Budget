@@ -788,20 +788,28 @@ Stimulus.register("matrix-section", class extends Controller {
     }
 
     async fqMatrixLoad() {
-        if (GROUP_ID === this.uidValue) {
-            return
-        }
-
         let fqMatrix = JSON.parse(await invoke('get_fqs_calculated_by_section', { sectionUid: this.uidValue }))
 
         if (0 === fqMatrix.length) {
             return
         }
 
+        console.log(fqMatrix)
+
+        let headTemplate = '_parts/_components/_matrix_section_fq_head.html',
+            bodyTemplate = '_parts/_components/_matrix_section_fq_body.html',
+            tableTemplate = '_parts/_components/_matrix_section_fq_table.html'
+
+        if (GROUP_ID === this.uidValue) {
+            headTemplate = '_parts/_components/_matrix_section_fq_head_group.html'
+            bodyTemplate = '_parts/_components/_matrix_section_fq_body_group.html'
+            tableTemplate = '_parts/_components/_matrix_section_fq_table_group.html'
+        }
+
         let fqHead = fqMatrix[0],
-            fqHeadHtmlContent = await generateFromFilePath('_parts/_components/_matrix_section_fq_head.html', fqHead),
-            fqBodyHtmlContent = await generateFromFilePath('_parts/_components/_matrix_section_fq_body.html', fqMatrix),
-            fqTableHtmlContent = await generateFromFilePath('_parts/_components/_matrix_section_fq_table.html', { fqBodyHtmlContent: fqBodyHtmlContent })
+            fqHeadHtmlContent = await generateFromFilePath(headTemplate, fqHead),
+            fqBodyHtmlContent = await generateFromFilePath(bodyTemplate, fqMatrix),
+            fqTableHtmlContent = await generateFromFilePath(tableTemplate, { fqBodyHtmlContent: fqBodyHtmlContent })
 
         renderElement(this.fqMatrixTarget, fqHeadHtmlContent + fqTableHtmlContent)
     }
