@@ -687,7 +687,8 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         let _ = worksheet.write_with_format(
             row,
             7,
-            fq.total_group_member_price,
+            Formula::new(format!("=ROUND(F{row}+G{row},2)"))
+                .set_result(fq.total_group_member_price.to_string().replace(".", ",")),
             &border_number_right_format,
         );
         let _ = worksheet.write_with_format(
@@ -696,14 +697,25 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
             fq.national_contribution,
             &border_number_right_format,
         );
-        let _ =
-            worksheet.write_with_format(row, 9, fq.total_member_price, &border_number_right_format);
+        let _ = worksheet.write_with_format(
+            row,
+            9,
+            Formula::new(format!("=ROUND(H{row}+I{row},2)"))
+                .set_result(fq.total_member_price.to_string().replace(".", ",")),
+            &border_number_right_format,
+        );
         let _ = worksheet.write_with_format(
             row,
             10,
             fq.national_commission,
             &border_number_right_format,
         );
-        let _ = worksheet.write_with_format(row, 11, fq.total, &border_bold_number_right_format);
+        let _ = worksheet.write_with_format(
+            row,
+            11,
+            Formula::new(format!("=ROUND(J{row}+K{row},2)"))
+                .set_result(fq.total.to_string().replace(".", ",")),
+            &border_bold_number_right_format,
+        );
     }
 }
