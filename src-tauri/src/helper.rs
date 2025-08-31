@@ -111,6 +111,7 @@ pub struct FqTotal {
     pub total_member_price: f32,
     pub national_commission: f32,
     pub total: f32,
+    pub members_declared_count: f32,
 }
 
 pub fn vec_to_json<T: Serialize>(vec_data: Vec<T>) -> String {
@@ -717,41 +718,43 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
 
     let _ = worksheet.write_with_format(row, 0, "Unité", &border_bold_center_format);
     let _ = worksheet.write_with_format(row, 1, "QF", &border_bold_center_format);
+    let _ = worksheet.write_with_format(row, 2, "Enfants/ados", &border_bold_center_format);
+
     let _ = worksheet.write_with_format(
         row,
-        2,
+        3,
         "Cotisation unité moyenne pondérée",
         &border_bold_center_format,
     );
     let _ = worksheet.write_with_format(
         row,
-        3,
+        4,
         "Cotisation groupe moyenne pondérée",
         &border_bold_center_format,
     );
     let _ = worksheet.write_with_format(
         row,
-        4,
+        5,
         "Coefficient multiplicateur QF",
         &border_bold_center_format,
     );
     let _ =
-        worksheet.write_with_format(row, 5, "Montant unité calculé", &border_bold_center_format);
+        worksheet.write_with_format(row, 6, "Montant unité calculé", &border_bold_center_format);
     let _ =
-        worksheet.write_with_format(row, 6, "Montant groupe calculé", &border_bold_center_format);
-    let _ = worksheet.write_with_format(row, 7, "Total unité + groupe", &border_bold_center_format);
+        worksheet.write_with_format(row, 7, "Montant groupe calculé", &border_bold_center_format);
+    let _ = worksheet.write_with_format(row, 8, "Total unité + groupe", &border_bold_center_format);
     let _ =
-        worksheet.write_with_format(row, 8, "Contribution nationale", &border_bold_center_format);
-    let _ = worksheet.write_with_format(row, 9, "Total", &border_bold_center_format);
+        worksheet.write_with_format(row, 9, "Contribution nationale", &border_bold_center_format);
+    let _ = worksheet.write_with_format(row, 10, "Total", &border_bold_center_format);
     let _ = worksheet.write_with_format(
         row,
-        10,
+        11,
         "Frais de commision en ligne",
         &border_bold_center_format,
     );
     let _ = worksheet.write_with_format(
         row,
-        11,
+        12,
         "Montant total de la Cotisation",
         &border_bold_center_format,
     );
@@ -765,19 +768,25 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         let _ = worksheet.write_with_format(
             row,
             2,
-            fq.declared_unit_price,
+            fq.members_declared_count,
             &border_number_right_format,
         );
         let _ = worksheet.write_with_format(
             row,
             3,
+            fq.declared_unit_price,
+            &border_number_right_format,
+        );
+        let _ = worksheet.write_with_format(
+            row,
+            4,
             fq.declared_group_unit_price,
             &border_number_right_format,
         );
-        let _ = worksheet.write_with_format(row, 4, fq.coeff, &border_number_right_format);
+        let _ = worksheet.write_with_format(row, 5, fq.coeff, &border_number_right_format);
         let _ = worksheet.write_with_format(
             row,
-            5,
+            6,
             Formula::new(format!("=ROUND(C{formula_row}*E{formula_row},2)")).set_result(
                 fq.calculated_unit_price_with_coeff
                     .to_string()
@@ -787,40 +796,40 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         );
         let _ = worksheet.write_with_format(
             row,
-            6,
+            7,
             Formula::new(format!("=ROUND(D{formula_row}*E{formula_row},2)"))
                 .set_result(fq.group_calculated_unit_price.to_string().replace(".", ",")),
             &border_number_right_format,
         );
         let _ = worksheet.write_with_format(
             row,
-            7,
+            8,
             Formula::new(format!("=ROUND(F{formula_row}+G{formula_row},2)"))
                 .set_result(fq.total_group_member_price.to_string().replace(".", ",")),
             &border_number_right_format,
         );
         let _ = worksheet.write_with_format(
             row,
-            8,
+            9,
             fq.national_contribution,
             &border_number_right_format,
         );
         let _ = worksheet.write_with_format(
             row,
-            9,
+            10,
             Formula::new(format!("=ROUND(H{formula_row}+I{formula_row},2)"))
                 .set_result(fq.total_member_price.to_string().replace(".", ",")),
             &border_number_right_format,
         );
         let _ = worksheet.write_with_format(
             row,
-            10,
+            11,
             fq.national_commission,
             &border_number_right_format,
         );
         let _ = worksheet.write_with_format(
             row,
-            11,
+            12,
             Formula::new(format!("=ROUND(J{formula_row}+K{formula_row},2)"))
                 .set_result(fq.total.to_string().replace(".", ",")),
             &border_bold_number_right_format,

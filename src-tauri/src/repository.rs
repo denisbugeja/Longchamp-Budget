@@ -204,6 +204,7 @@ pub fn get_fqs_calculated_by_section(section_uid: &str) -> Vec<FqTotal> {
                 total_member_price: row.get(11)?,
                 national_commission: row.get(12)?,
                 total: row.get(13)?,
+                members_declared_count: row.get(14)?
             })
         },
         &conn,
@@ -231,6 +232,7 @@ pub fn get_calculated_fqs_total_without_group() -> Vec<FqTotal> {
                 total_member_price: row.get(11)?,
                 national_commission: row.get(12)?,
                 total: row.get(13)?,
+                members_declared_count: row.get(14)?,
             })
         },
         &conn,
