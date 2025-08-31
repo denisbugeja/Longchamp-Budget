@@ -496,7 +496,40 @@ fn handle_worksheet(
             row += 2;
             let _ = worksheet.merge_range(row, 0, row, 7, "Prise en charge des QF", &title_format);
 
+            let fqs_calculated = repository::get_fqs_calculated_by_section(&section.uid);
+            if !fqs_calculated.is_empty() {
+                row += 2;
+                if "group" != section.uid {
+                    let _ = worksheet.write_with_format(
+                        row,
+                        0,
+                        "Cotisation Unité moyenne pondérée par enfant",
+                        &border_bold_format,
+                    );
+                    let _ = worksheet.write_with_format(
+                        row,
+                        1,
+                        fqs_calculated[0].declared_unit_price,
+                        &border_bold_number_right_format,
+                    );
+                    row += 1;
+                }
+                let _ = worksheet.write_with_format(
+                    row,
+                    0,
+                    "Cotisation Groupe moyenne pondérée par enfant",
+                    &border_bold_format,
+                );
+                let _ = worksheet.write_with_format(
+                    row,
+                    1,
+                    fqs_calculated[0].declared_group_unit_price,
+                    &border_bold_number_right_format,
+                );
+            }
+
             row += 2;
+
             let _ = worksheet.write_with_format(row, 0, "QF", &border_bold_format);
             let _ = worksheet.write_with_format(
                 row,
