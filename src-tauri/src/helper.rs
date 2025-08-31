@@ -89,6 +89,7 @@ pub struct Fq {
 pub struct FqSection {
     pub uid_fq: String,
     pub uid_section: String,
+    pub coeff: f32,
     pub members_count: f32,
     pub title_section: String,
     pub title_fq: String,
@@ -578,6 +579,12 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         .set_border(FormatBorder::Thin)
         .set_border_color(Color::Black);
 
+    let border_bold_format = Format::new()
+        .set_border(FormatBorder::Thin)
+        .set_border_color(Color::Black)
+        .set_num_format("0.00")
+        .set_bold();
+
     let border_bold_center_format = Format::new()
         .set_border(FormatBorder::Thin)
         .set_border_color(Color::Black)
@@ -605,8 +612,78 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
 
     let _ = worksheet.merge_range(0, 0, 0, 11, "QF", &title_format);
 
-    let mut row = 2;
+    let mut row = 0;
     let mut formula_row;
+
+    let section_list = repository::section_list();
+    if !section_list.len() > 1 {
+        let mut count_declared_members;
+        let mut members_list;
+        let mut first_row;
+        for section in section_list {
+            if "group" != section.uid {
+                row += 2;
+                count_declared_members = repository::get_members_fq_count_by_section(&section.uid);
+                let _ = worksheet.merge_range(
+                    row,
+                    0,
+                    row,
+                    2,
+                    &section.title,
+                    &border_bold_center_format,
+                );
+                row += 1;
+                let _ = worksheet.write_with_format(row, 0, "QF", &border_bold_center_format);
+                let _ = worksheet.write_with_format(row, 1, "Coeff", &border_bold_center_format);
+                let _ = worksheet.write_with_format(
+                    row,
+                    2,
+                    "Enfants/Ados",
+                    &border_bold_center_format,
+                );
+                members_list = repository::fq_section_list_load(&section.uid);
+                if !members_list.is_empty() {
+                    first_row = row + 2;
+                    for members in members_list {
+                        row += 1;
+                        let _ = worksheet.write_with_format(
+                            row,
+                            0,
+                            members.title_fq,
+                            &border_bold_format,
+                        );
+                        let _ =
+                            worksheet.write_with_format(row, 1, members.coeff, &border_bold_format);
+                        let _ = worksheet.write_with_format(
+                            row,
+                            2,
+                            members.members_count,
+                            &border_number_right_format,
+                        );
+                    }
+                    row += 1;
+                    let _ = worksheet.merge_range(
+                        row,
+                        0,
+                        row,
+                        1,
+                        "Total",
+                        &border_bold_number_right_format,
+                    );
+                    let _ = worksheet.write_with_format(
+                        row,
+                        2,
+                        Formula::new(format!("=SUM(C{first_row}:C{row})"))
+                            .set_result(count_declared_members.to_string()),
+                        &border_bold_number_right_format,
+                    );
+                }
+            }
+        }
+    }
+
+    row += 2;
+
     let _ = worksheet.write_with_format(row, 0, "Unité", &border_bold_center_format);
     let _ = worksheet.write_with_format(row, 1, "QF", &border_bold_center_format);
     let _ = worksheet.write_with_format(

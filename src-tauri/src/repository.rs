@@ -163,7 +163,7 @@ pub fn fq_list() -> Vec<Fq> {
 pub fn fq_section_list_load(section_uid: &str) -> Vec<FqSection> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT sections_fqs.uid_section, sections_fqs.uid_fq, sections_fqs.members_count, sections.title as section_title, fqs.title as fq_title
+        "SELECT sections_fqs.uid_section, sections_fqs.uid_fq, fqs.coeff, sections_fqs.members_count, sections.title as section_title, fqs.title as fq_title
         FROM sections_fqs INNER JOIN sections ON sections_fqs.uid_section = sections.uid 
         INNER JOIN fqs ON fqs.uid = sections_fqs.uid_fq
         WHERE sections_fqs.uid_section = ?1 
@@ -173,9 +173,10 @@ pub fn fq_section_list_load(section_uid: &str) -> Vec<FqSection> {
             Ok(FqSection {
                 uid_fq: row.get(1)?,
                 uid_section: row.get(0)?,
-                members_count: row.get(2)?,
-                title_section: row.get(3)?,
-                title_fq: row.get(4)?,
+                coeff: row.get(2)?,
+                members_count: row.get(3)?,
+                title_section: row.get(4)?,
+                title_fq: row.get(5)?,
             })
         },
         &conn,
