@@ -739,23 +739,22 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         worksheet.write_with_format(row, 5, "Montant unité calculé", &border_bold_center_format);
     let _ =
         worksheet.write_with_format(row, 6, "Montant groupe calculé", &border_bold_center_format);
-    let _ =
-        worksheet.write_with_format(row, 7, "Montant total calculé", &border_bold_center_format);
+    let _ = worksheet.write_with_format(row, 7, "Total unité + groupe", &border_bold_center_format);
     let _ =
         worksheet.write_with_format(row, 8, "Contribution nationale", &border_bold_center_format);
-    let _ = worksheet.write_with_format(
-        row,
-        9,
-        "Total groupe + national",
-        &border_bold_center_format,
-    );
+    let _ = worksheet.write_with_format(row, 9, "Total", &border_bold_center_format);
     let _ = worksheet.write_with_format(
         row,
         10,
         "Frais de commision en ligne",
         &border_bold_center_format,
     );
-    let _ = worksheet.write_with_format(row, 11, "Cotisation totale", &border_bold_center_format);
+    let _ = worksheet.write_with_format(
+        row,
+        11,
+        "Montant total de la Cotisation",
+        &border_bold_center_format,
+    );
 
     for fq in fq_list {
         row += 1;
