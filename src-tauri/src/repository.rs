@@ -186,7 +186,7 @@ pub fn fq_section_list_load(section_uid: &str) -> Vec<FqSection> {
 pub fn get_fqs_calculated_by_section(section_uid: &str) -> Vec<FqTotal> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT title_section, title_fq, uid_fq, uid_section, declared_unit_price, declared_group_unit_price, coeff, calculated_unit_price_with_coeff, group_calculated_unit_price, total_group_member_price, national_contribution, total_member_price, national_commission, total FROM view_calculated_fqs_total WHERE uid_section = ?",
+        "SELECT title_section, title_fq, uid_fq, uid_section, declared_unit_price, declared_group_unit_price, coeff, calculated_unit_price_with_coeff, group_calculated_unit_price, total_group_member_price, national_contribution, total_member_price, national_commission, total, members_declared_count FROM view_calculated_fqs_total WHERE uid_section = ?",
         params!(section_uid),
         |row| {
             Ok(FqTotal {
@@ -214,7 +214,7 @@ pub fn get_fqs_calculated_by_section(section_uid: &str) -> Vec<FqTotal> {
 pub fn get_calculated_fqs_total_without_group() -> Vec<FqTotal> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT title_section, title_fq, uid_fq, uid_section, declared_unit_price, declared_group_unit_price, coeff, calculated_unit_price_with_coeff, group_calculated_unit_price, total_group_member_price, national_contribution, total_member_price, national_commission, total FROM view_calculated_fqs_total WHERE uid_section <> 'group'",
+        "SELECT title_section, title_fq, uid_fq, uid_section, declared_unit_price, declared_group_unit_price, coeff, calculated_unit_price_with_coeff, group_calculated_unit_price, total_group_member_price, national_contribution, total_member_price, national_commission, total, members_declared_count FROM view_calculated_fqs_total WHERE uid_section <> 'group'",
         [],
         |row| {
             Ok(FqTotal {

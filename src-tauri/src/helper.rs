@@ -611,7 +611,7 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         .set_name("QF")
         .expect("Impossible to set the sheet's name");
 
-    let _ = worksheet.merge_range(0, 0, 0, 11, "QF", &title_format);
+    let _ = worksheet.merge_range(0, 0, 0, 12, "QF", &title_format);
 
     let mut row = 0;
     let mut formula_row;
