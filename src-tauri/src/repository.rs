@@ -1393,9 +1393,11 @@ ROUND(s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff,2)
 fqs.national_contribution,
 ROUND(s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff + fqs.national_contribution ,2) AS total_member_price,
 ROUND((s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff + fqs.national_contribution) * fqs.online_commission_rate + fqs.online_commission_fees,2) AS national_commission,
-ROUND(s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff + fqs.national_contribution ,2) + ROUND((s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff + fqs.national_contribution) * fqs.online_commission_rate + fqs.online_commission_fees,2) AS total
+ROUND(s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff + fqs.national_contribution ,2) + ROUND((s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff + fqs.national_contribution) * fqs.online_commission_rate + fqs.online_commission_fees,2) AS total,
+sections_fqs.members_count AS members_declared_count
 FROM view_declared_calculated_fqs_sections_unit_price AS s INNER JOIN view_declared_calculated_fqs_sections_unit_price AS g ON s.uid_fq = g.uid_fq
 INNER JOIN fqs ON s.uid_fq = fqs.uid
+INNER JOIN sections_fqs ON s.uid_fq = sections_fqs.uid_fq AND s.uid_section = sections_fqs.uid_section
 INNER JOIN sections ON s.uid_section  = sections.uid
 AND g.uid_section = 'group'
 ORDER BY sections.position, fqs.position ASC"
