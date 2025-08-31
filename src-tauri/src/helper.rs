@@ -488,12 +488,12 @@ fn handle_worksheet(
         }
     }
 
-    // FQ
+    // FQ //TODO Afficher montant unité et montant pondéré unité
     if !calculated_expenses_list.is_empty() {
         let fq_list: Vec<FqTotal> = repository::get_fqs_calculated_by_section(&section.uid);
         if !fq_list.is_empty() {
-            row += 4;
-            let _ = worksheet.merge_range(row, 0, 0, 7, "Prise en charge des QF", &title_format);
+            row += 2;
+            let _ = worksheet.merge_range(row, 0, row, 7, "Prise en charge des QF", &title_format);
 
             row += 2;
             let _ = worksheet.write_with_format(row, 0, "QF", &border_bold_format);
@@ -616,65 +616,96 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
     let mut formula_row;
 
     let section_list = repository::section_list();
-    if !section_list.len() > 1 {
+    if !section_list.is_empty() {
         let mut count_declared_members;
         let mut members_list;
         let mut first_row;
+        let mut fqs_calculated;
+        let mut sum_calculated;
         for section in section_list {
-            if "group" != section.uid {
-                row += 2;
-                count_declared_members = repository::get_members_fq_count_by_section(&section.uid);
+            row += 2;
+            count_declared_members = repository::get_members_fq_count_by_section(&section.uid);
+            fqs_calculated = repository::get_fqs_calculated_by_section(&section.uid);
+
+            let _ =
+                worksheet.merge_range(row, 0, row, 2, &section.title, &border_bold_center_format);
+            row += 1;
+            let _ = worksheet.write_with_format(row, 0, "QF", &border_bold_center_format);
+            let _ = worksheet.write_with_format(
+                row,
+                1,
+                "Coefficient multiplicateur QF",
+                &border_bold_center_format,
+            );
+            let _ = worksheet.write_with_format(row, 2, "Enfants/Ados", &border_bold_center_format);
+            members_list = repository::fq_section_list_load(&section.uid);
+            if !members_list.is_empty() {
+                first_row = row + 2;
+                for members in members_list {
+                    row += 1;
+                    let _ =
+                        worksheet.write_with_format(row, 0, members.title_fq, &border_bold_format);
+                    let _ = worksheet.write_with_format(row, 1, members.coeff, &border_bold_format);
+                    let _ = worksheet.write_with_format(
+                        row,
+                        2,
+                        members.members_count,
+                        &border_number_right_format,
+                    );
+                }
+                row += 1;
                 let _ = worksheet.merge_range(
                     row,
                     0,
                     row,
-                    2,
-                    &section.title,
-                    &border_bold_center_format,
+                    1,
+                    "Total",
+                    &border_bold_number_right_format,
                 );
-                row += 1;
-                let _ = worksheet.write_with_format(row, 0, "QF", &border_bold_center_format);
-                let _ = worksheet.write_with_format(row, 1, "Coeff", &border_bold_center_format);
                 let _ = worksheet.write_with_format(
                     row,
                     2,
-                    "Enfants/Ados",
-                    &border_bold_center_format,
+                    Formula::new(format!("=SUM(C{first_row}:C{row})"))
+                        .set_result(count_declared_members.to_string()),
+                    &border_bold_number_right_format,
                 );
-                members_list = repository::fq_section_list_load(&section.uid);
-                if !members_list.is_empty() {
-                    first_row = row + 2;
-                    for members in members_list {
-                        row += 1;
-                        let _ = worksheet.write_with_format(
-                            row,
-                            0,
-                            members.title_fq,
-                            &border_bold_format,
-                        );
-                        let _ =
-                            worksheet.write_with_format(row, 1, members.coeff, &border_bold_format);
-                        let _ = worksheet.write_with_format(
-                            row,
-                            2,
-                            members.members_count,
-                            &border_number_right_format,
-                        );
-                    }
+
+                if "group" == section.uid {
+                    sum_calculated = repository::get_group_sum_calculated_expenses();
+                } else {
+                    sum_calculated = repository::get_sum_calculated_expenses(&section.uid);
+                }
+
+                row += 1;
+                let _ = worksheet.merge_range(
+                    row,
+                    0,
+                    row,
+                    1,
+                    "Cotisation unité",
+                    &border_bold_number_right_format,
+                );
+                let _ = worksheet.write_with_format(
+                    row,
+                    2,
+                    sum_calculated.sum_unit,
+                    &border_bold_number_right_format,
+                );
+
+                if !fqs_calculated.is_empty() {
                     row += 1;
                     let _ = worksheet.merge_range(
                         row,
                         0,
                         row,
                         1,
-                        "Total",
+                        "Cotisation unité moyenne pondérée",
                         &border_bold_number_right_format,
                     );
                     let _ = worksheet.write_with_format(
                         row,
                         2,
-                        Formula::new(format!("=SUM(C{first_row}:C{row})"))
-                            .set_result(count_declared_members.to_string()),
+                        fqs_calculated[0].declared_unit_price,
                         &border_bold_number_right_format,
                     );
                 }
@@ -718,7 +749,12 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         "Total groupe + national",
         &border_bold_center_format,
     );
-    let _ = worksheet.write_with_format(row, 10, "Frais de commision", &border_bold_center_format);
+    let _ = worksheet.write_with_format(
+        row,
+        10,
+        "Frais de commision en ligne",
+        &border_bold_center_format,
+    );
     let _ = worksheet.write_with_format(row, 11, "Cotisation totale", &border_bold_center_format);
 
     for fq in fq_list {
@@ -791,4 +827,5 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
             &border_bold_number_right_format,
         );
     }
+    let _ = worksheet.autofit();
 }
