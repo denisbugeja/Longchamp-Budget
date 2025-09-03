@@ -820,7 +820,7 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         let _ = worksheet.write_with_format(
             row,
             6,
-            Formula::new(format!("=ROUND(C{formula_row}*E{formula_row},2)")).set_result(
+            Formula::new(format!("=ROUND(D{formula_row}*F{formula_row},2)")).set_result(
                 fq.calculated_unit_price_with_coeff
                     .to_string()
                     .replace(".", ","),
@@ -830,14 +830,14 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         let _ = worksheet.write_with_format(
             row,
             7,
-            Formula::new(format!("=ROUND(D{formula_row}*E{formula_row},2)"))
+            Formula::new(format!("=ROUND(E{formula_row}*F{formula_row},2)"))
                 .set_result(fq.group_calculated_unit_price.to_string().replace(".", ",")),
             &border_number_right_format,
         );
         let _ = worksheet.write_with_format(
             row,
             8,
-            Formula::new(format!("=ROUND(F{formula_row}+G{formula_row},2)"))
+            Formula::new(format!("=ROUND(G{formula_row}+H{formula_row},2)"))
                 .set_result(fq.total_group_member_price.to_string().replace(".", ",")),
             &border_number_right_format,
         );
@@ -850,7 +850,7 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         let _ = worksheet.write_with_format(
             row,
             10,
-            Formula::new(format!("=ROUND(H{formula_row}+I{formula_row},2)"))
+            Formula::new(format!("=ROUND(I{formula_row}+J{formula_row},2)"))
                 .set_result(fq.total_member_price.to_string().replace(".", ",")),
             &border_number_right_format,
         );
@@ -863,7 +863,7 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         let _ = worksheet.write_with_format(
             row,
             12,
-            Formula::new(format!("=ROUND(J{formula_row}+K{formula_row},2)"))
+            Formula::new(format!("=ROUND(K{formula_row}+L{formula_row},2)"))
                 .set_result(fq.total.to_string().replace(".", ",")),
             &border_bold_number_right_format,
         );
