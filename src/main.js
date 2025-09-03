@@ -17,9 +17,9 @@ function renderTemplate(templateString, data, raw = false) {
     return templateString
         .replace(/{%(.*?)%}/g, (match, p1) => data[p1.trim()])
         .replace(/{{(.*?)}}/g, (match, p1) => {
-        const key = p1.trim()
-        return raw ? data[key] ?? '' : escapeHtmlAttribute(data[key] ?? '')
-    })
+            const key = p1.trim()
+            return raw ? data[key] ?? '' : escapeHtmlAttribute(data[key] ?? '')
+        })
 }
 
 function deleteSpecialCharForId(id) {
@@ -1201,6 +1201,12 @@ Stimulus.register("fq", class extends Controller {
         }
         await invoke("insert_new_fq", { title: this.titleTarget.value, coeff: this.coeffTarget.value, nationalContribution: this.nationalContributionTarget.value, onlineCommissionRate: this.onlineCommissionRateTarget.value, onlineCommissionFees: this.onlineCommissionFeesTarget.value })
         await this.globalRefresh()
+
+        this.titleTarget.value = ''
+        this.coeffTarget.value = 1
+        this.nationalContributionTarget.value = 0
+        this.onlineCommissionFeesTarget.value = 0
+        this.onlineCommissionRateTarget.value = 0
     }
 
     async fqListLoad() {
@@ -1214,7 +1220,7 @@ Stimulus.register("fq", class extends Controller {
     }
 
     async loadFqForSection(section) {
-        let fqList = JSON.parse(await invoke("fq_section_list_load", { sectionUid: section.uid }))            
+        let fqList = JSON.parse(await invoke("fq_section_list_load", { sectionUid: section.uid }))
         fqList = fqList.map((x) => {
             x.section_members_count = section.members_count
             return x
