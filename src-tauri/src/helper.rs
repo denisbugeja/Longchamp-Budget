@@ -567,7 +567,7 @@ fn handle_worksheet(
             for fq in fq_list {
                 row += 1;
                 let _ =
-                    worksheet.write_with_format(row, 0, fq.title_fq, &border_number_right_format);
+                    worksheet.write_with_format(row, 0, fq.title_fq, &border_bold_format);
                 let _ = worksheet.write_with_format(row, 1, fq.coeff, &border_number_right_format);
                 let _ = worksheet.write_with_format(
                     row,
