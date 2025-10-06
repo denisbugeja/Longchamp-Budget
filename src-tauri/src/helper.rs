@@ -696,8 +696,15 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
             count_declared_members = repository::get_members_fq_count_by_section(&section.uid);
             fqs_calculated = repository::get_fqs_calculated_by_section(&section.uid);
 
+            let color = self::get_xlsx_color_from_str(&section.color);
+            let border_color_bold_center_format = border_bold_center_format
+                .clone()
+                .set_background_color(color)
+                .set_font_color("#ffffff")
+            ;
+
             let _ =
-                worksheet.merge_range(row, 0, row, 2, &section.title, &border_bold_center_format);
+                worksheet.merge_range(row, 0, row, 2, &section.title, &border_color_bold_center_format);
             row += 1;
             let _ = worksheet.write_with_format(row, 0, "QF", &border_bold_center_format);
             let _ = worksheet.write_with_format(
@@ -745,6 +752,12 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
                     sum_calculated = repository::get_sum_calculated_expenses(&section.uid);
                 }
 
+                let border_color_bold_number_right_format = border_bold_number_right_format
+                .clone()
+                .set_font_color("#ffffff")
+                .set_background_color(color)
+                ;
+
                 row += 1;
                 let _ = worksheet.merge_range(
                     row,
@@ -752,13 +765,13 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
                     row,
                     1,
                     "Cotisation unité",
-                    &border_bold_number_right_format,
+                    &border_color_bold_number_right_format,
                 );
                 let _ = worksheet.write_with_format(
                     row,
                     2,
                     sum_calculated.sum_unit,
-                    &border_bold_number_right_format,
+                    &border_color_bold_number_right_format,
                 );
 
                 if !fqs_calculated.is_empty() {
@@ -769,13 +782,13 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
                         row,
                         1,
                         "Cotisation unité moyenne pondérée",
-                        &border_bold_number_right_format,
+                        &border_color_bold_number_right_format,
                     );
                     let _ = worksheet.write_with_format(
                         row,
                         2,
                         fqs_calculated[0].declared_unit_price,
-                        &border_bold_number_right_format,
+                        &border_color_bold_number_right_format,
                     );
                 }
             }
