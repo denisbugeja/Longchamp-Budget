@@ -3,6 +3,7 @@ use rust_xlsxwriter::{
     Color, Format, FormatAlign, FormatBorder, Formula, Note, Workbook, Worksheet,
 };
 use serde::{Deserialize, Serialize};
+use std::cmp::max;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -128,8 +129,9 @@ pub fn json_to_vec(json_data: &str) -> Vec<&str> {
 }
 
 pub fn get_xlsx_color_from_str(color: &str) -> Color {
-   let rgb_color: u32 =  u32::from_str_radix(&color[1..], 16).expect("Conversion error hexadecimal to rgb");
-   Color::RGB(rgb_color)
+    let rgb_color: u32 =
+        u32::from_str_radix(&color[1..], 16).expect("Conversion error hexadecimal to rgb");
+    Color::RGB(rgb_color)
 }
 
 pub fn generate_xls_file() {
@@ -154,6 +156,8 @@ pub fn generate_xls_file() {
         add_fq_data_to_work_book(&mut workbook);
     }
 
+    create_accounting_balance_sheet(&mut workbook);
+
     let _ = workbook.save(final_path);
 }
 
@@ -162,20 +166,16 @@ fn handle_worksheet(
     workbook: &mut Workbook,
     group_expense_list: &Vec<CalculatedExpense>,
 ) {
-    let color = self::get_xlsx_color_from_str(&section.color);
+    let color = get_xlsx_color_from_str(&section.color);
     let worksheet: &mut Worksheet = workbook.add_worksheet();
     let _ = worksheet.set_tab_color(color);
 
-     let title_format = Format::new()
-        .set_bold()
-        .set_align(FormatAlign::Center)
-    ;
+    let title_format = Format::new().set_bold().set_align(FormatAlign::Center);
 
     let main_title_format = title_format
         .clone()
         .set_font_color("#ffffff")
-        .set_background_color(color)
-    ;
+        .set_background_color(color);
     let border_format = Format::new()
         .set_border(FormatBorder::Thin)
         .set_border_color(Color::Black);
@@ -463,23 +463,32 @@ fn handle_worksheet(
 
             row += 1;
             let sum_row_end: u32 = row;
-            let mut total_label_ratio = String::from("Montant des Dépenses partiellement rattachées par enfant");
+            let mut total_label_ratio =
+                String::from("Montant des Dépenses partiellement rattachées par enfant");
             if "group" == section.uid && calculated_expenses_list.is_empty() {
                 total_label_ratio = String::from("Total Groupe par enfant");
             }
             let row_total_rated_group = row + 1;
             let sum_calculated_group: SumExpenseInstance =
                 repository::get_group_sum_calculated_expenses();
-            
+
             if true {
-                let _ = worksheet.merge_range(row, 1, row, 4, "Montant total des Dépenses partiellement rattachées", &border_format);
+                let _ = worksheet.merge_range(
+                    row,
+                    1,
+                    row,
+                    4,
+                    "Montant total des Dépenses partiellement rattachées",
+                    &border_format,
+                );
                 let formula_total_calculated_group =
-                    Formula::new(format!("=ROUND(SUM(F{sum_row_begin}:F{sum_row_end}),2)")).set_result(
-                        group_sum_expense_instance
-                            .sum_total
-                            .to_string()
-                            .replace(".", ","),
-                    );
+                    Formula::new(format!("=ROUND(SUM(F{sum_row_begin}:F{sum_row_end}),2)"))
+                        .set_result(
+                            group_sum_expense_instance
+                                .sum_total
+                                .to_string()
+                                .replace(".", ","),
+                        );
                 let _ = worksheet.write_formula_with_format(
                     row,
                     5,
@@ -601,8 +610,7 @@ fn handle_worksheet(
 
             for fq in fq_list {
                 row += 1;
-                let _ =
-                    worksheet.write_with_format(row, 0, fq.title_fq, &border_bold_format);
+                let _ = worksheet.write_with_format(row, 0, fq.title_fq, &border_bold_format);
                 let _ = worksheet.write_with_format(row, 1, fq.coeff, &border_number_right_format);
                 let _ = worksheet.write_with_format(
                     row,
@@ -696,15 +704,20 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
             count_declared_members = repository::get_members_fq_count_by_section(&section.uid);
             fqs_calculated = repository::get_fqs_calculated_by_section(&section.uid);
 
-            let color = self::get_xlsx_color_from_str(&section.color);
+            let color = get_xlsx_color_from_str(&section.color);
             let border_color_bold_center_format = border_bold_center_format
                 .clone()
                 .set_background_color(color)
-                .set_font_color("#ffffff")
-            ;
+                .set_font_color("#ffffff");
 
-            let _ =
-                worksheet.merge_range(row, 0, row, 2, &section.title, &border_color_bold_center_format);
+            let _ = worksheet.merge_range(
+                row,
+                0,
+                row,
+                2,
+                &section.title,
+                &border_color_bold_center_format,
+            );
             row += 1;
             let _ = worksheet.write_with_format(row, 0, "QF", &border_bold_center_format);
             let _ = worksheet.write_with_format(
@@ -722,12 +735,8 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
                     let _ =
                         worksheet.write_with_format(row, 0, members.title_fq, &border_bold_format);
                     let _ = worksheet.write_with_format(row, 1, members.coeff, &border_bold_format);
-                    let _ = worksheet.write_with_format(
-                        row,
-                        2,
-                        members.members_count,
-                        &border_format,
-                    );
+                    let _ =
+                        worksheet.write_with_format(row, 2, members.members_count, &border_format);
                 }
                 row += 1;
                 let _ = worksheet.merge_range(
@@ -753,10 +762,9 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
                 }
 
                 let border_color_bold_number_right_format = border_bold_number_right_format
-                .clone()
-                .set_font_color("#ffffff")
-                .set_background_color(color)
-                ;
+                    .clone()
+                    .set_font_color("#ffffff")
+                    .set_background_color(color);
 
                 row += 1;
                 let _ = worksheet.merge_range(
@@ -844,29 +852,22 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         row += 1;
         formula_row = row + 1;
 
-        let color = self::get_xlsx_color_from_str(&fq.color);
+        let color = get_xlsx_color_from_str(&fq.color);
 
         let border_format_color = border_format
-        .clone()
-        .set_bold()
-        .set_background_color(color)
-        .set_font_color("#ffffff")
-        ;
+            .clone()
+            .set_bold()
+            .set_background_color(color)
+            .set_font_color("#ffffff");
 
         let border_bold_color_number_right_format = border_bold_number_right_format
-        .clone()
-        .set_background_color(color)
-        .set_font_color("#ffffff")
-        ;
+            .clone()
+            .set_background_color(color)
+            .set_font_color("#ffffff");
 
         let _ = worksheet.write_with_format(row, 0, fq.title_section, &border_format_color);
         let _ = worksheet.write_with_format(row, 1, fq.title_fq, &border_bold_format);
-        let _ = worksheet.write_with_format(
-            row,
-            2,
-            fq.members_declared_count,
-            &border_format,
-        );
+        let _ = worksheet.write_with_format(row, 2, fq.members_declared_count, &border_format);
         let _ = worksheet.write_with_format(
             row,
             3,
@@ -934,9 +935,118 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
     let _ = worksheet.autofit();
 }
 
-pub fn get_accounting_balance(workbook: &mut Workbook, section_list: &Vec<Section>) {
+pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
     let worksheet: &mut Worksheet = workbook
         .add_worksheet()
         .set_name("Balance")
         .expect("Impossible to set the sheet's name");
+
+    let title_format = Format::new().set_bold().set_align(FormatAlign::Center);
+
+    let border_right_number_format = Format::new()
+        .set_border(FormatBorder::Thin)
+        .set_border_color(Color::Black)
+        .set_align(FormatAlign::Right)
+        .set_num_format("0.00");
+
+    let border_format = Format::new()
+        .set_border(FormatBorder::Thin)
+        .set_border_color(Color::Black);
+
+    let border_center_format = Format::new()
+        .set_border(FormatBorder::Thin)
+        .set_border_color(Color::Black)
+        .set_align(FormatAlign::Center);
+
+    let border_center_bold_format = border_center_format.clone().set_bold();
+
+    let _ = worksheet.merge_range(0, 0, 0, 6, "Balance", &title_format);
+
+    let mut row = 2;
+
+    let _ = worksheet.merge_range(row, 0, row, 2, "Dépenses", &border_center_bold_format);
+    let _ = worksheet.merge_range(row, 3, row, 5, "Recettes", &border_center_bold_format);
+
+    row += 1;
+    let _ = worksheet.write_with_format(row, 0, "Intitulé", &border_center_bold_format);
+    let _ = worksheet.write_with_format(row, 1, "Branche", &border_center_bold_format);
+    let _ = worksheet.write_with_format(row, 2, "Montant", &border_center_bold_format);
+    let _ = worksheet.write_with_format(row, 3, "Intitulé", &border_center_bold_format);
+    let _ = worksheet.write_with_format(row, 4, "Branche", &border_center_bold_format);
+    let _ = worksheet.write_with_format(row, 5, "Montant", &border_center_bold_format);
+
+    let section_list = repository::section_list();
+    if !section_list.is_empty() {
+        row += 1;
+        for section in section_list.iter() {
+            let calculated_expenses_list: Vec<CalculatedExpense> =
+                repository::get_calculated_expenses(&section.uid);
+            let mut right: Vec<CalculatedExpense> = vec![];
+            let mut left: Vec<CalculatedExpense> = vec![];
+            for expense in calculated_expenses_list {
+                let result: f32 = expense.total_applyed_price.unwrap();
+                if result >= 0.0 {
+                    left.push(expense);
+                } else {
+                    right.push(expense);
+                }
+            }
+
+            let original_row = row;
+            if !left.is_empty() {
+                for expense in &left {
+                    let _ = worksheet.write_with_format(
+                        row,
+                        0,
+                        expense.title_expense.clone(),
+                        &border_format,
+                    );
+                    let _ = worksheet.write_with_format(
+                        row,
+                        1,
+                        expense.title_section.clone(),
+                        &border_format,
+                    );
+                    let _ = worksheet.write_with_format(
+                        row,
+                        2,
+                        expense.total_applyed_price,
+                        &border_right_number_format,
+                    );
+                    row += 1;
+                }
+            }
+
+            row = original_row;
+            if !right.is_empty() {
+                for expense in &right {
+                    let _ = worksheet.write_with_format(
+                        row,
+                        3,
+                        expense.title_expense.clone(),
+                        &border_format,
+                    );
+                    let _ = worksheet.write_with_format(
+                        row,
+                        4,
+                        expense.title_section.clone(),
+                        &border_format,
+                    );
+                    let _ = worksheet.write_with_format(
+                        row,
+                        5,
+                        expense.total_applyed_price,
+                        &border_right_number_format,
+                    );
+                    row += 1;
+                }
+            }
+
+            let max_length: u32 = max(left.len(), right.len()) as u32;
+            row = original_row + max_length + 1;
+        }
+    }
+    row += 1;
+
+    worksheet.autofit();
 }
