@@ -933,3 +933,10 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
     }
     let _ = worksheet.autofit();
 }
+
+pub fn get_accounting_balance(workbook: &mut Workbook, section_list: &Vec<Section>) {
+    let worksheet: &mut Worksheet = workbook
+        .add_worksheet()
+        .set_name("Balance")
+        .expect("Impossible to set the sheet's name");
+}
