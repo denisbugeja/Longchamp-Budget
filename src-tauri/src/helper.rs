@@ -844,8 +844,23 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         row += 1;
         formula_row = row + 1;
 
-        let _ = worksheet.write_with_format(row, 0, fq.title_section, &border_format);
-        let _ = worksheet.write_with_format(row, 1, fq.title_fq, &border_format);
+        let color = self::get_xlsx_color_from_str(&fq.color);
+
+        let border_format_color = border_format
+        .clone()
+        .set_bold()
+        .set_background_color(color)
+        .set_font_color("#ffffff")
+        ;
+
+        let border_bold_color_number_right_format = border_bold_number_right_format
+        .clone()
+        .set_background_color(color)
+        .set_font_color("#ffffff")
+        ;
+
+        let _ = worksheet.write_with_format(row, 0, fq.title_section, &border_format_color);
+        let _ = worksheet.write_with_format(row, 1, fq.title_fq, &border_bold_format);
         let _ = worksheet.write_with_format(
             row,
             2,
@@ -913,7 +928,7 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
             12,
             Formula::new(format!("=ROUND(K{formula_row}+L{formula_row},2)"))
                 .set_result(fq.total.to_string().replace(".", ",")),
-            &border_bold_number_right_format,
+            &border_bold_color_number_right_format,
         );
     }
     let _ = worksheet.autofit();
