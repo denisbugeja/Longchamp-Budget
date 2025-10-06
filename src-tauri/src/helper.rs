@@ -468,7 +468,7 @@ fn handle_worksheet(
             if "group" == section.uid && calculated_expenses_list.is_empty() {
                 total_label_ratio = String::from("Total Groupe par enfant");
             }
-            let row_total_rated_group = row + 1;
+            let row_total_rated_group = row + 2;
             let sum_calculated_group: SumExpenseInstance =
                 repository::get_group_sum_calculated_expenses();
 
