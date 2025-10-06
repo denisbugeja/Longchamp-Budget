@@ -978,13 +978,16 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
     let section_list = repository::section_list();
     if !section_list.is_empty() {
         row += 1;
+
+        let mut total_integral_left: f32 = 0.0;
+        let mut total_integral_right: f32 = 0.0;
+        let mut total_rows: Vec<i32> = vec![];
+
         for section in section_list {
             let original_row = row;
-            
             let calculated_expenses_list: Vec<CalculatedExpense> =
                 repository::get_calculated_expenses(&section.uid);
-
-            let mut group_calculated_expenses_list : Vec<CalculatedExpense> = vec![];
+            let mut group_calculated_expenses_list: Vec<CalculatedExpense> = vec![];
 
             if "group" == section.uid {
                 group_calculated_expenses_list = repository::get_group_calculated_expenses();
@@ -1012,26 +1015,34 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
             let max_length: u32 = max(left.len(), right.len()) as u32;
             let target_row = original_row + max_length;
 
+            let mut total_left: f32 = 0.0;
             if !left.is_empty() {
                 for expense in &left {
+                    let mut result: f32 = expense.total_applyed_price.unwrap();
+                    if "group" == section.uid && 0.0 == expense.live_rate.unwrap() {
+                        result = expense.group_applyed_total_price.unwrap();
+                    }
+                    total_left += result;
+
                     let _ = worksheet.write_with_format(
                         row,
                         0,
                         expense.title_expense.clone(),
                         &border_format,
                     );
-                    let _ = worksheet.write_with_format(
-                        row,
-                        1,
-                        expense.title_section.clone(),
-                        &border_format,
-                    );
-                    let _ = worksheet.write_with_format(
-                        row,
-                        2,
-                        expense.total_applyed_price,
-                        &border_right_number_format,
-                    );
+                    let _ =
+                        worksheet.write_with_format(row, 1, section.title.clone(), &border_format);
+                    let _ =
+                        worksheet.write_with_format(row, 2, result, &border_right_number_format);
+
+                    if section.uid.as_str() != expense.uid_section.clone().unwrap().as_str() {
+                        let _ = worksheet.insert_note(
+                            row,
+                            0,
+                            &Note::new(expense.title_section.clone().unwrap()),
+                        );
+                    }
+
                     row += 1;
                 }
             }
@@ -1046,8 +1057,15 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
             }
 
             row = original_row;
+            let mut total_right: f32 = 0.0;
             if !right.is_empty() {
                 for expense in &right {
+                    let mut result: f32 = expense.total_applyed_price.unwrap().abs();
+                    if "group" == section.uid && 0.0 == expense.live_rate.unwrap() {
+                        result = expense.group_applyed_total_price.unwrap().abs();
+                    }
+                    total_right += result;
+
                     let _ = worksheet.write_with_format(
                         row,
                         3,
@@ -1060,12 +1078,17 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
                         expense.title_section.clone(),
                         &border_format,
                     );
-                    let _ = worksheet.write_with_format(
-                        row,
-                        5,
-                        f32::abs(expense.total_applyed_price.unwrap()),
-                        &border_right_number_format,
-                    );
+                    let _ =
+                        worksheet.write_with_format(row, 5, result, &border_right_number_format);
+
+                    if section.uid.as_str() != expense.uid_section.clone().unwrap().as_str() {
+                        let _ = worksheet.insert_note(
+                            row,
+                            3,
+                            &Note::new(expense.title_section.clone().unwrap()),
+                        );
+                    }
+
                     row += 1;
                 }
             }
@@ -1079,31 +1102,100 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
                 }
             }
 
-            row = target_row+1;
+            row = target_row;
+            total_rows.push(row);
 
+            let formula_original_row = original_row + 1;
+            let formula_end_row = target_row;
             let color = get_xlsx_color_from_str(&section.color);
             let color_format = Format::new()
                 .set_border(FormatBorder::Thin)
                 .set_border_color(Color::Black)
                 .set_font_color("#ffffff")
                 .set_background_color(color);
-
             let border_right_number_color_format = border_right_number_format
                 .clone()
                 .set_font_color("#ffffff")
                 .set_background_color(color);
+            let formula_sum_left =
+                Formula::new(format!("=SUM(C{formula_original_row}:C{formula_end_row})"))
+                    .set_result(total_left.to_string());
+            let formula_sum_right =
+                Formula::new(format!("=SUM(F{formula_original_row}:F{formula_end_row})"))
+                    .set_result(total_right.to_string());
+            let total_diff = total_right - total_left;
 
-            let formula_sum_left = Formula::new(format!("=SUM(C{original_row}:C{target_row})")).set_result(0.to_string());
-            let formula_sum_right = Formula::new(format!("=SUM(F{original_row}:F{target_row})")).set_result(0.to_string());
+            total_integral_left += total_left;
+            total_integral_right += total_right;
+
+            let formula_diff =
+                Formula::new(format!("=F{row}-C{row}")).set_result(total_diff.to_string());
 
             let _ = worksheet.merge_range(row, 0, row, 1, "", &color_format);
-            let _ = worksheet.write_with_format(row, 2, formula_sum_left, &border_right_number_color_format);
-
+            let _ = worksheet.write_with_format(
+                row,
+                2,
+                formula_sum_left,
+                &border_right_number_color_format,
+            );
             let _ = worksheet.merge_range(row, 3, row, 4, "", &color_format);
-            let _ = worksheet.write_with_format(row, 5, formula_sum_right, &border_right_number_color_format);
+            let _ = worksheet.write_with_format(
+                row,
+                5,
+                formula_sum_right,
+                &border_right_number_color_format,
+            );
+            let _ = worksheet.write_with_format(
+                row,
+                6,
+                formula_diff,
+                &border_right_number_color_format,
+            );
 
             row += 2;
         }
+
+        let formula_sum_left =
+            Formula::new(format!("=")).set_result(total_integral_left.to_string());
+        let formula_sum_right =
+            Formula::new(format!("=")).set_result(total_integral_right.to_string());
+
+        let total_integral_diff = total_integral_right - total_integral_left;
+        let formula_diff =
+            Formula::new(format!("=F{row}-C{row}")).set_result(total_integral_diff.to_string());
+        let color = get_xlsx_color_from_str("#FFFF00");
+        let color_total_format = Format::new()
+            .set_border(FormatBorder::Thin)
+            .set_border_color(Color::Black)
+            .set_font_color("#000000")
+            .set_background_color(color);
+        let border_right_number_color_total_format = border_right_number_format
+            .clone()
+            .set_font_color("#000000")
+            .set_background_color(color);
+
+        let _ = worksheet.merge_range(row, 0, row, 1, "", &color_total_format);
+        let _ = worksheet.write_with_format(
+            row,
+            2,
+            formula_sum_left,
+            &border_right_number_color_total_format,
+        );
+
+        let _ = worksheet.merge_range(row, 3, row, 4, "", &color_total_format);
+        let _ = worksheet.write_with_format(
+            row,
+            5,
+            formula_sum_right,
+            &border_right_number_color_total_format,
+        );
+
+        let _ = worksheet.write_with_format(
+            row,
+            6,
+            formula_diff,
+            &border_right_number_color_total_format,
+        );
     }
     row += 1;
 
