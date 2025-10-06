@@ -1167,8 +1167,9 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
             .set_result(total_integral_right.to_string());
 
         let total_integral_diff = total_integral_right - total_integral_left;
+        let footer_row_formula = row + 1;
         let formula_diff =
-            Formula::new(format!("=F{row}-C{row}")).set_result(total_integral_diff.to_string());
+            Formula::new(format!("=F{footer_row_formula}-C{footer_row_formula}")).set_result(total_integral_diff.to_string());
         let color = get_xlsx_color_from_str("#FFFF00");
         let color_total_format = Format::new()
             .set_border(FormatBorder::Thin)
