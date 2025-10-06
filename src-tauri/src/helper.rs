@@ -1,4 +1,5 @@
 use crate::repository;
+use itertools::Itertools;
 use rust_xlsxwriter::{
     Color, Format, FormatAlign, FormatBorder, Formula, Note, Workbook, Worksheet,
 };
@@ -981,7 +982,7 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
 
         let mut total_integral_left: f32 = 0.0;
         let mut total_integral_right: f32 = 0.0;
-        let mut total_rows: Vec<i32> = vec![];
+        let mut total_rows: Vec<u32> = vec![];
 
         for section in section_list {
             let original_row = row;
@@ -1103,10 +1104,11 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
             }
 
             row = target_row;
-            total_rows.push(row);
-
             let formula_original_row = original_row + 1;
             let formula_end_row = target_row;
+            let formula_footer_row = row +1;
+            total_rows.push(formula_footer_row);
+
             let color = get_xlsx_color_from_str(&section.color);
             let color_format = Format::new()
                 .set_border(FormatBorder::Thin)
@@ -1129,7 +1131,7 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
             total_integral_right += total_right;
 
             let formula_diff =
-                Formula::new(format!("=F{row}-C{row}")).set_result(total_diff.to_string());
+                Formula::new(format!("=F{formula_footer_row}-C{formula_footer_row}")).set_result(total_diff.to_string());
 
             let _ = worksheet.merge_range(row, 0, row, 1, "", &color_format);
             let _ = worksheet.write_with_format(
@@ -1155,10 +1157,14 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
             row += 2;
         }
 
-        let formula_sum_left =
-            Formula::new(format!("=")).set_result(total_integral_left.to_string());
-        let formula_sum_right =
-            Formula::new(format!("=")).set_result(total_integral_right.to_string());
+        let left_formula_string = total_rows.iter().map(|arg| format!("C{arg}")).join("+");
+
+        let right_formula_string = total_rows.iter().map(|arg| format!("F{arg}")).join("+");
+
+        let formula_sum_left = Formula::new(format!("={left_formula_string}"))
+            .set_result(total_integral_left.to_string());
+        let formula_sum_right = Formula::new(format!("={right_formula_string}"))
+            .set_result(total_integral_right.to_string());
 
         let total_integral_diff = total_integral_right - total_integral_left;
         let formula_diff =
