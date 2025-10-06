@@ -445,16 +445,33 @@ fn handle_worksheet(
 
             row += 1;
             let sum_row_end: u32 = row;
-            let mut total_label_ratio = String::from("Cotisation répartie par enfant");
+            let mut total_label_ratio = String::from("Montant des Dépenses partiellement rattachées par enfant");
             if "group" == section.uid && calculated_expenses_list.is_empty() {
                 total_label_ratio = String::from("Total Groupe par enfant");
             }
             let row_total_rated_group = row + 1;
             let sum_calculated_group: SumExpenseInstance =
                 repository::get_group_sum_calculated_expenses();
+            
+            if true {
+                let _ = worksheet.merge_range(row, 1, row, 4, "Montant total des Dépenses partiellement rattachées", &border_format);
+                let formula_total_calculated_group =
+                    Formula::new(format!("=ROUND(SUM(F{sum_row_begin}:F{sum_row_end}),2)")).set_result(
+                        group_sum_expense_instance
+                            .sum_total
+                            .to_string()
+                            .replace(".", ","),
+                    );
+                let _ = worksheet.write_formula_with_format(
+                    row,
+                    5,
+                    formula_total_calculated_group,
+                    &border_bold_number_right_format,
+                );
+                row += 1;
+            }
             let _ = worksheet.merge_range(row, 1, row, 3, &total_label_ratio, &border_format);
-
-            let formula_total_calculated_group =
+            let formula_total_calculated_group_per_child =
                 Formula::new(format!("=ROUND(SUM(E{sum_row_begin}:E{sum_row_end}),2)")).set_result(
                     group_sum_expense_instance
                         .sum_unit
@@ -464,7 +481,7 @@ fn handle_worksheet(
             let _ = worksheet.write_formula_with_format(
                 row,
                 4,
-                formula_total_calculated_group,
+                formula_total_calculated_group_per_child,
                 &border_bold_number_right_format,
             );
 
@@ -684,7 +701,7 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
                         row,
                         2,
                         members.members_count,
-                        &border_number_right_format,
+                        &border_format,
                     );
                 }
                 row += 1;
@@ -802,7 +819,7 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
             row,
             2,
             fq.members_declared_count,
-            &border_number_right_format,
+            &border_format,
         );
         let _ = worksheet.write_with_format(
             row,
