@@ -978,21 +978,40 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
     let section_list = repository::section_list();
     if !section_list.is_empty() {
         row += 1;
-        for section in section_list.iter() {
+        for section in section_list {
+            let original_row = row;
+            
             let calculated_expenses_list: Vec<CalculatedExpense> =
                 repository::get_calculated_expenses(&section.uid);
+
+            let mut group_calculated_expenses_list : Vec<CalculatedExpense> = vec![];
+
+            if "group" == section.uid {
+                group_calculated_expenses_list = repository::get_group_calculated_expenses();
+            }
+
             let mut right: Vec<CalculatedExpense> = vec![];
             let mut left: Vec<CalculatedExpense> = vec![];
+
             for expense in calculated_expenses_list {
-                let result: f32 = expense.total_applyed_price.unwrap();
-                if result >= 0.0 {
+                if expense.total_applyed_price.unwrap() >= 0.0 {
                     left.push(expense);
                 } else {
                     right.push(expense);
                 }
             }
 
-            let original_row = row;
+            for expense in group_calculated_expenses_list {
+                if expense.total_applyed_price.unwrap() >= 0.0 {
+                    left.push(expense);
+                } else {
+                    right.push(expense);
+                }
+            }
+
+            let max_length: u32 = max(left.len(), right.len()) as u32;
+            let target_row = original_row + max_length;
+
             if !left.is_empty() {
                 for expense in &left {
                     let _ = worksheet.write_with_format(
@@ -1017,6 +1036,15 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
                 }
             }
 
+            if row < target_row {
+                for current in row..target_row {
+                    let _ = worksheet.write_with_format(current, 0, "", &border_format);
+                    let _ = worksheet.write_with_format(current, 1, "", &border_format);
+                    let _ =
+                        worksheet.write_with_format(current, 2, "", &border_right_number_format);
+                }
+            }
+
             row = original_row;
             if !right.is_empty() {
                 for expense in &right {
@@ -1035,15 +1063,46 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
                     let _ = worksheet.write_with_format(
                         row,
                         5,
-                        expense.total_applyed_price,
+                        f32::abs(expense.total_applyed_price.unwrap()),
                         &border_right_number_format,
                     );
                     row += 1;
                 }
             }
 
-            let max_length: u32 = max(left.len(), right.len()) as u32;
-            row = original_row + max_length + 1;
+            if row < target_row {
+                for current in row..target_row {
+                    let _ = worksheet.write_with_format(current, 3, "", &border_format);
+                    let _ = worksheet.write_with_format(current, 4, "", &border_format);
+                    let _ =
+                        worksheet.write_with_format(current, 5, "", &border_right_number_format);
+                }
+            }
+
+            row = target_row+1;
+
+            let color = get_xlsx_color_from_str(&section.color);
+            let color_format = Format::new()
+                .set_border(FormatBorder::Thin)
+                .set_border_color(Color::Black)
+                .set_font_color("#ffffff")
+                .set_background_color(color);
+
+            let border_right_number_color_format = border_right_number_format
+                .clone()
+                .set_font_color("#ffffff")
+                .set_background_color(color);
+
+            let formula_sum_left = Formula::new(format!("=SUM(C{original_row}:C{target_row})")).set_result(0.to_string());
+            let formula_sum_right = Formula::new(format!("=SUM(F{original_row}:F{target_row})")).set_result(0.to_string());
+
+            let _ = worksheet.merge_range(row, 0, row, 1, "", &color_format);
+            let _ = worksheet.write_with_format(row, 2, formula_sum_left, &border_right_number_color_format);
+
+            let _ = worksheet.merge_range(row, 3, row, 4, "", &color_format);
+            let _ = worksheet.write_with_format(row, 5, formula_sum_right, &border_right_number_color_format);
+
+            row += 2;
         }
     }
     row += 1;
