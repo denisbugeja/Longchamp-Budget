@@ -126,6 +126,11 @@ pub fn json_to_vec(json_data: &str) -> Vec<&str> {
     serde_json::from_str(json_data).expect("Cannot deserialize section list")
 }
 
+pub fn get_xlsx_color_from_str(color: &str) -> Color {
+   let rgb_color: u32 =  u32::from_str_radix(&color[1..], 16).expect("Conversion error hexadecimal to rgb");
+   Color::RGB(rgb_color)
+}
+
 pub fn generate_xls_file() {
     let file_path = repository::get_global_file_path();
     let path = Path::new(&file_path);
@@ -156,8 +161,15 @@ fn handle_worksheet(
     workbook: &mut Workbook,
     group_expense_list: &Vec<CalculatedExpense>,
 ) {
+    let color = self::get_xlsx_color_from_str(&section.color);
     let worksheet: &mut Worksheet = workbook.add_worksheet();
-    let title_format = Format::new().set_bold().set_align(FormatAlign::Center);
+    let _ = worksheet.set_tab_color(color);
+
+    let title_format = Format::new()
+        .set_bold()
+        .set_align(FormatAlign::Center)
+        .set_font_color(color)
+    ;
     let border_format = Format::new()
         .set_border(FormatBorder::Thin)
         .set_border_color(Color::Black);
