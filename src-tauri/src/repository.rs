@@ -186,7 +186,7 @@ pub fn fq_section_list_load(section_uid: &str) -> Vec<FqSection> {
 pub fn get_fqs_calculated_by_section(section_uid: &str) -> Vec<FqTotal> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT title_section, title_fq, uid_fq, uid_section, declared_unit_price, declared_group_unit_price, coeff, calculated_unit_price_with_coeff, group_calculated_unit_price, total_group_member_price, national_contribution, total_member_price, national_commission, total, members_declared_count FROM view_calculated_fqs_total WHERE uid_section = ?",
+        "SELECT title_section, title_fq, uid_fq, uid_section, declared_unit_price, declared_group_unit_price, coeff, calculated_unit_price_with_coeff, group_calculated_unit_price, total_group_member_price, national_contribution, total_member_price, national_commission, total, members_declared_count, color FROM view_calculated_fqs_total WHERE uid_section = ?",
         params!(section_uid),
         |row| {
             Ok(FqTotal {
@@ -204,7 +204,8 @@ pub fn get_fqs_calculated_by_section(section_uid: &str) -> Vec<FqTotal> {
                 total_member_price: row.get(11)?,
                 national_commission: row.get(12)?,
                 total: row.get(13)?,
-                members_declared_count: row.get(14)?
+                members_declared_count: row.get(14)?,
+                color: row.get(15)?
             })
         },
         &conn,
@@ -214,7 +215,7 @@ pub fn get_fqs_calculated_by_section(section_uid: &str) -> Vec<FqTotal> {
 pub fn get_calculated_fqs_total_without_group() -> Vec<FqTotal> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT title_section, title_fq, uid_fq, uid_section, declared_unit_price, declared_group_unit_price, coeff, calculated_unit_price_with_coeff, group_calculated_unit_price, total_group_member_price, national_contribution, total_member_price, national_commission, total, members_declared_count FROM view_calculated_fqs_total WHERE uid_section <> 'group'",
+        "SELECT title_section, title_fq, uid_fq, uid_section, declared_unit_price, declared_group_unit_price, coeff, calculated_unit_price_with_coeff, group_calculated_unit_price, total_group_member_price, national_contribution, total_member_price, national_commission, total, members_declared_count, color FROM view_calculated_fqs_total WHERE uid_section <> 'group'",
         [],
         |row| {
             Ok(FqTotal {
@@ -233,6 +234,7 @@ pub fn get_calculated_fqs_total_without_group() -> Vec<FqTotal> {
                 national_commission: row.get(12)?,
                 total: row.get(13)?,
                 members_declared_count: row.get(14)?,
+                color: row.get(15)?,
             })
         },
         &conn,
@@ -1396,7 +1398,7 @@ fqs.national_contribution,
 ROUND(s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff + fqs.national_contribution ,2) AS total_member_price,
 ROUND((s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff + fqs.national_contribution) * fqs.online_commission_rate + fqs.online_commission_fees,2) AS national_commission,
 ROUND(s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff + fqs.national_contribution ,2) + ROUND((s.calculated_unit_price_with_coeff + g.calculated_unit_price_with_coeff + fqs.national_contribution) * fqs.online_commission_rate + fqs.online_commission_fees,2) AS total,
-sections_fqs.members_count AS members_declared_count
+sections_fqs.members_count AS members_declared_count, sections.color as color
 FROM view_declared_calculated_fqs_sections_unit_price AS s INNER JOIN view_declared_calculated_fqs_sections_unit_price AS g ON s.uid_fq = g.uid_fq
 INNER JOIN fqs ON s.uid_fq = fqs.uid
 INNER JOIN sections_fqs ON s.uid_fq = sections_fqs.uid_fq AND s.uid_section = sections_fqs.uid_section

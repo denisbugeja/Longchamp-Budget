@@ -112,6 +112,7 @@ pub struct FqTotal {
     pub national_commission: f32,
     pub total: f32,
     pub members_declared_count: f32,
+    pub color: String,
 }
 
 pub fn vec_to_json<T: Serialize>(vec_data: Vec<T>) -> String {
@@ -165,10 +166,15 @@ fn handle_worksheet(
     let worksheet: &mut Worksheet = workbook.add_worksheet();
     let _ = worksheet.set_tab_color(color);
 
-    let title_format = Format::new()
+     let title_format = Format::new()
         .set_bold()
         .set_align(FormatAlign::Center)
-        .set_font_color(color)
+    ;
+
+    let main_title_format = title_format
+        .clone()
+        .set_font_color("#ffffff")
+        .set_background_color(color)
     ;
     let border_format = Format::new()
         .set_border(FormatBorder::Thin)
@@ -219,7 +225,7 @@ fn handle_worksheet(
         .set_name(title_tab)
         .expect("Impossible to set the sheet's name");
 
-    let _ = worksheet.merge_range(0, 0, 0, 7, &section.title, &title_format);
+    let _ = worksheet.merge_range(0, 0, 0, 7, &section.title, &main_title_format);
 
     let _ = worksheet.write_with_format(row, 0, "Enfants/Ados:", &border_bold_format);
     let _ = worksheet.write_number_with_format(row, 1, section.members_count, &border_format);
