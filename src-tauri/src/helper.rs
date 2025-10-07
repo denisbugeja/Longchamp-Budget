@@ -1006,7 +1006,6 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
                 group_calculated_expenses_list = repository::get_group_calculated_expenses();
             }
 
-            //TODO FIX décalage de lignes
             let mut right: Vec<CalculatedExpense> = vec![];
             let mut left: Vec<CalculatedExpense> = vec![];
 
@@ -1027,7 +1026,12 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
             }
 
             let max_length: u32 = max(left.len(), right.len()) as u32;
-            let target_row = original_row + max_length;
+            let mut target_row = original_row + max_length;
+
+            // Lignes des frais de commission en ligne
+            if "group" == section.uid {
+                target_row += 2;
+            }
 
             let mut total_left: f32 = 0.0;
 
