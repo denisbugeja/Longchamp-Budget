@@ -1,4 +1,4 @@
-use crate::helper::{CalculatedExpense, Expense, Fq, FqSection, Section, SectionExpense, SumExpenseInstance, FqTotal, NationalFees};
+use crate::helper::{CalculatedExpense, Expense, Fq, FqSection, Section, SectionExpense, SumExpenseInstance, FqTotal, NationalFees, FqMembersCount};
 use lazy_static::lazy_static;
 use rusqlite::{params, Connection, Result, Row};
 use std::sync::RwLock;
@@ -523,6 +523,23 @@ pub fn get_members_fq_count_by_section(section_uid: &str) -> i32{
     .pop()
     .expect("Cannot get count");
     count
+}
+
+pub fn get_members_fq_count_for_all_sections() -> Vec<FqMembersCount> {
+    let conn = get_connection().expect("Cannot get connection");
+    let result : Vec<FqMembersCount> = execute_read_sql(
+        "SELECT sections_fqs.uid_section, COALESCE(SUM(members_count),0) AS total FROM sections_fqs GROUP BY sections_fqs.uid_section",
+        [],
+        |row| {
+            Ok(FqMembersCount{
+                uid_section: row.get(0)?,
+                count: row.get(1)?,
+            })
+        },
+        &conn,
+    );
+
+    result
 }
 
 pub fn update_expense(

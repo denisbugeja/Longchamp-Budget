@@ -123,6 +123,12 @@ pub struct NationalFees {
     pub total_national_commission: f32,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FqMembersCount {
+    pub uid_section: String,
+    pub count: i32,
+}
+
 pub fn vec_to_json<T: Serialize>(vec_data: Vec<T>) -> String {
     serde_json::to_string(&vec_data).expect("Cannot serialize section list")
 }

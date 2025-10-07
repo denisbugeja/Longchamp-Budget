@@ -794,8 +794,6 @@ Stimulus.register("matrix-section", class extends Controller {
             return
         }
 
-        console.log(fqMatrix)
-
         let headTemplate = '_parts/_components/_matrix_section_fq_head.html',
             bodyTemplate = '_parts/_components/_matrix_section_fq_body.html',
             tableTemplate = '_parts/_components/_matrix_section_fq_table.html'
@@ -1410,18 +1408,10 @@ Stimulus.register("fq-edit", class extends Controller {
 })
 
 Stimulus.register("fq-section", class extends Controller {
-    static targets = ['fqSectionList', 'membersCount', 'displayMessage']
+    static targets = ['fqSectionList', 'membersCount']
     static outlets = ["fq"]
     static values = {
         sectionUid: String,
-        sectionMembersCount: Number,
-        sectionMembersFqCount: Number
-    }
-
-    connect() {
-        if (parseInt(this.sectionMembersCountValue) !== parseInt(this.sectionMembersFqCountValue)) {
-            this.displayMessageTarget.classList.remove('d-none')
-        }
     }
 
     async membersCountTargetConnected(element) {
@@ -1480,5 +1470,21 @@ Stimulus.register("fq-section-fq-edit", class extends Controller {
 
         await invoke("update_fq_section_members_count", { sectionUid: this.uidSectionValue, fqUid: this.uidFqValue, membersCount: parseInt(this.membersCountTarget.value) });
         await this.fqOutlet.globalRefresh()
+    }
+})
+
+
+
+Stimulus.register("fq-members-control", class extends Controller {
+    static targets = ['displayMessage']
+    static values = {
+        sectionMembersCount: Number,
+        sectionMembersFqCount: Number
+    }
+
+    async displayMessageTargetConnected(element) {
+        if (parseInt(this.sectionMembersCountValue) !== parseInt(this.sectionMembersFqCountValue)) {
+            element.classList.remove('d-none')
+        }
     }
 })

@@ -4,6 +4,8 @@ mod repository;
 
 use tauri::{AppHandle, Runtime};
 
+use crate::helper::struct_to_json;
+
 #[tauri::command]
 fn update_db_path(path: &str, erase_if_exists: bool) {
     repository::update_db_file_path(path, erase_if_exists);
@@ -287,6 +289,13 @@ fn get_members_fq_count_by_section(section_uid: &str) -> String {
 }
 
 #[tauri::command]
+fn get_members_fq_count_for_all_sections() -> String {
+    struct_to_json(
+        repository::get_members_fq_count_for_all_sections()
+    )
+}
+
+#[tauri::command]
 fn get_fqs_calculated_by_section(section_uid: &str) -> String {
     helper::struct_to_json(
         repository::get_fqs_calculated_by_section(section_uid)
@@ -345,7 +354,8 @@ pub fn run() {
             update_fq_order,
             update_fq_section_members_count,
             get_members_fq_count_by_section,
-            get_fqs_calculated_by_section
+            get_fqs_calculated_by_section,
+            get_members_fq_count_for_all_sections,
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");
