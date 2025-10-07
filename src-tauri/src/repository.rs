@@ -1,4 +1,4 @@
-use crate::helper::{CalculatedExpense, Expense, Fq, FqSection, Section, SectionExpense, SumExpenseInstance, FqTotal};
+use crate::helper::{CalculatedExpense, Expense, Fq, FqSection, Section, SectionExpense, SumExpenseInstance, FqTotal, NationalFees};
 use lazy_static::lazy_static;
 use rusqlite::{params, Connection, Result, Row};
 use std::sync::RwLock;
@@ -206,6 +206,25 @@ pub fn get_fqs_calculated_by_section(section_uid: &str) -> Vec<FqTotal> {
                 total: row.get(13)?,
                 members_declared_count: row.get(14)?,
                 color: row.get(15)?
+            })
+        },
+        &conn,
+    )
+}
+
+pub fn get_total_national_cotisation() -> Vec<NationalFees> {
+    let conn = get_connection().expect("Cannot get connection");
+    execute_read_sql(
+        "SELECT 
+        COALESCE(SUM(national_contribution * members_declared_count),0) AS total_national_contribution, 
+        COALESCE(SUM(national_commission * members_declared_count),0) AS total_national_commission
+        FROM view_calculated_fqs_total
+        WHERE uid_section  <> 'group'",
+        [],
+        |row| {
+            Ok(NationalFees {
+                total_national_contribution: row.get(0)?,
+                total_national_commission: row.get(1)?,
             })
         },
         &conn,

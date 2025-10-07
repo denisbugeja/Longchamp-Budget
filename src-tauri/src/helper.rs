@@ -117,6 +117,12 @@ pub struct FqTotal {
     pub color: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct NationalFees {
+    pub total_national_contribution: f32,
+    pub total_national_commission: f32
+}
+
 pub fn vec_to_json<T: Serialize>(vec_data: Vec<T>) -> String {
     serde_json::to_string(&vec_data).expect("Cannot serialize section list")
 }
@@ -683,6 +689,12 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         .set_num_format("0.00")
         .set_bold();
 
+    let border_bold_right_format = Format::new()
+        .set_border(FormatBorder::Thin)
+        .set_border_color(Color::Black)
+        .set_align(FormatAlign::Right)
+        .set_bold();
+
     let worksheet: &mut Worksheet = workbook
         .add_worksheet()
         .set_name("QF")
@@ -746,14 +758,14 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
                     row,
                     1,
                     "Total",
-                    &border_bold_number_right_format,
+                    &border_bold_right_format,
                 );
                 let _ = worksheet.write_with_format(
                     row,
                     2,
                     Formula::new(format!("=SUM(C{first_row}:C{row})"))
                         .set_result(count_declared_members.to_string()),
-                    &border_bold_number_right_format,
+                    &border_bold_right_format,
                 );
 
                 if "group" == section.uid {
@@ -1017,6 +1029,14 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
             let target_row = original_row + max_length;
 
             let mut total_left: f32 = 0.0;
+
+            if "group" == section.uid {
+                let national_cotisation: NationalFees = repository::get_total_national_cotisation();
+                total_left += national_cotisation.total_national_contribution + national_cotisation.total_national_commission;
+
+
+            }
+
             if !left.is_empty() {
                 for expense in &left {
                     let mut result: f32 = expense.total_applyed_price.unwrap();
