@@ -964,22 +964,28 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
         .set_border_color(Color::Black)
         .set_align(FormatAlign::Center);
 
-    let border_center_bold_format = border_center_format.clone().set_bold();
+    let color = get_xlsx_color_from_str("#FFFF00");
+    let border_center_bold_format_yellow = border_center_format
+        .clone()
+        .set_bold()
+        .set_font_color("#000000")
+        .set_background_color(color)
+    ;
 
     let _ = worksheet.merge_range(0, 0, 0, 6, "Balance", &title_format);
 
     let mut row = 2;
 
-    let _ = worksheet.merge_range(row, 0, row, 2, "Dépenses", &border_center_bold_format);
-    let _ = worksheet.merge_range(row, 3, row, 5, "Recettes", &border_center_bold_format);
+    let _ = worksheet.merge_range(row, 0, row, 2, "Dépenses", &border_center_bold_format_yellow);
+    let _ = worksheet.merge_range(row, 3, row, 5, "Recettes", &border_center_bold_format_yellow);
 
     row += 1;
-    let _ = worksheet.write_with_format(row, 0, "Intitulé", &border_center_bold_format);
-    let _ = worksheet.write_with_format(row, 1, "Branche", &border_center_bold_format);
-    let _ = worksheet.write_with_format(row, 2, "Montant", &border_center_bold_format);
-    let _ = worksheet.write_with_format(row, 3, "Intitulé", &border_center_bold_format);
-    let _ = worksheet.write_with_format(row, 4, "Branche", &border_center_bold_format);
-    let _ = worksheet.write_with_format(row, 5, "Montant", &border_center_bold_format);
+    let _ = worksheet.write_with_format(row, 0, "Intitulé", &border_center_bold_format_yellow);
+    let _ = worksheet.write_with_format(row, 1, "Branche", &border_center_bold_format_yellow);
+    let _ = worksheet.write_with_format(row, 2, "Montant", &border_center_bold_format_yellow);
+    let _ = worksheet.write_with_format(row, 3, "Intitulé", &border_center_bold_format_yellow);
+    let _ = worksheet.write_with_format(row, 4, "Branche", &border_center_bold_format_yellow);
+    let _ = worksheet.write_with_format(row, 5, "Montant", &border_center_bold_format_yellow);
 
     let section_list = repository::section_list();
     if !section_list.is_empty() {
@@ -1000,6 +1006,7 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
                 group_calculated_expenses_list = repository::get_group_calculated_expenses();
             }
 
+            //TODO FIX décalage de lignes
             let mut right: Vec<CalculatedExpense> = vec![];
             let mut left: Vec<CalculatedExpense> = vec![];
 
