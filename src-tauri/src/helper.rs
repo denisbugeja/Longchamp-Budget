@@ -1051,9 +1051,9 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
             if row < target_row {
                 for current in row..target_row {
                     let _ = worksheet.write_with_format(current, 0, "", &border_format);
-                    let _ = worksheet.write_with_format(current, 1, "", &border_format);
+                    let _ = worksheet.write_with_format(current, 1, section.title.clone(), &border_format);
                     let _ =
-                        worksheet.write_with_format(current, 2, "", &border_right_number_format);
+                        worksheet.write_with_format(current, 2, "0.00", &border_right_number_format);
                 }
             }
 
@@ -1097,9 +1097,9 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
             if row < target_row {
                 for current in row..target_row {
                     let _ = worksheet.write_with_format(current, 3, "", &border_format);
-                    let _ = worksheet.write_with_format(current, 4, "", &border_format);
+                    let _ = worksheet.write_with_format(current, 4, section.title.clone(), &border_format);
                     let _ =
-                        worksheet.write_with_format(current, 5, "", &border_right_number_format);
+                        worksheet.write_with_format(current, 5, "0.00", &border_right_number_format);
                 }
             }
 
@@ -1204,7 +1204,6 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
             &border_right_number_color_total_format,
         );
     }
-    row += 1;
 
     worksheet.autofit();
 }
