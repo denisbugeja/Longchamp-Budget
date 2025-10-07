@@ -212,9 +212,9 @@ pub fn get_fqs_calculated_by_section(section_uid: &str) -> Vec<FqTotal> {
     )
 }
 
-pub fn get_total_national_cotisation() -> Vec<NationalFees> {
+pub fn get_total_national_cotisation() -> NationalFees {
     let conn = get_connection().expect("Cannot get connection");
-    execute_read_sql(
+    let mut result = execute_read_sql(
         "SELECT 
         COALESCE(SUM(national_contribution * members_declared_count),0) AS total_national_contribution, 
         COALESCE(SUM(national_commission * members_declared_count),0) AS total_national_commission
@@ -228,7 +228,9 @@ pub fn get_total_national_cotisation() -> Vec<NationalFees> {
             })
         },
         &conn,
-    )
+    );
+
+    result.pop().expect("No Cotisation fees")
 }
 
 pub fn get_calculated_fqs_total_without_group() -> Vec<FqTotal> {

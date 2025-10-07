@@ -120,7 +120,7 @@ pub struct FqTotal {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NationalFees {
     pub total_national_contribution: f32,
-    pub total_national_commission: f32
+    pub total_national_commission: f32,
 }
 
 pub fn vec_to_json<T: Serialize>(vec_data: Vec<T>) -> String {
@@ -752,14 +752,7 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
                         worksheet.write_with_format(row, 2, members.members_count, &border_format);
                 }
                 row += 1;
-                let _ = worksheet.merge_range(
-                    row,
-                    0,
-                    row,
-                    1,
-                    "Total",
-                    &border_bold_right_format,
-                );
+                let _ = worksheet.merge_range(row, 0, row, 1, "Total", &border_bold_right_format);
                 let _ = worksheet.write_with_format(
                     row,
                     2,
@@ -995,6 +988,7 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
         let mut total_integral_left: f32 = 0.0;
         let mut total_integral_right: f32 = 0.0;
         let mut total_rows: Vec<u32> = vec![];
+        let national_cotisation: NationalFees = repository::get_total_national_cotisation();
 
         for section in section_list {
             let original_row = row;
@@ -1031,10 +1025,38 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
             let mut total_left: f32 = 0.0;
 
             if "group" == section.uid {
-                let national_cotisation: NationalFees = repository::get_total_national_cotisation();
-                total_left += national_cotisation.total_national_contribution + national_cotisation.total_national_commission;
+                total_left += national_cotisation.total_national_contribution
+                    + national_cotisation.total_national_commission;
 
+                let _ = worksheet.write_with_format(
+                    row,
+                    0,
+                    "Cotisation nationale (TOTAL)",
+                    &border_format,
+                );
+                let _ = worksheet.write_with_format(row, 1, section.title.clone(), &border_format);
+                let _ = worksheet.write_with_format(
+                    row,
+                    2,
+                    national_cotisation.total_national_contribution,
+                    &border_right_number_format,
+                );
+                row += 1;
 
+                let _ = worksheet.write_with_format(
+                    row,
+                    0,
+                    "Frais de commission en ligne (TOTAL)",
+                    &border_format,
+                );
+                let _ = worksheet.write_with_format(row, 1, section.title.clone(), &border_format);
+                let _ = worksheet.write_with_format(
+                    row,
+                    2,
+                    national_cotisation.total_national_commission,
+                    &border_right_number_format,
+                );
+                row += 1;
             }
 
             if !left.is_empty() {
@@ -1071,14 +1093,59 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
             if row < target_row {
                 for current in row..target_row {
                     let _ = worksheet.write_with_format(current, 0, "", &border_format);
-                    let _ = worksheet.write_with_format(current, 1, section.title.clone(), &border_format);
-                    let _ =
-                        worksheet.write_with_format(current, 2, "0.00", &border_right_number_format);
+                    let _ = worksheet.write_with_format(
+                        current,
+                        1,
+                        section.title.clone(),
+                        &border_format,
+                    );
+                    let _ = worksheet.write_with_format(
+                        current,
+                        2,
+                        "0.00",
+                        &border_right_number_format,
+                    );
                 }
             }
 
             row = original_row;
             let mut total_right: f32 = 0.0;
+
+            if "group" == section.uid {
+                total_right += national_cotisation.total_national_contribution
+                    + national_cotisation.total_national_commission;
+
+                let _ = worksheet.write_with_format(
+                    row,
+                    3,
+                    "Cotisation nationale (TOTAL)",
+                    &border_format,
+                );
+                let _ = worksheet.write_with_format(row, 4, section.title.clone(), &border_format);
+                let _ = worksheet.write_with_format(
+                    row,
+                    5,
+                    national_cotisation.total_national_contribution,
+                    &border_right_number_format,
+                );
+                row += 1;
+
+                let _ = worksheet.write_with_format(
+                    row,
+                    3,
+                    "Frais de commission en ligne (TOTAL)",
+                    &border_format,
+                );
+                let _ = worksheet.write_with_format(row, 4, section.title.clone(), &border_format);
+                let _ = worksheet.write_with_format(
+                    row,
+                    5,
+                    national_cotisation.total_national_commission,
+                    &border_right_number_format,
+                );
+                row += 1;
+            }
+
             if !right.is_empty() {
                 for expense in &right {
                     let mut result: f32 = expense.total_applyed_price.unwrap().abs();
@@ -1117,16 +1184,25 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
             if row < target_row {
                 for current in row..target_row {
                     let _ = worksheet.write_with_format(current, 3, "", &border_format);
-                    let _ = worksheet.write_with_format(current, 4, section.title.clone(), &border_format);
-                    let _ =
-                        worksheet.write_with_format(current, 5, "0.00", &border_right_number_format);
+                    let _ = worksheet.write_with_format(
+                        current,
+                        4,
+                        section.title.clone(),
+                        &border_format,
+                    );
+                    let _ = worksheet.write_with_format(
+                        current,
+                        5,
+                        "0.00",
+                        &border_right_number_format,
+                    );
                 }
             }
 
             row = target_row;
             let formula_original_row = original_row + 1;
             let formula_end_row = target_row;
-            let formula_footer_row = row +1;
+            let formula_footer_row = row + 1;
             total_rows.push(formula_footer_row);
 
             let color = get_xlsx_color_from_str(&section.color);
@@ -1151,7 +1227,8 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
             total_integral_right += total_right;
 
             let formula_diff =
-                Formula::new(format!("=F{formula_footer_row}-C{formula_footer_row}")).set_result(total_diff.to_string());
+                Formula::new(format!("=F{formula_footer_row}-C{formula_footer_row}"))
+                    .set_result(total_diff.to_string());
 
             let _ = worksheet.merge_range(row, 0, row, 1, "", &color_format);
             let _ = worksheet.write_with_format(
@@ -1188,8 +1265,8 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
 
         let total_integral_diff = total_integral_right - total_integral_left;
         let footer_row_formula = row + 1;
-        let formula_diff =
-            Formula::new(format!("=F{footer_row_formula}-C{footer_row_formula}")).set_result(total_integral_diff.to_string());
+        let formula_diff = Formula::new(format!("=F{footer_row_formula}-C{footer_row_formula}"))
+            .set_result(total_integral_diff.to_string());
         let color = get_xlsx_color_from_str("#FFFF00");
         let color_total_format = Format::new()
             .set_border(FormatBorder::Thin)
