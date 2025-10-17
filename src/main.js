@@ -1491,7 +1491,6 @@ Stimulus.register("fq-members-control", class extends Controller {
 
 Stimulus.register("search", class extends Controller {
     static targets = ["input", "searchable"]
-    static classes = ["search-highlight"]
     static values = {
         delay: { type: Number, default: 300 }
     }
@@ -1506,6 +1505,10 @@ Stimulus.register("search", class extends Controller {
         }
     }
 
+    async searchableTargetConnected(element) {
+        await this.searchInContainerAndShow(element)
+    }
+
     search() {
         clearTimeout(this.timeout)
         this.timeout = setTimeout(() => {
@@ -1514,13 +1517,21 @@ Stimulus.register("search", class extends Controller {
     }
 
     performSearch() {
-        this.searchableTargets.forEach(this.searchInContainerAndShow)
+        this.searchableTargets.forEach(container => { this.searchInContainerAndShow(container) })
     }
 
     searchInContainerAndShow(container) {
-        if ('' !== this.inputTarget.value.toLowerCase().trim()) {
-            for (const element of container.querySelectorAll('input[type="text"], input[type="number"], input[type="email"], textarea')) {
-                if (element.value.toLowerCase().includes(query)) {
+        const query = this.inputTarget.value.toLowerCase().trim()
+
+        if ('' !== query) {
+            for (const element of container.querySelectorAll('input[type="text"], input[type="number"], input[type="email"], textarea, td, span, div, p, a, label')) {
+                let textContent = element.textContent
+
+                if (-1 !== ["INPUT", "TEXTAREA"].indexOf(element.tagName)) {
+                    textContent = element.value
+                }
+
+                if (textContent.toLowerCase().includes(query)) {
                     this.showContainer(container)
                     return true
                 }
@@ -1532,14 +1543,14 @@ Stimulus.register("search", class extends Controller {
     }
 
     showContainer(container) {
-        if (!this.hasHighlightClass) {
-            container.classList.add(this.highlightClass)
+        if (!container.classList.contains('search-highlight')) {
+            container.classList.add('search-highlight')
         }
     }
 
     hideContainer(container) {
-        if (this.hasHighlightClass) {
-            container.classList.remove(this.highlightClass)
+        if (container.classList.contains('search-highlight')) {
+            container.classList.remove('search-highlight')
         }
     }
 

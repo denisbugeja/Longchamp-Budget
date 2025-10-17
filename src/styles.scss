@@ -114,6 +114,10 @@ html {
 .inter-col {
     top: 27px;
 }
+
 .search-highlight {
-    background-color: yellow;
+&,
+    td {
+        background-color: yellow !important;
+    }
 }
