@@ -31,9 +31,22 @@
                   <a class="nav-link text-white text-decoration-underline" href="#" data-action="click->budget#loadExpenses">Dépenses</a>
                   <a class="nav-link text-white text-decoration-underline" href="#" data-action="click->budget#loadFqs">QF</a>
                   <a class="nav-link text-white text-decoration-underline" href="#" data-action="click->budget#loadMatrix">Budget</a>
+                  <a class="nav-link text-white text-decoration-underline" data-bs-toggle="collapse" href="#collapseSearch" role="button" aria-expanded="false" aria-controls="collapseSearch">
+                    <i class="bi bi-search"></i>
+                  </a>
                 </nav>
               </div>
             </header>
+            <div class="collapse" id="collapseSearch">
+                <div class="row">
+                    <div class="col"></div>
+                    <div class="col">
+                        <div class="card card-body d-flex">
+                            <input class="form-control" type="search" placeholder="Rechercher" aria-label="Rechercher" />
+                        </div>
+                    </div>
+                </div>
+            </div>
             <main class="px-3 align-top" data-budget-target="main"></main>
             <footer class="mt-auto text-white-50"></footer>
         </div>

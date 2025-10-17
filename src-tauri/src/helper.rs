@@ -947,6 +947,7 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
     let _ = worksheet.autofit();
 }
 
+// Shameful, crappy but works... need a refactoring, maybe later
 pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
     let worksheet: &mut Worksheet = workbook
         .add_worksheet()
