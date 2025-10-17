@@ -1506,7 +1506,7 @@ Stimulus.register("search", class extends Controller {
     }
 
     async searchableTargetConnected(element) {
-        await this.searchInContainerAndShow(element)
+        this.searchInContainerAndShow(element)
     }
 
     search() {
@@ -1524,12 +1524,10 @@ Stimulus.register("search", class extends Controller {
         const query = this.inputTarget.value.toLowerCase().trim()
 
         if ('' !== query) {
-            for (const element of container.querySelectorAll('input[type="text"], input[type="number"], input[type="email"], textarea, td, span, div, p, a, label')) {
-                let textContent = element.textContent
-
-                if (-1 !== ["INPUT", "TEXTAREA"].indexOf(element.tagName)) {
-                    textContent = element.value
-                }
+            for (const element of container.querySelectorAll('input[type="text"], input[type="number"], input[type="email"], textarea, td, span, div, p, a')) {
+                let textContent = (-1 !== ["INPUT", "TEXTAREA"].indexOf(element.tagName)) ?
+                    element.value
+                    : element.textContent
 
                 if (textContent.toLowerCase().includes(query)) {
                     this.showContainer(container)
