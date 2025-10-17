@@ -8,10 +8,10 @@ import { Application, Controller } from "/stimulus.min.js"
 
 let assetPath = {}
 
-// document.addEventListener('contextmenu', (e) => {
-//     e.preventDefault()
-//     return false
-// }, false)
+document.addEventListener('contextmenu', (e) => {
+    e.preventDefault()
+    return false
+}, false)
 
 function renderTemplate(templateString, data, raw = false) {
     return templateString
@@ -1503,6 +1503,11 @@ Stimulus.register("search", class extends Controller {
         if (this.timeout) {
             clearTimeout(this.timeout)
         }
+    }
+
+
+    setFocus() {
+        this.inputTarget.focus()
     }
 
     async searchableTargetConnected(element) {
