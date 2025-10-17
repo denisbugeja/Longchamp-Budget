@@ -8,10 +8,10 @@ import { Application, Controller } from "/stimulus.min.js"
 
 let assetPath = {}
 
-document.addEventListener('contextmenu', (e) => {
-    e.preventDefault()
-    return false
-}, false)
+// document.addEventListener('contextmenu', (e) => {
+//     e.preventDefault()
+//     return false
+// }, false)
 
 function renderTemplate(templateString, data, raw = false) {
     return templateString
@@ -1486,5 +1486,65 @@ Stimulus.register("fq-members-control", class extends Controller {
         if (parseInt(this.sectionMembersCountValue) !== parseInt(this.sectionMembersFqCountValue)) {
             element.classList.remove('d-none')
         }
+    }
+})
+
+Stimulus.register("search", class extends Controller {
+    static targets = ["input", "searchable"]
+    static classes = ["search-highlight"]
+    static values = {
+        delay: { type: Number, default: 300 }
+    }
+
+    connect() {
+        this.timeout = null
+    }
+
+    disconnect() {
+        if (this.timeout) {
+            clearTimeout(this.timeout)
+        }
+    }
+
+    search() {
+        clearTimeout(this.timeout)
+        this.timeout = setTimeout(() => {
+            this.performSearch()
+        }, this.delayValue)
+    }
+
+    performSearch() {
+        this.searchableTargets.forEach(this.searchInContainerAndShow)
+    }
+
+    searchInContainerAndShow(container) {
+        if ('' !== this.inputTarget.value.toLowerCase().trim()) {
+            for (const element of container.querySelectorAll('input[type="text"], input[type="number"], input[type="email"], textarea')) {
+                if (element.value.toLowerCase().includes(query)) {
+                    this.showContainer(container)
+                    return true
+                }
+            }
+        }
+
+        this.hideContainer(container)
+        return false
+    }
+
+    showContainer(container) {
+        if (!this.hasHighlightClass) {
+            container.classList.add(this.highlightClass)
+        }
+    }
+
+    hideContainer(container) {
+        if (this.hasHighlightClass) {
+            container.classList.remove(this.highlightClass)
+        }
+    }
+
+    clear() {
+        this.inputTarget.value = ""
+        this.performSearch()
     }
 })
