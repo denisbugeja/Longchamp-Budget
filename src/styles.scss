@@ -121,3 +121,17 @@ html {
         background-color: yellow !important;
     }
 }
+.drag-icon {
+    padding-left: 30px !important;
+    position: relative;
+
+    &:before {
+        position: absolute;
+        left: 5px;
+        top: 5px;
+        font-family: bootstrap-icons;
+        font-size: 1.6rem;
+        content: "\F3FE";
+        display: block;
+    }
+}
