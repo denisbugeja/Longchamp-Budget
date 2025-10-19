@@ -1529,20 +1529,24 @@ Stimulus.register("search", class extends Controller {
         const query = this.inputTarget.value.toLowerCase().trim()
 
         if ('' !== query) {
+            const isNumeric = /[\+\-]?[0-9\.,]+/gmi.test(query)
             for (const element of container.querySelectorAll('input[type="text"], input[type="number"], input[type="email"], textarea, td, span, div, p, a')) {
-                let textContent = (-1 !== ["INPUT", "TEXTAREA"].indexOf(element.tagName)) ?
-                    element.value
+                const textContent = (-1 !== ["INPUT", "TEXTAREA"].indexOf(element.tagName)) ?
+                    (isNumeric && '' === element.value.toString()) ? element.getAttribute('placeholder') : element.value
                     : element.textContent
 
-                if (textContent.toLowerCase().includes(query)) {
-                    this.showContainer(container)
-                    return true
+                const matches = isNumeric
+                    ? textContent === query
+                    : textContent.toLowerCase().includes(query)
+
+                if (matches) {
+                    this.showContainer(container);
+                    return
                 }
             }
         }
 
         this.hideContainer(container)
-        return false
     }
 
     showContainer(container) {
