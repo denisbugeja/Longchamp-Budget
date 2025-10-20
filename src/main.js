@@ -1436,7 +1436,7 @@ Stimulus.register("fq-section", class extends Controller {
 
     async updateMembersCount() {
         if (!this.membersCountValid()) {
-            return;
+            return
         }
 
         await invoke("update_members_count", { uid: this.sectionUidValue, membersCount: parseInt(this.membersCountTarget.value) })
@@ -1481,10 +1481,10 @@ Stimulus.register("fq-section-fq-edit", class extends Controller {
 
     async update(e) {
         if (!this.validateMembersCount()) {
-            return;
+            return
         }
 
-        await invoke("update_fq_section_members_count", { sectionUid: this.uidSectionValue, fqUid: this.uidFqValue, membersCount: parseInt(this.membersCountTarget.value) });
+        await invoke("update_fq_section_members_count", { sectionUid: this.uidSectionValue, fqUid: this.uidFqValue, membersCount: parseInt(this.membersCountTarget.value) })
         await this.fqOutlet.globalRefresh()
     }
 })
@@ -1532,9 +1532,7 @@ Stimulus.register("search", class extends Controller {
 
     search() {
         clearTimeout(this.timeout)
-        this.timeout = setTimeout(() => {
-            this.performSearch()
-        }, this.delayValue)
+        this.timeout = setTimeout(() => { this.performSearch() }, this.delayValue)
     }
 
     performSearch() {
@@ -1556,7 +1554,7 @@ Stimulus.register("search", class extends Controller {
                     : textContent.toLowerCase().includes(query)
 
                 if (matches) {
-                    this.showContainer(container);
+                    this.showContainer(container)
                     return
                 }
             }
