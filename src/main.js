@@ -8,10 +8,11 @@ import { Application, Controller } from "/stimulus.min.js"
 
 let assetPath = {}
 
-document.addEventListener('contextmenu', (e) => {
-    e.preventDefault()
-    return false
-}, false)
+// document.addEventListener('contextmenu', (e) => {
+//     e.preventDefault()
+//     return false
+// }, false)
+
 
 function renderTemplate(templateString, data, raw = false) {
     return templateString
@@ -788,6 +789,21 @@ Stimulus.register("matrix-section", class extends Controller {
     }
 
     async fqMatrixLoad() {
+        // don't display fqMatrix if no expense instance
+        let expenseInstanceList = await this.getUsedExpenseList(),
+            cond = 0 === expenseInstanceList.length
+
+        // add specific check for group
+        if (GROUP_ID === this.uidValue) {
+            let groupExpenseInstanceList = await this.getGroupUsedExpenseList()
+            cond = cond && 0 === groupExpenseInstanceList.length
+        }
+
+        if (cond) {
+            renderElement(this.fqMatrixTarget, '')
+            return
+        }
+
         let fqMatrix = JSON.parse(await invoke('get_fqs_calculated_by_section', { sectionUid: this.uidValue }))
 
         if (0 === fqMatrix.length) {
@@ -1529,7 +1545,7 @@ Stimulus.register("search", class extends Controller {
         const query = this.inputTarget.value.toLowerCase().trim()
 
         if ('' !== query) {
-            const isNumeric = /^[\+\-]?[0-9\.,]+$/gmi.test(query)
+            const isNumeric = new RegExp('^[\\+\\-]?[0-9\\.,]+$', 'gmi').test(query)
             for (const element of container.querySelectorAll('input[type="text"], input[type="number"], input[type="email"], textarea, td, span, div, p, a')) {
                 const textContent = (-1 !== ["INPUT", "TEXTAREA"].indexOf(element.tagName)) ?
                     (isNumeric && '' === element.value.toString()) ? element.getAttribute('placeholder') : element.value
