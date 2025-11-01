@@ -13,11 +13,13 @@ const currentWindow = getCurrentWindow()
 
 currentWindow.setTitle(softName)
 
-document.addEventListener('contextmenu', (e) => {
-    e.preventDefault()
-    return false
-}, false)
-
+const mode = await invoke('get_build_mode')
+if ('debug' !== mode) {
+    document.addEventListener('contextmenu', (e) => {
+        e.preventDefault()
+        return false
+    }, false)
+}
 
 function renderTemplate(templateString, data, raw = false) {
     return templateString

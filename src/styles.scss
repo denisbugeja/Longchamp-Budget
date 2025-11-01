@@ -116,16 +116,18 @@ html {
 }
 
 .search-highlight {
-&,
+
+    &,
     td {
         background-color: yellow !important;
     }
 }
+
 .drag-icon {
     padding-left: 30px !important;
     position: relative;
 
-    &:before {
+    &:after {
         position: absolute;
         left: 5px;
         top: 5px;
@@ -133,5 +135,21 @@ html {
         font-size: 1.6rem;
         content: "\F3FE";
         display: block;
+    }
+}
+tr:not([title=""]) {
+    td:first-child {
+        position: relative;
+
+        &:before {
+            font-family: bootstrap-icons;
+            content: "\F431";
+            display: inline-block;
+            margin-right: 5px;
+            font-size: 1.2rem;
+            top: 5px;
+            position: relative;
+            opacity: 0.5;
+        }
     }
 }

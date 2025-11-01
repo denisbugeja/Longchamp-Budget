@@ -6,6 +6,12 @@ use tauri::{AppHandle, Runtime};
 
 use crate::helper::struct_to_json;
 
+#[cfg(debug_assertions)]
+const BUILD_MODE: &str = "debug";
+
+#[cfg(not(debug_assertions))]
+const BUILD_MODE: &str = "release";
+
 #[tauri::command]
 fn update_db_path(path: &str, erase_if_exists: bool) {
     repository::update_db_file_path(path, erase_if_exists);
@@ -302,8 +308,14 @@ fn get_fqs_calculated_by_section(section_uid: &str) -> String {
     )
 }
 
+#[tauri::command]
+fn get_build_mode() -> String {
+    BUILD_MODE.to_string()
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
@@ -356,6 +368,7 @@ pub fn run() {
             get_members_fq_count_by_section,
             get_fqs_calculated_by_section,
             get_members_fq_count_for_all_sections,
+            get_build_mode,
         ])
         .run(tauri::generate_context!())
         .expect("error) while running tauri application");
