@@ -137,7 +137,7 @@ html {
         display: block;
     }
 }
-tr:not([title=""]) {
+tr[title]:not([title=""]) {
     td:first-child {
         position: relative;
 
