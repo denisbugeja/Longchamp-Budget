@@ -1,12 +1,17 @@
 // System import
 const { invoke } = window.__TAURI__.core
 const { open, save } = window.__TAURI__.dialog
+const { getCurrentWindow } = window.__TAURI__.window
 const GROUP_ID = 'group'
 
 // JS import
 import { Application, Controller } from "/stimulus.min.js"
 
 let assetPath = {}
+const softName = "Longchamp Budget"
+const currentWindow = getCurrentWindow()
+
+currentWindow.setTitle(softName)
 
 document.addEventListener('contextmenu', (e) => {
     e.preventDefault()
@@ -102,6 +107,9 @@ Stimulus.register("budget", class extends Controller {
             this.linksTarget.classList.remove('d-none')
             this.exportTarget.classList.remove('d-none')
         }
+        if ('' !== this.filePath.trim()) {
+            await currentWindow.setTitle(softName + ' - ' + this.filePath.trim())
+        }
     }
 
     async resetDisplay() {
@@ -109,6 +117,8 @@ Stimulus.register("budget", class extends Controller {
         document.getElementById('tempstyle').innerText = ''
         this.linksTarget.classList.add('d-none')
         this.exportTarget.classList.add('d-none')
+        document.title = ''
+        await currentWindow.setTitle(softName)
     }
 
     async openFile(e) {
