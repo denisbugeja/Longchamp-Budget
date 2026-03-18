@@ -6,6 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+target
 
 node_modules
 dist
@@ -24,4 +25,3 @@ dist-ssr
 *.sln
 *.sw?
 *.db
-target/*
