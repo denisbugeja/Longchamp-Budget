@@ -1,0 +1,375 @@
+// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+mod helper;
+mod repository;
+
+use tauri::{AppHandle, Runtime};
+
+use crate::helper::struct_to_json;
+
+#[cfg(debug_assertions)]
+const BUILD_MODE: &str = "debug";
+
+#[cfg(not(debug_assertions))]
+const BUILD_MODE: &str = "release";
+
+#[tauri::command]
+fn update_db_path(path: &str, erase_if_exists: bool) {
+    repository::update_db_file_path(path, erase_if_exists);
+}
+
+// Section part
+
+#[tauri::command]
+fn section_list_load() -> String {
+    helper::vec_to_json(repository::section_list())
+}
+
+#[tauri::command]
+fn insert_new_section(title: &str, color: &str, members_count: i32, adults_count: i32) {
+    repository::insert_new_section(title, color, members_count, adults_count);
+}
+
+#[tauri::command]
+fn delete_section(uid: &str) {
+    repository::delete_section(uid);
+}
+
+#[tauri::command]
+fn update_section(uid: &str, title: &str, color: &str, members_count: i32, adults_count: i32) {
+    repository::update_section(uid, title, color, members_count, adults_count);
+}
+
+// Expense part
+
+#[tauri::command]
+fn expense_list_load() -> String {
+    helper::vec_to_json(repository::expense_list())
+}
+
+#[tauri::command]
+fn insert_new_expense(
+    title: &str,
+    description: &str,
+    rate: &str,
+    unit_price: &str,
+    section_list: &str,
+) {
+    let vec_section_list: Vec<&str> = helper::json_to_vec(section_list);
+    repository::insert_new_expense(title, description, rate, unit_price, vec_section_list);
+}
+
+#[tauri::command]
+fn update_expense(uid: &str, title: &str, description: &str, rate: &str, unit_price: &str) {
+    repository::update_expense(uid, title, description, rate, unit_price);
+}
+
+#[tauri::command]
+fn update_expense_order(expense_list: &str) {
+    let vec_expense_list: Vec<&str> = helper::json_to_vec(expense_list);
+    repository::update_expense_order(vec_expense_list);
+}
+
+#[tauri::command]
+fn update_section_order(section_list: &str) {
+    let vec_section_list: Vec<&str> = helper::json_to_vec(section_list);
+    repository::update_section_order(vec_section_list);
+}
+
+#[tauri::command]
+fn update_expense_instance_order(expense_instance_list: &str) {
+    let vec_expense_instance_list: Vec<&str> = helper::json_to_vec(expense_instance_list);
+    repository::update_expense_instance_order(vec_expense_instance_list);
+}
+
+#[tauri::command]
+fn update_expense_section_association(uid: &str, section_list: &str) {
+    let vec_section_list: Vec<&str> = helper::json_to_vec(section_list);
+    repository::update_expense_section_association(uid, vec_section_list);
+}
+
+#[tauri::command]
+fn get_section_expense_from_expenses_instances() -> String {
+    helper::vec_to_json(repository::get_section_expense_from_expenses_instances())
+}
+
+#[tauri::command]
+fn get_section_expense_from_expenses_instances_section(section_uid: &str) -> String {
+    helper::vec_to_json(
+        repository::get_section_expense_from_expenses_instances_section(section_uid),
+    )
+}
+
+#[tauri::command]
+fn get_section_expense() -> String {
+    helper::vec_to_json(repository::get_section_expense())
+}
+
+
+#[tauri::command]
+fn get_section_expense_from_instance(section_uid: &str, expense_uid: &str) -> String {
+    helper::struct_to_json(repository::get_section_expense_from_instance(
+        section_uid,
+        expense_uid,
+    ))
+}
+
+
+#[tauri::command]
+fn get_section_expense_from_instances_by_expense(expense_uid: &str) -> String {
+    helper::vec_to_json(repository::get_section_expense_from_instances_wrapper(
+        expense_uid,
+    ))
+}
+
+#[tauri::command]
+fn delete_expense(uid: &str) {
+    repository::delete_expense(uid);
+}
+
+#[tauri::command]
+fn update_members_count(uid: &str, members_count: i32) {
+    repository::update_members_count(uid, members_count);
+}
+
+#[tauri::command]
+fn update_adults_count(uid: &str, adults_count: i32) {
+    repository::update_adults_count(uid, adults_count);
+}
+
+#[tauri::command]
+fn add_expense_instance(section_uid: &str, expense_id: &str) {
+    repository::add_expense_instance(section_uid, expense_id);
+}
+
+#[tauri::command]
+fn get_calculated_expenses(section_uid: &str) -> String {
+    helper::vec_to_json(repository::get_calculated_expenses(section_uid))
+}
+
+#[tauri::command]
+fn get_members_count(section_uid: &str) -> i32 {
+    repository::get_members_count(section_uid)
+}
+
+#[tauri::command]
+fn get_adults_count(section_uid: &str) -> i32 {
+    repository::get_adults_count(section_uid)
+}
+
+#[tauri::command]
+fn update_expense_instance(
+    uid_expense_instance: &str,
+    unit_price: &str,
+    number: &str,
+    units: &str,
+    units_adults: &str,
+    rate: &str,
+    comments: &str,
+) {
+    repository::update_expense_instance(
+        uid_expense_instance,
+        unit_price,
+        number,
+        units,
+        units_adults,
+        rate,
+        comments,
+    );
+}
+
+#[tauri::command]
+fn delete_expense_instance(uid_expense_instance: &str) {
+    repository::delete_expense_instance(uid_expense_instance);
+}
+
+#[tauri::command]
+fn copy_expense_instance(uid_expense_instance: &str) {
+    repository::copy_expense_instance(uid_expense_instance);
+}
+
+#[tauri::command]
+fn get_group_calculated_expenses() -> String {
+    helper::vec_to_json(repository::get_group_calculated_expenses())
+}
+
+#[tauri::command]
+fn get_group_sum_calculated_expenses() -> String {
+    helper::struct_to_json(repository::get_group_sum_calculated_expenses())
+}
+
+#[tauri::command]
+fn get_group_only_sum_calculated_expenses() -> String {
+    helper::struct_to_json(repository::get_group_only_sum_calculated_expenses())
+}
+
+#[tauri::command]
+fn get_sum_calculated_expenses(section_uid: &str) -> String {
+    helper::struct_to_json(repository::get_sum_calculated_expenses(section_uid))
+}
+
+#[tauri::command]
+fn get_total_per_member(section_uid: &str) -> String {
+    helper::struct_to_json(repository::get_total_per_member(section_uid))
+}
+
+#[tauri::command]
+fn get_section_expense_cnt_from_instance(section_uid: &str, expense_uid: &str) -> String {
+    repository::get_section_expense_cnt_from_instance(section_uid, expense_uid).to_string()
+}
+
+#[tauri::command]
+fn get_section_expense_from_association(section_uid: &str, expense_uid: &str) -> String {
+    helper::struct_to_json(repository::get_section_expense_from_association(
+        section_uid,
+        expense_uid,
+    ))
+}
+
+#[tauri::command]
+fn get_section_expense_from_expenses_instances_and_section(section_uid: &str) -> String {
+    helper::struct_to_json(
+        repository::get_section_expense_from_expenses_instances_and_section(section_uid),
+    )
+}
+
+#[tauri::command]
+fn read_asset<R: Runtime>(app: AppHandle<R>, path: &str) -> String {
+    let path_string = String::from(path);
+    let asset = app
+        .asset_resolver()
+        .get(path_string)
+        .expect("Impossible de trouver l'asset");
+
+    String::from_utf8(asset.bytes.to_vec()).expect("Echec de conversion en UTF-8")
+}
+
+#[tauri::command]
+fn generate_xls_file() {
+    helper::generate_xls_file();
+}
+
+#[tauri::command]
+fn get_global_file_path() -> String {
+    repository::get_global_file_path()
+}
+
+#[tauri::command]
+fn fq_list_load() -> String {
+    helper::vec_to_json(repository::fq_list())
+}
+
+#[tauri::command]
+fn fq_section_list_load(section_uid: &str) -> String {
+    helper::vec_to_json(repository::fq_section_list_load(section_uid))
+}
+
+#[tauri::command]
+fn insert_new_fq(title: &str, coeff: &str, national_contribution: &str, online_commission_rate: &str, online_commission_fees: &str) {
+    repository::insert_new_fq(title, coeff, national_contribution, online_commission_rate, online_commission_fees);
+}
+
+#[tauri::command]
+fn update_fq(uid: &str, title: &str, coeff: &str, national_contribution: &str, online_commission_rate: &str, online_commission_fees: &str) {
+    repository::update_fq(uid, title, coeff, national_contribution, online_commission_rate, online_commission_fees);
+}
+
+#[tauri::command]
+fn delete_fq(uid: &str) {
+    repository::delete_fq(uid);
+}
+
+#[tauri::command]
+fn update_fq_order(fq_list: &str) {
+    let vec_fq_list: Vec<&str> = helper::json_to_vec(fq_list);
+    repository::update_fq_order(vec_fq_list);
+}
+
+#[tauri::command]
+fn update_fq_section_members_count(section_uid: &str, fq_uid: &str, members_count: i32) {
+    repository::update_fq_section_members_count(section_uid, fq_uid, members_count);
+}
+
+#[tauri::command]
+fn get_members_fq_count_by_section(section_uid: &str) -> String {
+    repository::get_members_fq_count_by_section(section_uid).to_string()
+}
+
+#[tauri::command]
+fn get_members_fq_count_for_all_sections() -> String {
+    struct_to_json(
+        repository::get_members_fq_count_for_all_sections()
+    )
+}
+
+#[tauri::command]
+fn get_fqs_calculated_by_section(section_uid: &str) -> String {
+    helper::struct_to_json(
+        repository::get_fqs_calculated_by_section(section_uid)
+    )
+}
+
+#[tauri::command]
+fn get_build_mode() -> String {
+    BUILD_MODE.to_string()
+}
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+
+    tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_shell::init())
+        .invoke_handler(tauri::generate_handler![
+            read_asset,
+            update_db_path,
+            section_list_load,
+            insert_new_section,
+            delete_section,
+            update_section,
+            expense_list_load,
+            insert_new_expense,
+            get_section_expense_from_expenses_instances,
+            get_section_expense,
+            get_section_expense_from_instances_by_expense,
+            update_expense_section_association,
+            update_expense,
+            delete_expense,
+            update_members_count,
+            update_adults_count,
+            add_expense_instance,
+            get_calculated_expenses,
+            get_section_expense_from_expenses_instances_section,
+            get_members_count,
+            get_adults_count,
+            update_expense_instance,
+            delete_expense_instance,
+            copy_expense_instance,
+            get_group_calculated_expenses,
+            get_group_sum_calculated_expenses,
+            get_group_only_sum_calculated_expenses,
+            get_sum_calculated_expenses,
+            get_total_per_member,
+            get_section_expense_cnt_from_instance,
+            get_section_expense_from_instance,
+            get_section_expense_from_association,
+            get_section_expense_from_expenses_instances_and_section,
+            generate_xls_file,
+            get_global_file_path,
+            update_expense_order,
+            update_section_order,
+            update_expense_instance_order,
+            fq_list_load,
+            fq_section_list_load,
+            insert_new_fq,
+            delete_fq,
+            update_fq,
+            update_fq_order,
+            update_fq_section_members_count,
+            get_members_fq_count_by_section,
+            get_fqs_calculated_by_section,
+            get_members_fq_count_for_all_sections,
+            get_build_mode,
+        ])
+        .run(tauri::generate_context!())
+        .expect("error) while running tauri application");
+}

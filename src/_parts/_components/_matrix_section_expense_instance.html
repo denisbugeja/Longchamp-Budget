@@ -1,0 +1,116 @@
+<tr
+    data-controller="matrix-expense-instance"
+    data-matrix-expense-instance-uid-value="{{ uid_expense_instance }}"
+    data-matrix-expense-instance-matrix-section-outlet="[data-matrix-section-uid-value='{{ uid_section }}']"
+    data-matrix-expense-instance-label-value="{{ title_expense }}"
+    data-matrix-expense-instance-rate-value="{{ live_rate }}"
+    data-matrix-expense-instance-expense-value="{{ uid_expense }}"
+    id="{{ uid_expense_instance_escaped }}"
+    draggable="true"
+    droppable="true"
+    data-action="dragstart->matrix-section#dragstart dragover->matrix-section#dragover drop->matrix-section#drop"
+    title="{{ expenses_description }}"
+    data-search-target="searchable"
+>
+    <td class="drag-icon" data-matrix-expense-instance-target="label">{{ title_expense }}</td>
+    <td>
+        <input
+            class="form-control w-100 text-end"
+            type="number"
+            placeholder="{{ expenses_unit_price }}"
+            value="{{ expenses_instances_unit_price }}"
+            data-matrix-expense-instance-target="unitPrice"
+            step=".01"
+            data-action="change->matrix-expense-instance#updateExpenseInstance"
+        />
+    </td>
+    <td>
+        <input
+            class="form-control w-100 text-end"
+            type="number"
+            value="{{ expenses_instances_number }}"
+            data-matrix-expense-instance-target="number"
+            step="1"
+            pattern="[0-9\.,\-]+"
+            data-action="change->matrix-expense-instance#updateExpenseInstance"
+        />
+    </td>
+    <td class="position-relative">
+        <span
+            class="position-absolute z-1 start-0 inter-col translate-middle text-align-center"
+        >
+            <i class="bi bi-x text-align-center text-primary"></i>
+        </span>
+        <input
+            class="form-control w-100 text-end"
+            type="number"
+            placeholder="{{ expenses_units }}"
+            value="{{ expenses_instances_units }}"
+            min="0"
+            data-matrix-expense-instance-target="units"
+            step="1"
+            data-action="change->matrix-expense-instance#updateExpenseInstance"
+        />
+    </td>
+    <td class="position-relative">
+        <span
+            class="position-absolute z-1 start-0 inter-col translate-middle text-align-center"
+        >
+            <i class="bi bi-plus text-align-center text-primary"></i>
+        </span>
+
+        <input
+            class="form-control w-100 text-end"
+            type="number"
+            placeholder="{{ expenses_units_adults }}"
+            value="{{ expenses_instances_units_adults }}"
+            min="0"
+            data-matrix-expense-instance-target="unitsAdults"
+            step="1"
+            data-action="change->matrix-expense-instance#updateExpenseInstance"
+        />
+    </td>
+    <td>
+        <input
+            class="form-control w-100 text-end"
+            type="number"
+            placeholder="{{ expenses_rate }}"
+            value="{{ expenses_instances_rate }}"
+            min="0"
+            max="100"
+            data-matrix-expense-instance-target="rate"
+            step=".01"
+            data-action="change->matrix-expense-instance#updateExpenseInstance"
+        />
+    </td>
+    <td>
+        <textarea
+            class="w-100"
+            data-action="change->matrix-expense-instance#updateExpenseInstance"
+            data-matrix-expense-instance-target="comments"
+        >
+{{ comments }}</textarea
+        >
+    </td>
+    <td class="text-end">
+        <strong>{{ total_applyed_price }}</strong>
+    </td>
+    <td class="text-end">
+        <button
+            type="button"
+            class="btn btn-outline-danger text-align-center px-1"
+            title="Supprimer"
+            data-action="click->matrix-expense-instance#deleteExpenseInstance"
+        >
+            <i class="bi bi-trash"></i>
+        </button>
+        <button
+            type="button"
+            class="btn btn-outline-secondary text-align-center px-1"
+            title="Dupliquer"
+            data-action="click->matrix-expense-instance#copyExpenseInstance"
+        >
+            <i class="bi bi-copy"></i>
+        </button>
+    </td>
+</tr>

@@ -1,0 +1,138 @@
+<div data-controller="expense" id="main-expense">
+    <div class="py-4">
+        <h3 class="h4 text-center">Liste des dépenses</h3>
+        <div class="text-end js-compact my-3">
+            <a href="#" class="fst-italic" data-action="click->expense#compact">
+                Compacter le tableau
+            </a>
+        </div>
+        <div class="text-end js-decompact my-3">
+            <a href="#" class="fst-italic" data-action="click->expense#decompact">
+                Décompacter le tableau
+            </a>
+        </div>
+        <table class="table table-striped table-hover table-bordered">
+            <thead>
+                <tr>
+                    <th class="text-center" scope="col">
+                        Nom <strong class="text-danger">*</strong>
+                    </th>
+                    <th class="text-center" scope="col">
+                        Prix unitaire <strong class="text-danger">*</strong>
+                    </th>
+                    <th class="text-center" scope="col">
+                        Taux de prise en charge par les unités
+                        <strong class="text-danger">*</strong>
+                    </th>
+                    <th class="text-center" scope="col">Description</th>
+                    <th class="text-center" scope="col">
+                        Unités <strong class="text-danger">*</strong>
+                    </th>
+                    <th class="text-center" scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody data-expense-target="expenseList"></tbody>
+        </table>
+       <div class="text-end js-compact my-3">
+            <a href="#" class="fst-italic" data-action="click->expense#compact">
+                Compacter le tableau
+            </a>
+        </div>
+        <div class="text-end js-decompact my-3">
+            <a href="#" class="fst-italic" data-action="click->expense#decompact">
+                Décompacter le tableau
+            </a>
+        </div>
+    </div>
+    <div>
+        <h3 class="h4 text-center">Créer une nouvelle dépense</h3>
+        <form
+            action=""
+            id="expense-add-form"
+            data-action="submit->expense#create"
+        >
+            <table class="table table-striped table-hover table-bordered">
+                <thead>
+                    <tr>
+                        <th class="text-center" scope="col">
+                            Nom <strong class="text-danger">*</strong>
+                        </th>
+                        <th class="text-center" scope="col">
+                            Prix unitaire <strong class="text-danger">*</strong>
+                        </th>
+                        <th class="text-center" scope="col">
+                            Taux de prise en charge par les unités
+                            <strong class="text-danger">*</strong>
+                        </th>
+                        <th class="text-center" scope="col">Description</th>
+                        <th class="text-center" scope="col">
+                            Unités <strong class="text-danger">*</strong>
+                        </th>
+                        <th class="text-center" scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <input
+                                type="text"
+                                class="form-control w-100"
+                                placeholder="Saisissez ici le nom de la dépense"
+                                title="Vous devez saisir le nom de la dépense"
+                                data-expense-target="title"
+                                required="required"
+                            />
+                        </td>
+                        <td>
+                            <input
+                                type="number"
+                                class="form-control w-100 text-end"
+                                placeholder="Saisissez ici le prix unitaire de la dépense"
+                                title="Vous devez saisir le prix unitaire de la dépense"
+                                data-expense-target="unitPrice"
+                                step=".01"
+                            />
+                        </td>
+                        <td>
+                            <input
+                                type="number"
+                                class="form-control w-100 text-end"
+                                placeholder="Saisissez ici le taux de prise en charge par les unités"
+                                title="Vous devez saisir le taux de prise en charge de cette dépense"
+                                data-expense-target="rate"
+                                required="required"
+                                min="0"
+                                max="100"
+                                step=".01"
+                                value="100"
+                            />
+                        </td>
+                        <td>
+                            <textarea
+                                class="form-control w-100"
+                                placeholder="Saisissez ici la description de la dépense"
+                                data-expense-target="description"
+                            ></textarea>
+                        </td>
+                        <td class="p-1">
+                            <div data-expense-target="sectionList"></div>
+                        </td>
+                        <td class="text-end">
+                            <button
+                                type="submit"
+                                class="btn btn-outline-primary text-align-center px-1"
+                                title="Ajouter"
+                            >
+                                <i class="bi bi-floppy"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+    </div>
+    <div class="text-end">
+        <strong class="text-danger">*</strong>
+        <span class="fst-italic">Champs obligatoires</span>
+    </div>
+</div>

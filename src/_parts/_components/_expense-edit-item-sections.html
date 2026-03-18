@@ -1,0 +1,13 @@
+<div class="form-check">
+    <input
+        class="form-check-input"
+        data-action="change->expense-edit#updateAssociation"
+        data-expense-edit-target="section"
+        type="checkbox"
+        value="{{ uid }}"
+        id="expense-{{ expenseUid }}-{{ uid }}"
+    />
+    <label class="form-check-label" for="expense-{{ expenseUid }}-{{ uid }}"
+        >{{ title }}</label
+    >
+</div>

@@ -1,0 +1,66 @@
+<tr
+    data-controller="expense-edit"
+    data-expense-edit-uid-value="{{ uid }}"
+    data-expense-edit-expense-outlet="[data-controller='expense']"
+    draggable="true"
+    droppable="true"
+    data-action="dragstart->expense#dragstart dragover->expense#dragover drop->expense#drop"
+    data-search-target="searchable"
+>
+    <td class="drag-icon">
+        <input
+            class="form-control w-100"
+            type="text"
+            data-expense-edit-target="title"
+            value="{{ title }}"
+            data-action="change->expense-edit#update"
+        />
+    </td>
+    <td>
+        <input
+            class="form-control w-100 text-end"
+            type="number"
+            data-expense-edit-target="unitPrice"
+            value="{{ unit_price }}"
+            data-action="change->expense-edit#update"
+            step=".01"
+        />
+    </td>
+    <td>
+        <input
+            class="form-control w-100 text-end"
+            type="number"
+            data-expense-edit-target="rate"
+            value="{{ rate }}"
+            data-action="change->expense-edit#update"
+            min="0"
+            max="100"
+            step=".01"
+        />
+    </td>
+    <td>
+        <textarea
+            class="form-control w-100"
+            data-expense-edit-target="description"
+            data-action="change->expense-edit#update"
+        >
+{{ description }}</textarea
+        >
+    </td>
+    <td class="p-1">
+        <div data-expense-edit-target="sectionList">
+            {{ section_list_html }}
+        </div>
+    </td>
+    <td class="text-end js-action">
+        <button
+            type="button"
+            class="btn btn-outline-danger text-align-center px-1"
+            title="Supprimer"
+            data-action="expense-edit#delete"
+            data-expense-edit-target="delete"
+        >
+            <i class="bi bi-trash"></i>
+        </button>
+    </td>
+</tr>

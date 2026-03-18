@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
+        <link rel="stylesheet" href="bootstrap/bootstrap-icons.min.css" />
+        <link rel="stylesheet" href="styles.min.css" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Longchamp Budget</title>
+        <style id="globalstyle"></style>
+        <style id="tempstyle"></style>
+    </head>
+    <body class="d-flex h-100 bg-white text-dark" data-controller="budget" data-budget-loading-class="cursor-wait">
+        <div class="cover-container d-flex w-100 h-100 mx-auto flex-column" data-controller="search">
+            <header class="bg-dark border border-4 border-top-0 border-start-0 border-end-0 border-danger text-white px-3 py-1 sticky-top">
+              <div class="d-flex justify-content-between">
+                <nav class="nav nav-masthead">
+                    <button type="button" class="btn btn-secondary m-1" data-action="click->budget#createFile" title="Créer un nouveau fichier">
+                        <i class="bi bi-file-plus"></i>
+                    </button>
+                    <button type="button" class="btn btn-secondary m-1" data-action="click->budget#openFile" title="Ouvrir un fichier existant">
+                        <i class="bi bi-folder2-open"></i>
+                    </button>
+                    <button data-budget-target="export" type="button" class=" d-none btn btn-secondary m-1" data-action="click->budget#export" title="Exporter vers Excel">
+                        <i class="bi bi-filetype-xlsx"></i>
+                    </button>
+                    <a class="nav-link text-white text-decoration-underline active" aria-current="page" href="#" data-action="click->budget#loadHelp">Aide</a>
+                </nav>
+                <nav class="nav nav-masthead d-none" data-budget-target="links">
+                  <a class="nav-link text-white text-decoration-underline" href="#" data-action="click->budget#loadSections">Unités</a>
+                  <a class="nav-link text-white text-decoration-underline" href="#" data-action="click->budget#loadExpenses">Dépenses</a>
+                  <a class="nav-link text-white text-decoration-underline" href="#" data-action="click->budget#loadFqs">QF</a>
+                  <a class="nav-link text-white text-decoration-underline" href="#" data-action="click->budget#loadMatrix">Budget</a>
+                  <a class="nav-link text-white text-decoration-underline" data-bs-toggle="collapse" href="#collapseSearch" role="button" aria-expanded="false" aria-controls="collapseSearch" data-action="search#setFocus">
+                    <i class="bi bi-search"></i>
+                  </a>
+                </nav>
+              </div>
+            </header>
+            <div class="collapse fixed-bottom" id="collapseSearch">
+                <div class="row">
+                    <div class="col"></div>
+                    <div class="col">
+                        <div class="card card-body d-flex border border-1 border-danger">
+                            <input data-action="input->search#search" data-search-target="input" class="form-control" type="search" placeholder="Rechercher" aria-label="Rechercher" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <main class="px-3 align-top" data-budget-target="main"></main>
+            <footer class="mt-auto text-white-50"></footer>
+        </div>
+        <script src="/bootstrap/bootstrap.min.js"></script>
+        <script type="module" src="/main.js"></script>
+    </body>
+</html>

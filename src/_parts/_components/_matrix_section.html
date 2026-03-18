@@ -1,0 +1,206 @@
+<div
+    class="accordion-item"
+    data-controller="matrix-section"
+    data-matrix-section-uid-value="{{ uid }}"
+    data-matrix-section-matrix-outlet="[data-controller='matrix']"
+>
+    <h2 class="accordion-header" id="heading-section-{{ uid }}">
+        <button
+            class="accordion-button"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#matrix-section-{{ uid }}"
+            aria-expanded="true"
+            aria-controls="matrix-section-{{ uid }}"
+        >
+            {{ title }}
+        </button>
+    </h2>
+    <div
+        id="matrix-section-{{ uid }}"
+        class="accordion-collapse collapse show"
+        aria-labelledby="heading-section-{{ uid }}"
+    >
+        <div class="accordion-body">
+            <div class="row">
+                <div class="col-3 col-lg-2">
+                    <table class="table table-hover">
+                        <tbody data-matrix-section-target="expenseList"></tbody>
+                    </table>
+                    <div
+                        data-matrix-section-target="clearLink"
+                        class="text-end"
+                    >
+                        <a
+                            href="#"
+                            class="fst-italic"
+                            data-action="click->matrix-section#reinitFilter"
+                        >
+                            Réinitialiser le filtre
+                        </a>
+                    </div>
+                </div>
+                <div class="col-9 col-lg-10">
+                    <div>
+                        <h3 class="h4 text-center">Dépenses de l'unité</h3>
+                        <table
+                            class="table table-striped table-hover table-bordered"
+                        >
+                            <thead>
+                                <tr>
+                                    <th colspan="2" scope="col"></th>
+                                    <th
+                                        colspan="3"
+                                        scope="col"
+                                        class="text-center"
+                                    >
+                                        Multiplicateurs
+                                    </th>
+                                    <th colspan="4" scope="col"></th>
+                                </tr>
+                                <tr>
+                                    <th
+                                        rowspan="2"
+                                        scope="col"
+                                        class="text-center"
+                                    >
+                                        Libellé
+                                    </th>
+                                    <th
+                                        rowspan="2"
+                                        scope="col"
+                                        class="text-center"
+                                    >
+                                        Prix unitaire
+                                    </th>
+                                    <th
+                                        rowspan="2"
+                                        scope="col"
+                                        class="text-center"
+                                    >
+                                        Occurrences
+                                        <strong class="text-danger">*</strong>
+                                    </th>
+                                    <th scope="col" class="text-center">
+                                        Enfants/Ados
+                                        <strong class="text-danger">*</strong>
+                                    </th>
+                                    <th scope="col" class="text-center">
+                                        Chefs/Cheftaines
+                                        <strong class="text-danger">*</strong>
+                                    </th>
+                                    <th
+                                        rowspan="2"
+                                        scope="col"
+                                        class="text-center"
+                                    >
+                                        Taux de prise en charge par l'unité
+                                    </th>
+                                    <th
+                                        rowspan="2"
+                                        scope="col"
+                                        class="text-center"
+                                    >
+                                        Commentaires
+                                    </th>
+                                    <th
+                                        rowspan="2"
+                                        scope="col"
+                                        class="text-end"
+                                    >
+                                        Total
+                                    </th>
+                                    <th
+                                        rowspan="2"
+                                        scope="col"
+                                        class="text-end"
+                                    >
+                                        Actions
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <input
+                                            class="form-control w-100 text-end"
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            name="section-member-count-{{ uid }}"
+                                            data-matrix-section-target="sectionMembersCount"
+                                            data-action="change->matrix-section#updateMembersCount"
+                                        />
+                                    </td>
+                                    <td>
+                                        <input
+                                            class="form-control w-100 text-end"
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            name="section-adults-count-{{ uid }}"
+                                            data-matrix-section-target="sectionAdultsCount"
+                                            data-action="change->matrix-section#updateAdultsCount"
+                                        />
+                                    </td>
+                                </tr>
+                            </thead>
+                            <tbody
+                                data-matrix-section-target="expenseInstanceList"
+                            ></tbody>
+                            <tfoot>
+                                <tr
+                                    data-matrix-section-target="expenseInstanceTotal"
+                                ></tr>
+                                <tr
+                                    data-matrix-section-target="expenseInstanceGroupTotal"
+                                ></tr>
+                                <tr
+                                    data-matrix-section-target="expenseInstanceMemberTotal"
+                                ></tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div
+                        data-matrix-section-target="expenseGroupInstanceListContainer"
+                        class="py-5 d-none"
+                    >
+                        <h3 class="h4 text-center">
+                            Dépenses partiellement rattachées au groupe
+                        </h3>
+                        <table
+                            class="table table-striped table-hover table-bordered"
+                        >
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Libellé</th>
+                                    <th class="text-center">Section/Unité</th>
+                                    <th class="text-center">Commentaires</th>
+                                    <th class="text-center">% restant</th>
+                                    <th class="text-center">Prix unitaire calculé</th>
+                                    <th class="text-center">Prix Total</th>
+                                </tr>
+                            </thead>
+                            <tbody
+                                data-matrix-section-target="expenseGroupInstanceList"
+                            ></tbody>
+                            <tfoot
+                                data-matrix-section-target="expenseGroupRatioTotal"
+                            ></tfoot>
+                        </table>
+                    </div>
+                    <div
+                        data-matrix-section-target="groupSumContainer"
+                        class="py-5 d-none"
+                    ></div>
+                    <div
+                        data-matrix-section-target="fqMatrix"
+                        class="py-5"
+                    ></div>
+                </div>
+            </div>
+        </div>
+        <div class="text-end">
+            <strong class="text-danger">*</strong>
+            <span class="fst-italic">Champs obligatoires</span>
+        </div>
+    </div>
+</div>
