@@ -1,0 +1,14 @@
+[data-matrix-section-uid-value="{{ uid }}"] .h3,
+[data-matrix-section-uid-value="{{ uid }}"] .h4,
+[data-matrix-section-uid-value="{{ uid }}"] .h5,
+[data-matrix-section-uid-value="{{ uid }}"] .h6,
+[data-matrix-section-uid-value="{{ uid }}"] [data-matrix-section-target="expenseInstanceMemberTotal"] *,
+[data-matrix-section-uid-value="{{ uid }}"] [data-matrix-section-target="groupSumContainer"] td
+{
+    color: {{ color }};
+}
+
+#heading-section-{{ uid }} button {
+    background-color: {{ color }};
+    color: #fff;
+}

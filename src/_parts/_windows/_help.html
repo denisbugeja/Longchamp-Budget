@@ -1,0 +1,376 @@
+<div class="container my-5">
+    <h1 class="text-center my-5">📘 <strong>Longchamp Budget</strong></h1>
+    <section class="mb-5">
+        <h2>🔰 Présentation Générale</h2>
+        <p>
+            <strong>Longchamp Budget</strong> est un logiciel de création de
+            budget prévisionnel conçu spécialement pour les groupes Scouts et
+            Guides de France.<br />
+            Développé par/pour le <strong>Groupe Longchamp à Marseille</strong>,
+            il permet une gestion précise du budget annuel d’un groupe SGDF.
+        </p>
+        <ul>
+            <li>
+                <strong>Portable</strong> : aucun besoin d’installation
+                (exécutable autonome).
+            </li>
+            <li><strong>Compatibilité</strong> : Windows, macOS, Linux.</li>
+            <li>
+                <strong>Sauvegarde automatique</strong> : chaque action modifie
+                directement le fichier actif, aucune action manuelle n'est requise.
+            </li>
+        </ul>
+    </section>
+
+    <section class="mb-5">
+        <h2>📂 Fichier de travail</h2>
+        <p>Au lancement du logiciel, en haut à gauche, vous devez :</p>
+        <ul>
+            <li>
+                Créer un nouveau fichier <code>.lb</code>,
+                <button
+                    type="button"
+                    class="btn btn-secondary m-1"
+                    title="Créer un nouveau fichier"
+                >
+                    <i class="bi bi-file-plus"></i>
+                </button>
+            </li>
+            <li>
+                Ou ouvrir un fichier existant.
+                <button
+                    type="button"
+                    class="btn btn-secondary m-1"
+                    title="Ouvrir un fichier existant"
+                >
+                    <i class="bi bi-folder2-open"></i>
+                </button>
+            </li>
+        </ul>
+        <p>
+            Les tableaux de bord <strong>Unités</strong>,
+            <strong>Dépenses</strong>, <strong>QF</strong> et
+            <strong>Budget</strong> (en haut à droite) deviennent accessibles
+            uniquement lorsqu’un fichier est ouvert.
+        </p>
+    </section>
+
+    <section class="mb-5">
+        <h2>🧭 Navigation principale</h2>
+        <p>
+            Le logiciel se divise en <strong>quatre tableaux de bord</strong> :
+        </p>
+        <ol>
+            <li>Unités</li>
+            <li>Dépenses</li>
+            <li>QF</li>
+            <li>Budget</li>
+        </ol>
+        <p>
+            <i class="bi bi-info-circle"></i> <u>Note importante</u>: Lors de
+            votre saisie, si la bordure du champ actif devient rouge, cela
+            signifie que votre saisie est invalide et ne sera pas prise en
+            compte.<br />
+            Il faudra saisir une valeur correcte.
+        </p>
+    </section>
+
+    <section class="mb-5">
+        <h2>🏕️ Écran « Unités »</h2>
+        <p>
+            Permet la gestion des unités du groupe : Farfadets,
+            Louveteaux-Jeannettes, Scouts-Guides, etc.
+        </p>
+        <h3 class="h5">Fonctionnalités :</h3>
+        <ul>
+            <li>Ajouter, modifier, supprimer des unités.</li>
+            <li>Définir le nombre d’enfants/ados et de chefs/cheftaines.</li>
+            <li>Choisir une couleur représentative pour chaque unité.</li>
+            <li>Réorganiser les unités par glisser-déposer (<i class="bi bi-grip-vertical"></i>).</li>
+        </ul>
+        <h3 class="h5">Règles de gestion :</h3>
+        <ul>
+            <li>Le nom d'une unité doit être unique.</li>
+            <li>
+                Une unité ne peut pas être supprimée si elle a déjà des dépenses
+                associées dans le budget.
+            </li>
+            <li>
+                Une unité spéciale appelée <strong>"Groupe"</strong> est
+                présente par défaut et non supprimable :
+                <ul>
+                    <li>
+                        Son nombre d’enfants et chefs-cheftaines est la somme de
+                        toutes les unités du fichier.
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </section>
+
+    <section class="mb-5">
+        <h2>💸 Écran « Dépenses »</h2>
+        <p>
+            Permet de définir les postes de dépenses applicables aux différentes
+            unités.
+        </p>
+        <h3 class="h5">Création / Édition :</h3>
+        <ul>
+            <li>Nom (obligatoire)</li>
+            <li>Prix unitaire (obligatoire)</li>
+            <li>
+                Taux de prise en charge par les unités (obligatoire, par défaut
+                à 100%)
+            </li>
+            <li>Description (optionnelle)</li>
+            <li>Association à au moins une unité (obligatoire)</li>
+        </ul>
+        <h3 class="h5">Taux de prise en charge :</h3>
+        <ul>
+            <li>100% → L’unité prend la totalité de la dépense.</li>
+            <li>
+                &lt; 100% → La part restante est répartie équitablement entre
+                tous les enfants du groupe.
+            </li>
+        </ul>
+        <h3 class="h5">Gestion :</h3>
+        <ul>
+            <li>Déplacement des dépenses par glisser-déposer (<i class="bi bi-grip-vertical"></i>).</li>
+            <li>
+                Suppression et dissociation dépense/unité(s) interdites si la
+                dépense est déjà utilisée dans une unité.
+            </li>
+        </ul>
+    </section>
+
+    <section class="mb-5">
+        <h2>💰 Écran « QF »</h2>
+        <p>
+            Permet de définir les quotients familiaux, leurs coeff, les frais de
+            commission en ligne ( coeff + montant ) et définir le nombre
+            d'enfants/ados pris en compte dans le calcul de chaque quotient
+            familial.
+        </p>
+        <h3 class="h5">Création / Édition :</h3>
+        <ul>
+            <li>Nom (obligatoire)</li>
+            <li>Montant de la cotisation nationale (obligatoire)</li>
+            <li>Coefficient multiplicateur (obligatoire)</li>
+            <li>Coefficient pour frais de commission en ligne (obligatoire)</li>
+            <li>
+                Montant fixe pour frais de commission en ligne (obligatoire)
+            </li>
+        </ul>
+        <p>
+            Il est possible de réorganiser les QF par glisser-déposer (<i class="bi bi-grip-vertical"></i>).
+        </p>
+        <h3 class="h5">Répartir les quotients familiaux par unité :</h3>
+        <p>
+            Ce module sert à indiquer le nombre d'enfants pris en compte dans le
+            calcul du quotient familial par unité.<br />
+            Ces données sont cruciales, car elles servent de base pour
+            déterminer le montant des cotisations.<br />
+            Il est donc essentiel que le total saisi soit le plus proche
+            possible du nombre d'enfants de l'unité,
+            <strong>l'idéal étant qu'il soit égal</strong>.<br />
+            <u>
+                Plus les informations seront exactes, plus les montants calculés
+                seront précis et justes
+            </u>.
+        </p>
+		<p id="paragrapheformulecalcul" class="text-decoration-underline">
+            <strong>Formule de calcul :</strong>
+        </p>
+        <pre>Tarif unitaire moyen pondéré (par unité) <strong>=</strong></pre>
+		<div class="text-center">
+			<strong>(</strong>Cotisation unité par enfant <strong>x</strong> Nombre d'enfants<strong>)</strong>
+		</div>
+		<div class="border border-black border-2 border-bottom-0 border-start-0 border-end-0 text-center">
+			Total de <strong>(</strong>Nombre d'enfants par tranche QF <strong>x</strong> Coefficient multiplicateur de la tranche QF<strong>)</strong>
+		</div>
+		<p class="mt-4">
+			<strong>C'est sur la base de ce tarif unitaire moyen pondéré, que seront appliqués les coefficients multiplicateurs des tranches QF</strong>
+		</p>
+    </section>
+    <section class="mb-5">
+        <h2>📊 Écran « Budget »</h2>
+        <p>
+            L’espace principal pour bâtir et ajuster le budget de chaque unité.
+        </p>
+        <h3 class="h5">Structure :</h3>
+        <ul>
+            <li>Les unités sont affichées sous forme d’accordéons.</li>
+            <li>
+                Chaque unité comporte :
+                <ul>
+                    <li>
+                        À gauche : liste des dépenses disponibles (association
+                        dépense/unité(s) opérée sur l'écran "Dépenses") .
+                    </li>
+                    <li>
+                        À droite : tableau des dépenses intégrées au budget.
+                    </li>
+                </ul>
+            </li>
+        </ul>
+        <p>
+            <i class="bi bi-info-circle"></i> <u>Note importante</u>: Gardez à
+            l'esprit qu'un(e) chef/cheftaine consomme mais ne paie pas.<br />
+            La part des chefs/cheftaines est comptabilisée dans les dépenses...
+            qui sont divisées <strong>uniquement</strong> par le nombre
+            d'enfants/ados.
+        </p>
+        <h3 class="h5">Ajouter une dépense :</h3>
+        <p>
+            Cliquez sur le bouton + en face d'une dépense → elle est ajoutée au
+            tableau avec les valeurs par défaut.
+        </p>
+        <h3 class="h5">Modifier une dépense :</h3>
+        <ul>
+            <li>Chaque valeur peut être surchargée individuellement.</li>
+            <li>
+                Pour changer une valeur globalement, modifiez-la dans l’écran
+                Dépenses après suppression des surcharges.
+            </li>
+        </ul>
+        <p id="paragrapheformulecalcul" class="text-decoration-underline">
+            <strong>Formule de calcul :</strong>
+        </p>
+        <pre>Total <strong>=</strong> Prix unitaire <strong>x</strong> Occurrences <strong>x</strong> <strong>(</strong>Enfants/Ados <strong>+</strong> Chefs/Cheftaines<strong>)</strong> <strong>x</strong> Taux de prise en charge</pre>
+        <h3 class="h5">Autres fonctionnalités :</h3>
+        <ul>
+            <li>Glisser-déposer (<i class="bi bi-grip-vertical"></i>), duplication, suppression, commentaires</li>
+            <li>Filtrage par nom de dépense (surlignage par couleur au clic sur le libellé de la dépense
+                ( pas sur le bouton 
+                <button type="button" class="btn btn-outline-primary text-align-center p-0" title="Ajouter"><i class="bi bi-plus p-0"></i></button>
+                ))
+            </li>
+        </ul>
+    </section>
+    <section class="mb-5">
+        <h2>🔍 Recherche</h2>
+        <p>
+            Appuyez sur le lien <i class="bi bi-search"></i> dans le bandeau à droite pour afficher/faire disparaître la zone de texte de recherche en bas de page.<br/>
+            Chaque saisie déclenche la recherche dans la page courante.
+        </p>
+    </section>
+    <section class="mb-5">
+        <h2>💡 Cas pratiques</h2>
+        <h3 class="h5">📌 Ajouter une dépense classique</h3>
+        <p>Ex : 6 goûters pour les Farfadets</p>
+        <ol>
+            <li>
+                Sur l'écran "Dépenses", créez une dépense "Gouter" et associez
+                la à l'unité Farfadets.
+            </li>
+            <li>
+                Sur l'écran "Budget", ajoutez la dépense "Gouter" via le bouton
+                +.
+            </li>
+            <li>Modifiez les occurrences à 6.</li>
+        </ol>
+        <h3 class="h5">🏕️ Dépense unique</h3>
+        <p>Ex : Achat d’une tente</p>
+        <ul>
+            <li>Créer une dépense "Tente" et l’associer au Groupe.</li>
+            <li>
+                Définir : Occurrences: 1, Enfants: 1, Chefs/Cheftaines: 0 (<a
+                    href="#paragrapheformulecalcul"
+                    >cf Formule de calcul</a
+                >).
+            </li>
+        </ul>
+        <h3 class="h5">💝 Gérer un don</h3>
+        <ul>
+            <li>Créer une dépense avec prix unitaire négatif (ex: -100).</li>
+            <li>
+                Associer au Groupe, Occurrences: 1, Enfants: 1,
+                Chefs/Cheftaines: 0 (<a href="#paragrapheformulecalcul"
+                    >cf Formule de calcul</a
+                >).
+            </li>
+        </ul>
+    </section>
+
+    <section class="mb-5">
+        <h2>📤 Export Excel</h2>
+        <p>
+            Cliquez sur "Exporter vers Excel"
+            <button
+                type="button"
+                class="btn btn-secondary m-1"
+                title="Exporter vers Excel"
+            >
+                <i class="bi bi-filetype-xlsx"></i>
+            </button>
+            pour générer un fichier .xlsx avec un onglet par unité, un onglet
+            pour les QF et un onglet Balance
+        </p>
+        <ul>
+            <li>
+                Le fichier est créé dans le même dossier que le fichier .lb.
+            </li>
+            <li>Chaque export Excel écrase le fichier précédent.</li>
+            <li>
+                Les calculs avancés restent dans le logiciel, l’export est
+                simplifié.
+            </li>
+        </ul>
+    </section>
+
+    <section class="mb-5">
+        <h2>🔄 Préparation du budget pour l'année suivante</h2>
+        <ul>
+            <li>
+                Copier le fichier .lb et modifier le nom (ex: budget-2024.lb →
+                budget-2025.lb).
+            </li>
+            <li>Ouvrir le fichier budget-2025.lb.</li>
+            <li>Mettre à jour effectifs, prix unitaires, occurences...</li>
+        </ul>
+    </section>
+
+    <section class="mb-5">
+        <h2>📝 Bonnes pratiques</h2>
+        <ul>
+            <li>Créez toutes les dépenses typiques à l’avance.</li>
+            <li>Commentez les lignes particulières.</li>
+            <li>Évitez les surcharges de valeur sauf cas exceptionnel.</li>
+        </ul>
+    </section>
+
+    <section class="mb-5">
+        <h2>📎 Extension de fichier</h2>
+        <p>
+            Les fichiers <strong>Longchamp Budget</strong> utilisent l’extension
+            : <code>.lb</code>
+        </p>
+    </section>
+
+    <section class="mb-5">
+        <h2>👥 Pour qui ?</h2>
+        <p>Ce logiciel est destiné aux&nbsp;:</p>
+        <ul>
+            <li>Responsables de Groupe</li>
+            <li>Trésoriers/Trésorières</li>
+            <li>Pôles ADFI</li>
+        </ul>
+    </section>
+
+    <section class="mb-5">
+        <h2>📌 En résumé</h2>
+        <p>
+            <strong>Longchamp Budget</strong> facilite la création d’un budget
+            transparent et évolutif d’année en année.
+        </p>
+    </section>
+
+    <section class="mb-5">
+        <h2>📬 Contact</h2>
+        <p>
+            Envoyez moi un mail pour me signaler un bug ou me poser des
+            questions, je me ferai un plaisir d'y répondre.<br />
+            denis.bugeja@gmail.com
+        </p>
+    </section>
+</div>

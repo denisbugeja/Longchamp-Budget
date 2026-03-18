@@ -1,0 +1,24 @@
+[data-matrix-section-expense-uid-expense-value="{{ uidExpense }}"] td,
+[data-matrix-group-expense-instance-uid-expense-value="{{ uidExpense }}"] td,
+[data-matrix-expense-instance-expense-value="{{ uidExpense }}"] td {
+    background-color: #403f6f;
+}
+
+[data-matrix-section-expense-uid-expense-value="{{ uidExpense }}"] td,
+[data-matrix-section-expense-uid-expense-value="{{ uidExpense }}"] td a,
+[data-matrix-section-expense-uid-expense-value="{{ uidExpense }}"] td button,
+[data-matrix-section-expense-uid-expense-value="{{ uidExpense }}"] td button i,
+[data-matrix-group-expense-instance-uid-expense-value="{{ uidExpense }}"] td,
+[data-matrix-group-expense-instance-uid-expense-value="{{ uidExpense }}"] td a,
+[data-matrix-expense-instance-expense-value="{{ uidExpense }}"] td,
+[data-matrix-expense-instance-expense-value="{{ uidExpense }}"] td a {
+    color: #fff !important;
+}
+
+[data-matrix-section-expense-uid-expense-value="{{ uidExpense }}"] td button {
+    border-color: #fff !important;
+}
+
+[data-matrix-section-target="clearLink"] {
+    display: block !important;
+}

@@ -1,0 +1,82 @@
+<tr
+    data-controller="fq-edit"
+    data-fq-edit-uid-value="{{ uid }}"
+    data-fq-edit-fq-outlet="[data-controller='fq']"
+    draggable="true"
+    droppable="true"
+    data-action="dragstart->fq#dragstart dragover->fq#dragover drop->fq#drop"
+    data-search-target="searchable"
+>
+    <td class="drag-icon">
+        <input
+            type="text"
+            class="form-control"
+            placeholder="Saisissez ici le libellé du quotient familial"
+            title="Vous devez saisir le libellé du quotient familial"
+            data-fq-edit-target="title"
+            required="required"
+            value="{{ title }}"
+            data-action="change->fq-edit#update"
+        />
+    </td>
+    <td>
+        <input
+            class="form-control w-100 text-end"
+            type="number"
+            min="0"
+            step="0.01"
+            data-fq-edit-target="nationalContribution"
+            value="{{ national_contribution }}"
+            required="required"
+            data-action="change->fq-edit#update"
+        />
+    </td>
+    <td>
+        <input
+            class="form-control w-100 text-end"
+            type="number"
+            min="0"
+            step="0.01"
+            data-fq-edit-target="coeff"
+            value="{{ coeff }}"
+            required="required"
+            data-action="change->fq-edit#update"
+        />
+    </td>
+    <td>
+        <input
+            class="form-control w-100 text-end"
+            type="number"
+            min="0"
+            step="0.001"
+            data-fq-edit-target="onlineCommissionRate"
+            value="{{ online_commission_rate }}"
+            required="required"
+            data-action="change->fq-edit#update"
+        />
+    </td>
+    <td>
+        <input
+            class="form-control w-100 text-end"
+            type="number"
+            min="0"
+            step="0.01"
+            data-fq-edit-target="onlineCommissionFees"
+            value="{{ online_commission_fees }}"
+            required="required"
+            data-action="change->fq-edit#update"
+        />
+    </td>
+    <td class="text-end">
+        <button
+            type="button"
+            class="btn btn-outline-danger text-align-center px-1"
+            title="Supprimer"
+            data-action="fq-edit#delete"
+            data-fq-edit-target="delete"
+            data-action="click->fq-edit#delete"
+        >
+            <i class="bi bi-trash"></i>
+        </button>
+    </td>
+</tr>

@@ -1,0 +1,37 @@
+<tr
+    data-controller="fq-section fq-members-control"
+    data-fq-section-section-uid-value="{{ uid }}"
+    data-fq-section-fq-outlet="[data-controller='fq']"
+    data-fq-members-control-section-members-count-value="{{ members_count }}"
+    data-fq-members-control-section-members-fq-count-value="{{ membersFqCount }}"
+    data-search-target="searchable"
+>
+    <td>{{ title }}</td>
+    <td class="text-end">
+        <input
+            data-fq-section-target="membersCount"
+            pattern="[0-9\.,\-]+"
+            class="form-control w-100 text-end"
+            type="number"
+            min="0"
+            step="1"
+            value="{{ members_count }}"
+            required="required"
+            data-action="change->fq-section#updateMembersCount"
+        />
+    </td>
+    <td>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>QF</th>
+                    <th>Nombre d'enfants/ados asujettis à ce QF</th>
+                </tr>
+            </thead>
+            <tbody>{% fqContent %}</tbody>
+        </table>
+        <div data-fq-members-control-target="displayMessage" class="d-none alert alert-warning" role="alert">
+            Vous avez {{ members_count }} enfants/ados dans cette unité et vous avez saisi les QF pour {{ membersFqCount }}
+        </div>
+    </td>
+</tr>

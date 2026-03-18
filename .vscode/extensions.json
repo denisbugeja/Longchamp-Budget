@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "tauri-apps.tauri-vscode",
+        "rust-lang.rust-analyzer",
+        "glenn2223.live-sass",
+        "HookyQR.minify"
+    ]
+}

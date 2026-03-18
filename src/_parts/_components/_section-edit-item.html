@@ -1,0 +1,68 @@
+<tr
+    data-controller="section-edit"
+    data-section-edit-uid-value="{{ uid }}"
+    data-section-edit-section-outlet="[data-controller='section']"
+    draggable="true"
+    droppable="true"
+    data-action="dragstart->section#dragstart dragover->section#dragover drop->section#drop"
+    data-search-target="searchable"
+>
+    <td class="drag-icon">
+        <input
+            type="text"
+            class="form-control"
+            placeholder="Saisissez ici le nom de l'unité"
+            title="Vous devez saisir le nom de l'unité"
+            data-section-edit-target="title"
+            required="required"
+            value="{{ title }}"
+            data-action="change->section-edit#update"
+        />
+    </td>
+    <td>
+        <input
+            class="form-control w-100 text-end"
+            type="number"
+            min="0"
+            step="1"
+            data-section-edit-target="sectionMembersCount"
+            data-action="change->section-edit#update"
+            value="{{ members_count }}"
+            required="required"
+        />
+    </td>
+    <td>
+        <input
+            class="form-control w-100 text-end"
+            type="number"
+            min="0"
+            step="1"
+            data-section-edit-target="sectionAdultsCount"
+            data-action="change->section-edit#update"
+            value="{{ adults_count }}"
+            required="required"
+        />
+    </td>
+    <td>
+        <input
+            type="color"
+            class="form-control w-100 form-control-color"
+            placeholder="Saisissez ici la couleur de l'unité'"
+            data-section-edit-target="color"
+            required="required"
+            value="{{ color }}"
+            data-action="change->section-edit#update"
+        />
+    </td>
+    <td class="text-end">
+        <button
+            type="button"
+            class="btn btn-outline-danger text-align-center px-1"
+            title="Supprimer"
+            data-action="section-edit#delete"
+            data-section-edit-target="delete"
+        >
+            <i class="bi bi-trash"></i>
+        </button>
+    </td>
+</tr>
