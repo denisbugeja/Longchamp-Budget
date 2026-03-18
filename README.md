@@ -359,4 +359,5 @@ Longchamp Budget a été développé pour :
 * améliorer la lisibilité financière
 * faciliter l'estimation des cotisations des familles.
 
-Ce logiciel est **diffusé gratuitement**.
+## Licence
+Ce logiciel est **diffusé gratuitement** sous licence GNU GPL v3 - voir le fichier [LICENSE](LICENSE) pour plus de détails.
