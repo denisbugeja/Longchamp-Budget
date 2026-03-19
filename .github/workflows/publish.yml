@@ -68,6 +68,11 @@ jobs:
         if: matrix.runner == 'windows-latest'
         run: gh release create v${{ github.ref_name }} --generate-notes || echo "Release already exists"
 
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.platform }}-cargo
+
       - name: Build Binary
         run: |
           cd ./src-tauri
