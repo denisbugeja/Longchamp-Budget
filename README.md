@@ -361,3 +361,5 @@ Longchamp Budget a été développé pour :
 
 ## Licence
 Ce logiciel est **diffusé gratuitement** sous licence GNU GPL v3 - voir le fichier [LICENSE](LICENSE) pour plus de détails.
+
+[![Téléchargez la dernière version](https://img.shields.io/github/v/release/denisbugeja/Longchamp-Budget)](https://github.com/denisbugeja/Longchamp-Budget/releases/latest)
