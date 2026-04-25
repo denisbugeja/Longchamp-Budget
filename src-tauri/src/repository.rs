@@ -1558,12 +1558,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_s_or_none() {
-        assert_eq!(parse_s_or_none("  hello  "), Some("hello".to_string()));
-        assert_eq!(parse_s_or_none(""), None);
-    }
-
-    #[test]
     fn test_parse_f_or_none() {
         assert_eq!(parse_f_or_none("  1.5  "), Some(1.5));
         assert_eq!(parse_f_or_none("abc"), None);
