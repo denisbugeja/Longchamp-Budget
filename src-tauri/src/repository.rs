@@ -1486,3 +1486,86 @@ ORDER BY sections.position, fqs.position ASC"
         conn.execute(sql, []).expect("Cannot execute sql");
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use serial_test::serial;
+
+    use super::*;
+
+    #[test]
+    fn test_parse_s_or_none() {
+        assert_eq!(parse_s_or_none("  hello  "), Some("hello".to_string()));
+        assert_eq!(parse_s_or_none(""), None);
+    }
+
+    #[test]
+    fn test_parse_f_or_none() {
+        assert_eq!(parse_f_or_none("  1.5  "), Some(1.5));
+        assert_eq!(parse_f_or_none("abc"), None);
+    }
+
+    #[test]
+    fn test_parse_i_or_none() {
+        assert_eq!(parse_i_or_none("  10  "), Some(10));
+        assert_eq!(parse_i_or_none("  10.7  "), Some(10));
+        assert_eq!(parse_i_or_none("abc"), None);
+    }
+
+    #[test]
+    #[serial]
+    fn test_db_workflow() {
+        let temp_dir = std::env::temp_dir();
+        let db_path = temp_dir.join("test_budget.lb");
+        let db_path_str = db_path.to_str().unwrap();
+
+        // Initialize DB
+        update_db_file_path(db_path_str, true);
+
+        // Insert a section
+        insert_new_section("Test Section", "#FF0000", 10, 5);
+
+        let sections = section_list();
+        // Find our test section
+        let test_section = sections
+            .iter()
+            .find(|s| s.title == "Test Section")
+            .expect("Test section not found");
+        assert_eq!(test_section.color, "#FF0000");
+        assert_eq!(sections.len(), 2);
+
+        // Clean up
+        if db_path.exists() {
+            std::fs::remove_file(db_path).unwrap();
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn test_expense_workflow() {
+        let temp_dir = std::env::temp_dir();
+        let db_path = temp_dir.join("test_expense.lb");
+        let db_path_str = db_path.to_str().unwrap();
+
+        update_db_file_path(db_path_str, true);
+
+        // Insert section and expense
+        insert_new_section("Section A", "#00FF00", 2, 1);
+        let sections = section_list();
+        let section_a = sections
+            .iter()
+            .find(|s| s.title == "Section A")
+            .expect("Section A not found");
+
+        insert_new_expense("Bread", "Bakery", "100", "1.5", vec![&section_a.uid]);
+
+        let expenses = expense_list();
+        assert_eq!(expenses.len(), 1);
+        assert_eq!(expenses[0].title, "Bread");
+
+        // Clean up
+        if db_path.exists() {
+            std::fs::remove_file(db_path).unwrap();
+        }
+    }
+}
