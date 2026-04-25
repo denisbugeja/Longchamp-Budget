@@ -1,3 +1,8 @@
+//! Helper utilities and data structures for the Longchamp Budget application.
+//!
+//! This module provides structs for sections, expenses, and QFs, as well as
+//! functions for JSON serialization, color conversion, and Excel file generation.
+
 use crate::repository;
 use itertools::Itertools;
 use rust_xlsxwriter::{
@@ -7,146 +12,243 @@ use serde::{Deserialize, Serialize};
 use std::cmp::max;
 use std::path::{Path, PathBuf};
 
+/// Represents a section or unit in the budget.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Section {
+    /// Unique identifier for the section.
     pub uid: String,
+    /// Title of the section.
     pub title: String,
+    /// Hex color code for the section.
     pub color: String,
+    /// Total number of members (children/teens) in the section.
     pub members_count: f32,
+    /// Total number of adults/chefs in the section.
     pub adults_count: f32,
 }
 
+/// Represents an expense template.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Expense {
+    /// Unique identifier for the expense.
     pub uid: String,
+    /// Title of the expense.
     pub title: String,
+    /// Detailed description of the expense.
     pub description: String,
+    /// Default rate applied to the expense (percentage).
     pub rate: f32,
+    /// Default unit price for the expense.
     pub unit_price: f32,
+    /// Display position of the expense.
     pub position: i32,
 }
 
+/// Represents an association between a section and an expense.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SectionExpense {
+    /// UID of the associated section.
     pub uid_section: String,
+    /// UID of the associated expense.
     pub uid_expense: String,
+    /// Title of the section.
     pub title_section: String,
+    /// Title of the expense.
     pub title_expense: String,
+    /// Number of instances of this expense for this section.
     pub count: i32,
+    /// Description of the expense.
     pub description: Option<String>,
 }
 
+/// Represents a calculated expense for reporting purposes.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CalculatedExpense {
+    /// UID of the specific expense instance.
     pub uid_expense_instance: Option<String>,
+    /// UID of the section.
     pub uid_section: Option<String>,
+    /// UID of the expense template.
     pub uid_expense: Option<String>,
+    /// Title of the section.
     pub title_section: Option<String>,
+    /// Title of the expense.
     pub title_expense: Option<String>,
+    /// Comments on the expense instance.
     pub comments: Option<String>,
+    /// Hex color code of the section.
     pub section_color: Option<String>,
+    /// Default number of members for the expense.
     pub expenses_units: Option<f32>,
+    /// Default number of adults for the expense.
     pub expenses_units_adults: Option<f32>,
+    /// Default unit price.
     pub expenses_unit_price: Option<f32>,
+    /// Default rate.
     pub expenses_rate: Option<f32>,
+    /// Number of occurrences of this instance.
     pub expenses_instances_number: Option<f32>,
+    /// Custom number of members for this instance.
     pub expenses_instances_units: Option<f32>,
+    /// Custom number of adults for this instance.
     pub expenses_instances_units_adults: Option<f32>,
+    /// Custom unit price for this instance.
     pub expenses_instances_unit_price: Option<f32>,
+    /// Custom rate for this instance.
     pub expenses_instances_rate: Option<f32>,
+    /// Actual units used (custom or default).
     pub live_units: Option<f32>,
+    /// Actual adult units used (custom or default).
     pub live_units_adults: Option<f32>,
+    /// Actual unit price used (custom or default).
     pub live_unit_price: Option<f32>,
+    /// Actual rate used (custom or default).
     pub live_rate: Option<f32>,
+    /// Rate remaining for the group (100 - live_rate).
     pub group_rate: Option<f32>,
+    /// Calculated price applied to the section.
     pub applyed_price: Option<f32>,
+    /// Total price applied to the section (including all units and occurrences).
     pub total_applyed_price: Option<f32>,
+    /// Initial total price before any rate reduction.
     pub total_inital_price: Option<f32>,
+    /// Total price applied to the group.
     pub group_applyed_total_price: Option<f32>,
+    /// Unit price applied to the group per member.
     pub group_applyed_unit_price: Option<f32>,
+    /// Total number of members in the entire group.
     pub group_members_count: Option<f32>,
+    /// Description of the expense template.
     pub expenses_description: Option<String>,
 }
 
+/// Represents the sum of expenses for an instance or section.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SumExpenseInstance {
+    /// Sum of unit prices.
     pub sum_unit: f32,
+    /// Sum of total prices.
     pub sum_total: f32,
 }
 
 //TODO Ajouter taux pour frais de commision en ligne
 //TODO Ajouter montant fixe pour frais de commision en ligne
 // Actuellement =0,4+(0,8%*G90)
+/// Represents a Quotient Familial (QF) category.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Fq {
+    /// Unique identifier for the QF.
     pub uid: String,
+    /// Title of the QF category.
     pub title: String,
+    /// Multiplier coefficient for this QF.
     pub coeff: f32,
+    /// National contribution amount for this QF.
     pub national_contribution: f32,
+    /// Online commission rate (percentage).
     pub online_commission_rate: f32,
+    /// Fixed fees for online commission.
     pub online_commission_fees: f32,
 }
 
+/// Represents the association between a section and a QF category.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FqSection {
+    /// UID of the QF.
     pub uid_fq: String,
+    /// UID of the section.
     pub uid_section: String,
+    /// Multiplier coefficient.
     pub coeff: f32,
+    /// Number of members in this section belonging to this QF.
     pub members_count: f32,
+    /// Title of the section.
     pub title_section: String,
+    /// Title of the QF category.
     pub title_fq: String,
 }
 
+/// Represents calculated total values for a QF category in a section.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FqTotal {
+    /// Title of the section.
     pub title_section: String,
+    /// Title of the QF category.
     pub title_fq: String,
+    /// UID of the QF category.
     pub uid_fq: String,
+    /// UID of the section.
     pub uid_section: String,
+    /// Average weighted unit price for the section.
     pub declared_unit_price: f32,
+    /// Average weighted unit price for the group.
     pub declared_group_unit_price: f32,
+    /// Multiplier coefficient.
     pub coeff: f32,
+    /// Calculated unit price with coefficient for the section.
     pub calculated_unit_price_with_coeff: f32,
+    /// Calculated unit price with coefficient for the group.
     pub group_calculated_unit_price: f32,
+    /// Total price per member for both section and group.
     pub total_group_member_price: f32,
+    /// National contribution amount.
     pub national_contribution: f32,
+    /// Total price per member including national contribution.
     pub total_member_price: f32,
+    /// Calculated online commission fees.
     pub national_commission: f32,
+    /// Final total price for the member.
     pub total: f32,
+    /// Number of members declared in this QF category for the section.
     pub members_declared_count: f32,
+    /// Hex color code of the section.
     pub color: String,
 }
 
+/// Represents the total national fees across all categories.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct NationalFees {
+    /// Total sum of national contributions.
     pub total_national_contribution: f32,
+    /// Total sum of online commission fees.
     pub total_national_commission: f32,
 }
 
+/// Represents the number of members associated with a section in the QF context.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FqMembersCount {
+    /// UID of the section.
     pub uid_section: String,
+    /// Number of members.
     pub count: i32,
 }
 
+/// Serializes a vector of data to a JSON string.
 pub fn vec_to_json<T: Serialize>(vec_data: Vec<T>) -> String {
     serde_json::to_string(&vec_data).expect("Cannot serialize section list")
 }
 
+/// Serializes a single struct to a JSON string.
 pub fn struct_to_json<T: Serialize>(struct_data: T) -> String {
     serde_json::to_string(&struct_data).expect("Cannot serialize struct list")
 }
 
+/// Deserializes a JSON string into a vector of string slices.
 pub fn json_to_vec(json_data: &str) -> Vec<&str> {
     serde_json::from_str(json_data).expect("Cannot deserialize section list")
 }
 
+/// Converts a hex color string (e.g., "#RRGGBB") to a `rust_xlsxwriter::Color`.
 pub fn get_xlsx_color_from_str(color: &str) -> Color {
     let rgb_color: u32 =
         u32::from_str_radix(&color[1..], 16).expect("Conversion error hexadecimal to rgb");
     Color::RGB(rgb_color)
 }
 
+/// Generates an Excel (.xlsx) file containing the budget report.
+///
+/// This function reads data from the database, creates worksheets for each section,
+/// adds QF calculations, and generates a balance sheet.
 pub fn generate_xls_file() {
     let file_path = repository::get_global_file_path();
     let path = Path::new(&file_path);

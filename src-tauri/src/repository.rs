@@ -1,3 +1,9 @@
+//! Database repository for the Longchamp Budget application.
+//!
+//! This module handles all interactions with the SQLite database using `rusqlite`.
+//! It includes functions for managing sections, expenses, QFs, and their associations,
+//! as well as database initialization and migrations.
+
 use crate::helper::{
     CalculatedExpense, Expense, Fq, FqMembersCount, FqSection, FqTotal, NationalFees, Section,
     SectionExpense, SumExpenseInstance,
@@ -13,6 +19,7 @@ lazy_static! {
     static ref GLOBAL_FILE_PATH: RwLock<String> = RwLock::new(String::from(""));
 }
 
+/// Returns the global database file path.
 pub fn get_global_file_path() -> String {
     let path = GLOBAL_FILE_PATH
         .read()
@@ -37,6 +44,7 @@ fn parse_i_or_none(s: &str) -> Option<i32> {
     parse_f_or_none(s).map(|value| value.floor() as i32)
 }
 
+/// Returns a new connection to the SQLite database.
 pub fn get_connection() -> Result<Connection, rusqlite::Error> {
     let file_path = GLOBAL_FILE_PATH
         .read()
@@ -44,6 +52,9 @@ pub fn get_connection() -> Result<Connection, rusqlite::Error> {
     Connection::open(file_path.clone())
 }
 
+/// Updates the global database file path and initializes the database.
+///
+/// If `erase_if_exists` is true, the existing file at `str_path` will be deleted.
 pub fn update_db_file_path(str_path: &str, erase_if_exists: bool) {
     let mut file_path = GLOBAL_FILE_PATH
         .write()
@@ -64,6 +75,7 @@ pub fn update_db_file_path(str_path: &str, erase_if_exists: bool) {
     execute_migrations(conn);
 }
 
+/// Inserts a new section into the database.
 pub fn insert_new_section(title: &str, color: &str, members_count: i32, adults_count: i32) {
     let conn = get_connection().expect("Cannot get connection");
 
@@ -93,6 +105,7 @@ pub fn insert_new_section(title: &str, color: &str, members_count: i32, adults_c
     );
 }
 
+/// Inserts a new QF category into the database.
 pub fn insert_new_fq(
     title: &str,
     coeff: &str,
@@ -140,6 +153,7 @@ pub fn insert_new_fq(
     );
 }
 
+/// Returns a list of all sections ordered by position.
 pub fn section_list() -> Vec<Section> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
@@ -158,6 +172,7 @@ pub fn section_list() -> Vec<Section> {
     )
 }
 
+/// Returns a list of all QF categories ordered by position.
 pub fn fq_list() -> Vec<Fq> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
@@ -177,6 +192,7 @@ pub fn fq_list() -> Vec<Fq> {
     )
 }
 
+/// Returns a list of QF categories and their member counts for a specific section.
 pub fn fq_section_list_load(section_uid: &str) -> Vec<FqSection> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
@@ -200,6 +216,7 @@ pub fn fq_section_list_load(section_uid: &str) -> Vec<FqSection> {
     )
 }
 
+/// Returns calculated QF total data for a specific section.
 pub fn get_fqs_calculated_by_section(section_uid: &str) -> Vec<FqTotal> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
@@ -229,6 +246,7 @@ pub fn get_fqs_calculated_by_section(section_uid: &str) -> Vec<FqTotal> {
     )
 }
 
+/// Returns the total national fees (contribution and commission) across all sections.
 pub fn get_total_national_cotisation() -> NationalFees {
     let conn = get_connection().expect("Cannot get connection");
     let mut result = execute_read_sql(
@@ -250,6 +268,7 @@ pub fn get_total_national_cotisation() -> NationalFees {
     result.pop().expect("No Cotisation fees")
 }
 
+/// Returns calculated QF total data for all sections except the aggregate group.
 pub fn get_calculated_fqs_total_without_group() -> Vec<FqTotal> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
@@ -279,6 +298,7 @@ pub fn get_calculated_fqs_total_without_group() -> Vec<FqTotal> {
     )
 }
 
+/// Returns a list of all expenses ordered by position.
 pub fn expense_list() -> Vec<Expense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
@@ -298,6 +318,9 @@ pub fn expense_list() -> Vec<Expense> {
     )
 }
 
+/// Deletes a section from the database.
+///
+/// Only succeeds if the section has no associated expense instances.
 pub fn delete_section(uid: &str) {
     let mut conn = get_connection().expect("Cannot get connection");
 
@@ -329,6 +352,7 @@ pub fn delete_section(uid: &str) {
     tx.commit().expect("Failed to commit transaction");
 }
 
+/// Deletes a QF category from the database.
 pub fn delete_fq(uid: &str) {
     let mut conn = get_connection().expect("Cannot get connection");
     let tx = conn
@@ -341,6 +365,7 @@ pub fn delete_fq(uid: &str) {
     tx.commit().expect("Failed to commit transaction");
 }
 
+/// Updates section information in the database.
 pub fn update_section(uid: &str, title: &str, color: &str, members_count: i32, adults_count: i32) {
     let conn = get_connection().expect("Cannot get connection");
 
@@ -370,6 +395,7 @@ pub fn update_section(uid: &str, title: &str, color: &str, members_count: i32, a
     );
 }
 
+/// Updates QF category information in the database.
 pub fn update_fq(
     uid: &str,
     title: &str,
@@ -418,6 +444,7 @@ pub fn update_fq(
     );
 }
 
+/// Updates the display order of sections.
 pub fn update_section_order(section_list: Vec<&str>) {
     let mut conn = get_connection().expect("Cannot get connection");
     let tx = conn
@@ -435,6 +462,7 @@ pub fn update_section_order(section_list: Vec<&str>) {
     tx.commit().expect("Failed to commit transaction");
 }
 
+/// Updates the display order of QF categories.
 pub fn update_fq_order(fq_list: Vec<&str>) {
     let mut conn = get_connection().expect("Cannot get connection");
     let tx = conn
@@ -452,6 +480,7 @@ pub fn update_fq_order(fq_list: Vec<&str>) {
     tx.commit().expect("Failed to commit transaction");
 }
 
+/// Updates the members count for a section.
 pub fn update_members_count(uid: &str, members_count: i32) {
     let conn = get_connection().expect("Cannot get connection");
     execute_write_sql(
@@ -461,6 +490,7 @@ pub fn update_members_count(uid: &str, members_count: i32) {
     );
 }
 
+/// Updates the adults count for a section.
 pub fn update_adults_count(uid: &str, adults_count: i32) {
     let conn = get_connection().expect("Cannot get connection");
     execute_write_sql(
@@ -470,6 +500,7 @@ pub fn update_adults_count(uid: &str, adults_count: i32) {
     );
 }
 
+/// Updates the members count for a specific QF in a section.
 pub fn update_fq_section_members_count(section_uid: &str, fq_uid: &str, members_count: i32) {
     let conn = get_connection().expect("Cannot get connection");
     execute_write_sql(
@@ -479,6 +510,7 @@ pub fn update_fq_section_members_count(section_uid: &str, fq_uid: &str, members_
     );
 }
 
+/// Inserts a new expense and associates it with the provided sections.
 pub fn insert_new_expense(
     title: &str,
     description: &str,
@@ -540,6 +572,7 @@ fn section_list_from_uid_vec(section_list: Vec<&str>, conn: &Connection) -> Vec<
     section_list_vec
 }
 
+/// Returns the total number of members across all QF categories for a section.
 pub fn get_members_fq_count_by_section(section_uid: &str) -> i32 {
     let conn = get_connection().expect("Cannot get connection");
     let count: i32 = execute_read_sql(
@@ -553,6 +586,7 @@ pub fn get_members_fq_count_by_section(section_uid: &str) -> i32 {
     count
 }
 
+/// Returns a list of member counts across QF categories for all sections.
 pub fn get_members_fq_count_for_all_sections() -> Vec<FqMembersCount> {
     let conn = get_connection().expect("Cannot get connection");
     let result : Vec<FqMembersCount> = execute_read_sql(
@@ -570,6 +604,7 @@ pub fn get_members_fq_count_for_all_sections() -> Vec<FqMembersCount> {
     result
 }
 
+/// Updates expense template information in the database.
 pub fn update_expense(uid: &str, title: &str, description: &str, rate: &str, unitprice: &str) {
     let conn = get_connection().expect("Cannot get connection");
 
@@ -585,6 +620,7 @@ pub fn update_expense(uid: &str, title: &str, description: &str, rate: &str, uni
     );
 }
 
+/// Updates the display order of expense instances.
 pub fn update_expense_instance_order(vec_expense_instance_list: Vec<&str>) {
     let mut conn = get_connection().expect("Cannot get connection");
     let tx = conn
@@ -602,6 +638,7 @@ pub fn update_expense_instance_order(vec_expense_instance_list: Vec<&str>) {
     tx.commit().expect("Failed to commit transaction");
 }
 
+/// Updates an expense instance with custom values.
 pub fn update_expense_instance(
     uid_expense_instance: &str,
     unit_price: &str,
@@ -631,6 +668,7 @@ pub fn update_expense_instance(
     );
 }
 
+/// Deletes an expense instance from the database.
 pub fn delete_expense_instance(uid_expense_instance: &str) {
     let conn = get_connection().expect("Cannot get connection");
 
@@ -641,6 +679,7 @@ pub fn delete_expense_instance(uid_expense_instance: &str) {
     );
 }
 
+/// Creates a copy of an existing expense instance.
 pub fn copy_expense_instance(uid_expense_instance: &str) {
     let conn = get_connection().expect("Cannot get connection");
 
@@ -651,6 +690,7 @@ pub fn copy_expense_instance(uid_expense_instance: &str) {
     );
 }
 
+/// Updates associations between an expense and multiple sections.
 pub fn update_expense_section_association(uid_expense: &str, section_list: Vec<&str>) {
     let mut conn = get_connection().expect("Cannot get connection");
     let sections_used_as_instances: Vec<SectionExpense> =
@@ -701,6 +741,9 @@ pub fn update_expense_section_association(uid_expense: &str, section_list: Vec<&
     tx.commit().expect("Failed to commit transaction");
 }
 
+/// Deletes an expense template from the database.
+///
+/// Only succeeds if the expense has no associated instances.
 pub fn delete_expense(uid: &str) {
     let mut conn = get_connection().expect("Cannot get connection");
 
@@ -732,11 +775,13 @@ pub fn delete_expense(uid: &str) {
     tx.commit().expect("Failed to commit transaction");
 }
 
+/// Utility function to execute a write SQL statement.
 pub fn execute_write_sql<T: rusqlite::Params>(sql: &str, params: T, conn: &Connection) {
     let mut statement = conn.prepare_cached(sql).expect("Cannot prepare statement");
     statement.execute(params).expect("Cannot execute write sql");
 }
 
+/// Returns a list of all section-expense template associations.
 pub fn get_section_expense() -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
@@ -760,6 +805,7 @@ pub fn get_section_expense() -> Vec<SectionExpense> {
     )
 }
 
+/// Returns the sum of occurrences (number) for a specific section and expense instance.
 pub fn get_section_expense_cnt_from_instance(section_uid: &str, expense_uid: &str) -> f32 {
     let conn = get_connection().expect("Cannot get connection");
     let result = execute_read_sql(
@@ -779,6 +825,7 @@ pub fn get_section_expense_cnt_from_instance(section_uid: &str, expense_uid: &st
     count
 }
 
+/// Returns section-expense association data for specific section and expense instances.
 pub fn get_section_expense_from_instance(
     section_uid: &str,
     expense_uid: &str,
@@ -807,6 +854,7 @@ pub fn get_section_expense_from_instance(
     )
 }
 
+/// Returns section-expense association data from the association table.
 pub fn get_section_expense_from_association(
     section_uid: &str,
     expense_uid: &str,
@@ -835,6 +883,7 @@ pub fn get_section_expense_from_association(
     )
 }
 
+/// Wrapper for `get_section_expense_from_instances`.
 pub fn get_section_expense_from_instances_wrapper(expense_uid: &str) -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
     get_section_expense_from_instances(expense_uid, &conn)
@@ -863,6 +912,7 @@ fn get_section_expense_from_instances(expense_uid: &str, conn: &Connection) -> V
     )
 }
 
+/// Returns section-expense associations from all expense instances.
 pub fn get_section_expense_from_expenses_instances() -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
@@ -887,6 +937,7 @@ pub fn get_section_expense_from_expenses_instances() -> Vec<SectionExpense> {
     )
 }
 
+/// Returns section-expense associations for a specific section from its instances.
 pub fn get_section_expense_from_expenses_instances_and_section(
     section_uid: &str,
 ) -> Vec<SectionExpense> {
@@ -915,6 +966,7 @@ pub fn get_section_expense_from_expenses_instances_and_section(
     )
 }
 
+/// Returns the member count for a specific section.
 pub fn get_members_count(section_uid: &str) -> i32 {
     let conn = get_connection().expect("Cannot get connection");
     let members_count_list: Vec<i32> = execute_read_sql(
@@ -929,6 +981,7 @@ pub fn get_members_count(section_uid: &str) -> i32 {
     0
 }
 
+/// Returns the adult count for a specific section.
 pub fn get_adults_count(section_uid: &str) -> i32 {
     let conn = get_connection().expect("Cannot get connection");
     let adults_count_list: Vec<i32> = execute_read_sql(
@@ -943,6 +996,7 @@ pub fn get_adults_count(section_uid: &str) -> i32 {
     0
 }
 
+/// Returns section-expense template associations for a specific section.
 pub fn get_section_expense_from_expenses_instances_section(
     section_uid: &str,
 ) -> Vec<SectionExpense> {
@@ -969,6 +1023,7 @@ pub fn get_section_expense_from_expenses_instances_section(
     )
 }
 
+/// Returns all calculated expenses for a specific section.
 pub fn get_calculated_expenses(section_uid: &str) -> Vec<CalculatedExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql("SELECT uid_expense_instance, uid_section, uid_expense, title_section, title_expense, comments, section_color, expenses_units, expenses_units_adults,
@@ -1014,6 +1069,7 @@ ORDER BY expenses_instances_position ASC",
     )
 }
 
+/// Returns the total sum of expenses per member for a specific section.
 pub fn get_total_per_member(section_uid: &str) -> SumExpenseInstance {
     let conn = get_connection().expect("Cannot get connection");
     let results : Vec <SumExpenseInstance> = execute_read_sql("SELECT ROUND(SUM(sum_group_applyed_unit_price),2) AS sum_group_applyed_unit_price, ROUND(SUM(sum_group_applyed_total_price),2) AS sum_group_applyed_total_price FROM 
@@ -1038,6 +1094,7 @@ UNION ALL
     sum_expense_instance_from_vec(results)
 }
 
+/// Returns the sum of calculated expenses for a specific section.
 pub fn get_sum_calculated_expenses(section_uid: &str) -> SumExpenseInstance {
     let conn = get_connection().expect("Cannot get connection");
     let results : Vec <SumExpenseInstance> = execute_read_sql("SELECT ROUND(SUM(total_applyed_price / expenses_units),2) AS applyed_price, ROUND(SUM(total_applyed_price),2) AS total_applyed_price
@@ -1051,6 +1108,7 @@ pub fn get_sum_calculated_expenses(section_uid: &str) -> SumExpenseInstance {
     sum_expense_instance_from_vec(results)
 }
 
+/// Returns the total sum of calculated expenses for the entire group.
 pub fn get_group_sum_calculated_expenses() -> SumExpenseInstance {
     let conn = get_connection().expect("Cannot get connection");
     let results : Vec <SumExpenseInstance> = execute_read_sql("SELECT ROUND(SUM(sum_group_applyed_unit_price),2) AS sum_group_applyed_unit_price, ROUND(SUM(sum_group_applyed_total_price),2) AS sum_group_applyed_total_price FROM 
@@ -1071,6 +1129,7 @@ UNION ALL
     sum_expense_instance_from_vec(results)
 }
 
+/// Returns the sum of calculated expenses only for group-level instances.
 pub fn get_group_only_sum_calculated_expenses() -> SumExpenseInstance {
     let conn = get_connection().expect("Cannot get connection");
     let results : Vec <SumExpenseInstance> = execute_read_sql("SELECT ROUND(SUM(group_applyed_unit_price),2) AS sum_group_applyed_unit_price, ROUND(SUM(group_applyed_total_price),2) AS sum_group_applyed_total_price
@@ -1095,6 +1154,7 @@ fn sum_expense_instance_from_vec(vec: Vec<SumExpenseInstance>) -> SumExpenseInst
     }
 }
 
+/// Returns all calculated expenses associated with the entire group.
 pub fn get_group_calculated_expenses() -> Vec<CalculatedExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql("SELECT uid_expense_instance, uid_section, uid_expense, title_section, title_expense, comments, section_color, expenses_units, expenses_units_adults,
@@ -1139,6 +1199,7 @@ pub fn get_group_calculated_expenses() -> Vec<CalculatedExpense> {
         &conn)
 }
 
+/// Adds a new expense instance for a section.
 pub fn add_expense_instance(section_uid: &str, expense_id: &str) {
     let conn = get_connection().expect("Cannot get connection");
     execute_write_sql(
@@ -1148,6 +1209,7 @@ pub fn add_expense_instance(section_uid: &str, expense_id: &str) {
     );
 }
 
+/// Updates the display order of expense templates.
 pub fn update_expense_order(expense_list: Vec<&str>) {
     let mut conn = get_connection().expect("Cannot get connection");
     let tx = conn
@@ -1165,6 +1227,7 @@ pub fn update_expense_order(expense_list: Vec<&str>) {
     tx.commit().expect("Failed to commit transaction");
 }
 
+/// Utility function to execute a read SQL query and map results to a vector.
 pub fn execute_read_sql<F, T, P: rusqlite::Params>(
     sql: &str,
     params: P,
@@ -1184,6 +1247,7 @@ where
     data_iter
 }
 
+/// Initializes the database schema by executing migrations.
 pub fn execute_migrations(conn: Connection) {
     let arr_sql: Vec<&str> = vec![
         "CREATE TABLE IF NOT EXISTS \"sections\" (
