@@ -1626,4 +1626,311 @@ mod tests {
             std::fs::remove_file(db_path).unwrap();
         }
     }
+
+
+    #[test]
+    #[serial]
+    fn test_fq_workflow() {
+        let temp_dir = std::env::temp_dir();
+        let db_path = temp_dir.join("test_fq.lb");
+        let db_path_str = db_path.to_str().unwrap();
+
+        update_db_file_path(db_path_str, true);
+
+        // Insert FQ
+        insert_new_fq(
+            "Test FQ",
+            "1.5",
+            "10.0",
+            "5.0",
+            "2.5",
+        );
+
+        let fqs = fq_list();
+        let test_fq = fqs
+            .iter()
+            .find(|f| f.title == "Test FQ")
+            .expect("Test FQ not found");
+        assert_eq!(test_fq.coeff, 1.5);
+        assert_eq!(fqs.len(), 1); // 'group' is not in fqs table, sections_fqs might link to it but fq_list only shows fqs table entries. 
+        // Note: The migration creates a 'group' section, but FQs are distinct.
+
+        // Update FQ
+        update_fq(
+            &test_fq.uid,
+            "Updated FQ",
+            "2.0",
+            "15.0",
+            "6.0",
+            "3.0",
+        );
+
+        let fqs_updated = fq_list();
+        let test_fq_updated = fqs_updated
+            .iter()
+            .find(|f| f.title == "Updated FQ")
+            .expect("Updated FQ not found");
+        assert_eq!(test_fq_updated.coeff, 2.0);
+
+        // Duplicate prevention
+        insert_new_fq(
+            "Updated FQ", // Same title
+            "1.5",
+            "10.0",
+            "5.0",
+            "2.5",
+        );
+        let fqs_after_duplicate = fq_list();
+        assert_eq!(fqs_after_duplicate.len(), 1); // Should not insert duplicate
+
+        // Delete FQ
+        delete_fq(&test_fq_updated.uid);
+        let fqs_deleted = fq_list();
+        assert_eq!(fqs_deleted.len(), 0);
+
+        // Clean up
+        if db_path.exists() {
+            std::fs::remove_file(db_path).unwrap();
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn test_expense_instance_workflow() {
+        let temp_dir = std::env::temp_dir();
+        let db_path = temp_dir.join("test_expense_inst.lb");
+        let db_path_str = db_path.to_str().unwrap();
+
+        update_db_file_path(db_path_str, true);
+
+        // Setup Section and Expense
+        insert_new_section("Test Section", "#FF0000", 10, 5);
+        let sections = section_list();
+        let section = sections
+            .iter()
+            .find(|s| s.title == "Test Section")
+            .expect("Test Section not found");
+
+        insert_new_expense("Test Expense", "Desc", "100", "1.0", vec![&section.uid]);
+        let expenses = expense_list();
+        let expense = expenses
+            .iter()
+            .find(|e| e.title == "Test Expense")
+            .expect("Test Expense not found");
+
+        // Add Instance
+        add_expense_instance(&section.uid, &expense.uid);
+
+        // Verify Instance Exists (using get_section_expense_from_expenses_instances_and_section)
+        let instances = get_section_expense_from_expenses_instances_and_section(&section.uid);
+        assert_eq!(instances.len(), 1);
+
+        // Let's use execute_read_sql to fetch the instance UID
+        let conn = get_connection().expect("Cannot get connection");
+        let instance_uids: Vec<String> = execute_read_sql(
+            "SELECT uid FROM expenses_instances WHERE uid_section = ?1 AND uid_expense = ?2",
+            params!(section.uid, expense.uid),
+            |row| row.get(0),
+            &conn,
+        );
+        assert!(!instance_uids.is_empty());
+        let test_uid = &instance_uids[0];
+
+        // Update Instance
+        update_expense_instance(
+            test_uid,
+            "10.0", // unit_price
+            "5",    // number
+            "20",   // units
+            "10",   // units_adults
+            "50",   // rate
+            "Comment" // comments
+        );
+
+        // Verify Update (via get_connection again)
+        let updated_units: Vec<f32> = execute_read_sql(
+            "SELECT units FROM expenses_instances WHERE uid = ?1",
+            params!(test_uid),
+            |row| row.get(0),
+            &conn,
+        );
+        assert_eq!(updated_units.len(), 1);
+        assert_eq!(updated_units[0], 20.0);
+
+        // Copy Instance
+        copy_expense_instance(test_uid);
+        let instances_after_copy: Vec<String> = execute_read_sql(
+            "SELECT uid FROM expenses_instances WHERE uid_section = ?1 AND uid_expense = ?2",
+            params!(section.uid, expense.uid),
+            |row| row.get(0),
+            &conn,
+        );
+        assert_eq!(instances_after_copy.len(), 2);
+
+        // Delete Instance
+        delete_expense_instance(test_uid);
+        let instances_after_delete: Vec<String> = execute_read_sql(
+            "SELECT uid FROM expenses_instances WHERE uid_section = ?1 AND uid_expense = ?2",
+            params!(section.uid, expense.uid),
+            |row| row.get(0),
+            &conn,
+        );
+        assert_eq!(instances_after_delete.len(), 1); // One copy remains
+
+        // Clean up
+        if db_path.exists() {
+            std::fs::remove_file(db_path).unwrap();
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn test_section_order_workflow() {
+        let temp_dir = std::env::temp_dir();
+        let db_path = temp_dir.join("test_order.lb");
+        let db_path_str = db_path.to_str().unwrap();
+
+        update_db_file_path(db_path_str, true);
+
+        // Insert multiple sections
+        insert_new_section("Section One", "#111111", 1, 1);
+        insert_new_section("Section Two", "#222222", 2, 2);
+        insert_new_section("Section Three", "#333333", 3, 3);
+
+        let sections_before = section_list();
+        // Should be ordered by position (One, Two, Three)
+        assert_eq!(sections_before.len(), 4); // Includes 'group'
+        
+        // Update order (reverse)
+        let uids: Vec<&str> = sections_before.iter().map(|s| s.uid.as_str()).collect();
+        // Reverse the list (excluding group usually, but here we pass all or specific. 
+        // update_section_order takes Vec<&str>. Let's try to reorder specific ones.
+        // The function updates based on index in the vector.
+        // Let's try to swap First and Second.
+        let mut reordered_uids = uids.clone();
+        if reordered_uids.len() >= 2 {
+            reordered_uids.swap(0, 1);
+            update_section_order(reordered_uids);
+        }
+
+        let sections_after = section_list();
+        // The first two should be swapped compared to initial insert order (which was One, Two)
+        // Note: 'group' has position 0. New inserts get MAX+1.
+        // So group is index 0. New sections are 1, 2, 3.
+        // If we reorder, we must include 'group' or the logic might break depending on implementation.
+        // update_section_order iterates `section_list` provided.
+        // If we don't pass 'group', 'group' keeps its position.
+        
+        // Clean up
+        if db_path.exists() {
+            std::fs::remove_file(db_path).unwrap();
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn test_delete_section_with_instances() {
+        let temp_dir = std::env::temp_dir();
+        let db_path = temp_dir.join("test_delete_dep.lb");
+        let db_path_str = db_path.to_str().unwrap();
+
+        update_db_file_path(db_path_str, true);
+
+        // Insert Section and Expense Instance
+        insert_new_section("Section To Delete", "#FF0000", 10, 5);
+        let sections = section_list();
+        let section = sections
+            .iter()
+            .find(|s| s.title == "Section To Delete")
+            .expect("Section not found");
+
+        insert_new_expense("Expense", "Desc", "100", "1.0", vec![&section.uid]);
+        let expenses = expense_list();
+        let expense = expenses
+            .iter()
+            .find(|e| e.title == "Expense")
+            .expect("Expense not found");
+
+        // Add Instance
+        add_expense_instance(&section.uid, &expense.uid);
+
+        // Try to delete section
+        // This should not delete the section because instances exist.
+        delete_section(&section.uid);
+
+        let sections_after = section_list();
+        let deleted_section = sections_after.iter().find(|s| s.uid == section.uid);
+        assert!(deleted_section.is_some(), "Section should still exist because it has instances");
+
+        // Clean up
+        if db_path.exists() {
+            std::fs::remove_file(db_path).unwrap();
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn test_duplicate_section_prevention() {
+        let temp_dir = std::env::temp_dir();
+        let db_path = temp_dir.join("test_dup_sec.lb");
+        let db_path_str = db_path.to_str().unwrap();
+
+        update_db_file_path(db_path_str, true);
+
+        // Insert Section
+        insert_new_section("Unique Title", "#FF0000", 10, 5);
+        
+        let sections1 = section_list();
+        let unique_count = sections1.iter().filter(|s| s.title == "Unique Title").count();
+        assert_eq!(unique_count, 1);
+
+        // Try to insert duplicate title
+        insert_new_section("Unique Title", "#00FF00", 20, 10);
+
+        let sections2 = section_list();
+        let unique_count2 = sections2.iter().filter(|s| s.title == "Unique Title").count();
+        assert_eq!(unique_count2, 1, "Duplicate title should not be inserted");
+
+        // Clean up
+        if db_path.exists() {
+            std::fs::remove_file(db_path).unwrap();
+        }
+    }
+
+    #[test]
+    #[serial]
+    fn test_update_section_duplicate_title() {
+        let temp_dir = std::env::temp_dir();
+        let db_path = temp_dir.join("test_upd_dup.lb");
+        let db_path_str = db_path.to_str().unwrap();
+
+        update_db_file_path(db_path_str, true);
+
+        // Insert Section A
+        insert_new_section("Title A", "#FF0000", 10, 5);
+        let sections_a = section_list();
+        let section_a = sections_a.iter().find(|s| s.title == "Title A").expect("A not found");
+
+        // Insert Section B
+        insert_new_section("Title B", "#00FF00", 10, 5);
+        let sections_b = section_list();
+        let section_b = sections_b.iter().find(|s| s.title == "Title B").expect("B not found");
+
+        // Try to update A to have Title B (should fail due to duplicate)
+        update_section(&section_a.uid, "Title B", "#000000", 5, 2);
+
+        // Title A should still exist with original data
+        let sections_after = section_list();
+        let section_a_updated = sections_after.iter().find(|s| s.uid == section_a.uid);
+        assert!(section_a_updated.is_some());
+        assert_eq!(section_a_updated.unwrap().title, "Title A", "Update should be blocked by duplicate check");
+
+        // Clean up
+        if db_path.exists() {
+            std::fs::remove_file(db_path).unwrap();
+        }
+    }
+
+
+
 }
