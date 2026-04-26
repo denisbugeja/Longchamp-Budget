@@ -1627,7 +1627,6 @@ mod tests {
         }
     }
 
-
     #[test]
     #[serial]
     fn test_fq_workflow() {
@@ -1638,13 +1637,7 @@ mod tests {
         update_db_file_path(db_path_str, true);
 
         // Insert FQ
-        insert_new_fq(
-            "Test FQ",
-            "1.5",
-            "10.0",
-            "5.0",
-            "2.5",
-        );
+        insert_new_fq("Test FQ", "1.5", "10.0", "5.0", "2.5");
 
         let fqs = fq_list();
         let test_fq = fqs
@@ -1652,18 +1645,11 @@ mod tests {
             .find(|f| f.title == "Test FQ")
             .expect("Test FQ not found");
         assert_eq!(test_fq.coeff, 1.5);
-        assert_eq!(fqs.len(), 1); // 'group' is not in fqs table, sections_fqs might link to it but fq_list only shows fqs table entries. 
-        // Note: The migration creates a 'group' section, but FQs are distinct.
+        assert_eq!(fqs.len(), 1); // 'group' is not in fqs table, sections_fqs might link to it but fq_list only shows fqs table entries.
+                                  // Note: The migration creates a 'group' section, but FQs are distinct.
 
         // Update FQ
-        update_fq(
-            &test_fq.uid,
-            "Updated FQ",
-            "2.0",
-            "15.0",
-            "6.0",
-            "3.0",
-        );
+        update_fq(&test_fq.uid, "Updated FQ", "2.0", "15.0", "6.0", "3.0");
 
         let fqs_updated = fq_list();
         let test_fq_updated = fqs_updated
@@ -1738,13 +1724,12 @@ mod tests {
 
         // Update Instance
         update_expense_instance(
-            test_uid,
-            "10.0", // unit_price
-            "5",    // number
-            "20",   // units
-            "10",   // units_adults
-            "50",   // rate
-            "Comment" // comments
+            test_uid, "10.0",    // unit_price
+            "5",       // number
+            "20",      // units
+            "10",      // units_adults
+            "50",      // rate
+            "Comment", // comments
         );
 
         // Verify Update (via get_connection again)
@@ -1800,10 +1785,10 @@ mod tests {
         let sections_before = section_list();
         // Should be ordered by position (One, Two, Three)
         assert_eq!(sections_before.len(), 4); // Includes 'group'
-        
+
         // Update order (reverse)
         let uids: Vec<&str> = sections_before.iter().map(|s| s.uid.as_str()).collect();
-        // Reverse the list (excluding group usually, but here we pass all or specific. 
+        // Reverse the list (excluding group usually, but here we pass all or specific.
         // update_section_order takes Vec<&str>. Let's try to reorder specific ones.
         // The function updates based on index in the vector.
         // Let's try to swap First and Second.
@@ -1820,7 +1805,7 @@ mod tests {
         // If we reorder, we must include 'group' or the logic might break depending on implementation.
         // update_section_order iterates `section_list` provided.
         // If we don't pass 'group', 'group' keeps its position.
-        
+
         // Clean up
         if db_path.exists() {
             std::fs::remove_file(db_path).unwrap();
@@ -1860,7 +1845,10 @@ mod tests {
 
         let sections_after = section_list();
         let deleted_section = sections_after.iter().find(|s| s.uid == section.uid);
-        assert!(deleted_section.is_some(), "Section should still exist because it has instances");
+        assert!(
+            deleted_section.is_some(),
+            "Section should still exist because it has instances"
+        );
 
         // Clean up
         if db_path.exists() {
@@ -1879,16 +1867,22 @@ mod tests {
 
         // Insert Section
         insert_new_section("Unique Title", "#FF0000", 10, 5);
-        
+
         let sections1 = section_list();
-        let unique_count = sections1.iter().filter(|s| s.title == "Unique Title").count();
+        let unique_count = sections1
+            .iter()
+            .filter(|s| s.title == "Unique Title")
+            .count();
         assert_eq!(unique_count, 1);
 
         // Try to insert duplicate title
         insert_new_section("Unique Title", "#00FF00", 20, 10);
 
         let sections2 = section_list();
-        let unique_count2 = sections2.iter().filter(|s| s.title == "Unique Title").count();
+        let unique_count2 = sections2
+            .iter()
+            .filter(|s| s.title == "Unique Title")
+            .count();
         assert_eq!(unique_count2, 1, "Duplicate title should not be inserted");
 
         // Clean up
@@ -1909,12 +1903,18 @@ mod tests {
         // Insert Section A
         insert_new_section("Title A", "#FF0000", 10, 5);
         let sections_a = section_list();
-        let section_a = sections_a.iter().find(|s| s.title == "Title A").expect("A not found");
+        let section_a = sections_a
+            .iter()
+            .find(|s| s.title == "Title A")
+            .expect("A not found");
 
         // Insert Section B
         insert_new_section("Title B", "#00FF00", 10, 5);
         let sections_b = section_list();
-        let section_b = sections_b.iter().find(|s| s.title == "Title B").expect("B not found");
+        let section_b = sections_b
+            .iter()
+            .find(|s| s.title == "Title B")
+            .expect("B not found");
 
         // Try to update A to have Title B (should fail due to duplicate)
         update_section(&section_a.uid, "Title B", "#000000", 5, 2);
@@ -1923,14 +1923,15 @@ mod tests {
         let sections_after = section_list();
         let section_a_updated = sections_after.iter().find(|s| s.uid == section_a.uid);
         assert!(section_a_updated.is_some());
-        assert_eq!(section_a_updated.unwrap().title, "Title A", "Update should be blocked by duplicate check");
+        assert_eq!(
+            section_a_updated.unwrap().title,
+            "Title A",
+            "Update should be blocked by duplicate check"
+        );
 
         // Clean up
         if db_path.exists() {
             std::fs::remove_file(db_path).unwrap();
         }
     }
-
-
-
 }
