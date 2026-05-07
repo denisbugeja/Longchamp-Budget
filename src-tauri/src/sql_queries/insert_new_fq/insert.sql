@@ -22,4 +22,4 @@ VALUES
 			FROM
 				fqs
 		)
-	);
+	)
