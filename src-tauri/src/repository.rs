@@ -80,7 +80,7 @@ pub fn insert_new_section(title: &str, color: &str, members_count: i32, adults_c
     let conn = get_connection().expect("Cannot get connection");
 
     let existing_sections: Vec<Section> = execute_read_sql(
-        "SELECT uid, title, color, members_count, adults_count FROM sections WHERE title = ?1",
+        include_str!("sql_queries/insert_new_section/existing_sections.sql"),
         params!(title),
         |row| {
             Ok(Section {
@@ -99,7 +99,7 @@ pub fn insert_new_section(title: &str, color: &str, members_count: i32, adults_c
     }
 
     execute_write_sql(
-        include_str!("sql_queries/insert_new_section.sql"),
+        include_str!("sql_queries/insert_new_section/insert.sql"),
         params!(
             Uuid::new_v4().to_string(),
             title,
@@ -122,7 +122,7 @@ pub fn insert_new_fq(
     let conn = get_connection().expect("Cannot get connection");
 
     let existing_fqs: Vec<Fq> = execute_read_sql(
-        "SELECT uid, title, coeff, national_contribution, online_commission_rate, online_commission_fees FROM fqs WHERE title = ?1",
+        include_str!("sql_queries/insert_new_fq/existing_fqs.sql"),
         params!(title),
         |row| {
             Ok(Fq {
@@ -153,7 +153,7 @@ pub fn insert_new_fq(
         .expect("Failed to parse online_commission_fees as f32");
 
     execute_write_sql(
-        include_str!("sql_queries/insert_new_fq.sql"),
+        include_str!("sql_queries/insert_new_fq/insert.sql"),
         params!(
             Uuid::new_v4().to_string(),
             title,
