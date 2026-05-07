@@ -1,0 +1,21 @@
+SELECT
+	title_section,
+	title_fq,
+	uid_fq,
+	uid_section,
+	declared_unit_price,
+	declared_group_unit_price,
+	coeff,
+	calculated_unit_price_with_coeff,
+	group_calculated_unit_price,
+	total_group_member_price,
+	national_contribution,
+	total_member_price,
+	national_commission,
+	total,
+	members_declared_count,
+	color
+FROM
+	view_calculated_fqs_total
+WHERE
+	uid_section <> 'group'

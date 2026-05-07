@@ -99,8 +99,14 @@ pub fn insert_new_section(title: &str, color: &str, members_count: i32, adults_c
     }
 
     execute_write_sql(
-        "INSERT INTO sections (uid, title, color, members_count, adults_count, position) VALUES (?1, ?2, ?3, ?4, ?5, (SELECT COALESCE(MAX(position), -1) + 1 FROM sections))",
-        params!(Uuid::new_v4().to_string(), title, color, members_count.abs(), adults_count.abs()),
+        include_str!("sql_queries/insert_new_section.sql"),
+        params!(
+            Uuid::new_v4().to_string(),
+            title,
+            color,
+            members_count.abs(),
+            adults_count.abs()
+        ),
         &conn,
     );
 }
@@ -147,8 +153,15 @@ pub fn insert_new_fq(
         .expect("Failed to parse online_commission_fees as f32");
 
     execute_write_sql(
-        "INSERT INTO fqs (uid, title, coeff, national_contribution, online_commission_rate, online_commission_fees, position) VALUES (?1, ?2, ?3, ?4, ?5, ?6, (SELECT COALESCE(MAX(position), -1) + 1 FROM fqs))",
-        params!(Uuid::new_v4().to_string(), title, coeff_f32, national_contribution_f32, online_commission_rate_f32, online_commission_fees_f32),
+        include_str!("sql_queries/insert_new_fq.sql"),
+        params!(
+            Uuid::new_v4().to_string(),
+            title,
+            coeff_f32,
+            national_contribution_f32,
+            online_commission_rate_f32,
+            online_commission_fees_f32
+        ),
         &conn,
     );
 }
@@ -157,7 +170,7 @@ pub fn insert_new_fq(
 pub fn section_list() -> Vec<Section> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT uid, title, color, members_count, adults_count FROM sections ORDER BY position ASC",
+        include_str!("sql_queries/section_list.sql"),
         [],
         |row| {
             Ok(Section {
@@ -176,7 +189,7 @@ pub fn section_list() -> Vec<Section> {
 pub fn fq_list() -> Vec<Fq> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT uid, title, coeff, national_contribution, online_commission_rate, online_commission_fees FROM fqs ORDER BY position ASC",
+        include_str!("sql_queries/fq_list.sql"),
         [],
         |row| {
             Ok(Fq {
@@ -185,7 +198,7 @@ pub fn fq_list() -> Vec<Fq> {
                 coeff: row.get(2)?,
                 national_contribution: row.get(3)?,
                 online_commission_rate: row.get(4)?,
-                online_commission_fees: row.get(5)?
+                online_commission_fees: row.get(5)?,
             })
         },
         &conn,
@@ -196,11 +209,7 @@ pub fn fq_list() -> Vec<Fq> {
 pub fn fq_section_list_load(section_uid: &str) -> Vec<FqSection> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT sections_fqs.uid_section, sections_fqs.uid_fq, fqs.coeff, sections_fqs.members_count, sections.title as section_title, fqs.title as fq_title
-        FROM sections_fqs INNER JOIN sections ON sections_fqs.uid_section = sections.uid 
-        INNER JOIN fqs ON fqs.uid = sections_fqs.uid_fq
-        WHERE sections_fqs.uid_section = ?1 
-        ORDER BY fqs.position ASC",
+        include_str!("sql_queries/fq_section_list_load.sql"),
         params!(section_uid),
         |row| {
             Ok(FqSection {
@@ -220,7 +229,7 @@ pub fn fq_section_list_load(section_uid: &str) -> Vec<FqSection> {
 pub fn get_fqs_calculated_by_section(section_uid: &str) -> Vec<FqTotal> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT title_section, title_fq, uid_fq, uid_section, declared_unit_price, declared_group_unit_price, coeff, calculated_unit_price_with_coeff, group_calculated_unit_price, total_group_member_price, national_contribution, total_member_price, national_commission, total, members_declared_count, color FROM view_calculated_fqs_total WHERE uid_section = ?",
+        include_str!("sql_queries/get_fqs_calculated_by_section.sql"),
         params!(section_uid),
         |row| {
             Ok(FqTotal {
@@ -239,7 +248,7 @@ pub fn get_fqs_calculated_by_section(section_uid: &str) -> Vec<FqTotal> {
                 national_commission: row.get(12)?,
                 total: row.get(13)?,
                 members_declared_count: row.get(14)?,
-                color: row.get(15)?
+                color: row.get(15)?,
             })
         },
         &conn,
@@ -250,11 +259,7 @@ pub fn get_fqs_calculated_by_section(section_uid: &str) -> Vec<FqTotal> {
 pub fn get_total_national_cotisation() -> NationalFees {
     let conn = get_connection().expect("Cannot get connection");
     let mut result = execute_read_sql(
-        "SELECT 
-        COALESCE(SUM(national_contribution * members_declared_count),0) AS total_national_contribution, 
-        COALESCE(SUM(national_commission * members_declared_count),0) AS total_national_commission
-        FROM view_calculated_fqs_total
-        WHERE uid_section  <> 'group'",
+        include_str!("sql_queries/get_total_national_cotisation.sql"),
         [],
         |row| {
             Ok(NationalFees {
@@ -272,7 +277,7 @@ pub fn get_total_national_cotisation() -> NationalFees {
 pub fn get_calculated_fqs_total_without_group() -> Vec<FqTotal> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT title_section, title_fq, uid_fq, uid_section, declared_unit_price, declared_group_unit_price, coeff, calculated_unit_price_with_coeff, group_calculated_unit_price, total_group_member_price, national_contribution, total_member_price, national_commission, total, members_declared_count, color FROM view_calculated_fqs_total WHERE uid_section <> 'group'",
+        include_str!("sql_queries/get_calculated_fqs_total_without_group.sql"),
         [],
         |row| {
             Ok(FqTotal {
@@ -302,7 +307,7 @@ pub fn get_calculated_fqs_total_without_group() -> Vec<FqTotal> {
 pub fn expense_list() -> Vec<Expense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT uid, title, description, rate, unit_price, position  FROM expenses ORDER BY position ASC",
+        include_str!("sql_queries/expense_list.sql"),
         [],
         |row| {
             Ok(Expense {
@@ -325,7 +330,7 @@ pub fn delete_section(uid: &str) {
     let mut conn = get_connection().expect("Cannot get connection");
 
     let count: i32 = execute_read_sql(
-        "SELECT COUNT(uid) FROM expenses_instances WHERE uid_section = ?1",
+        include_str!("sql_queries/delete_section/count.sql"),
         params!(uid),
         |row| row.get(0),
         &conn,
@@ -341,13 +346,16 @@ pub fn delete_section(uid: &str) {
         .expect("Impossible to create transaction");
 
     tx.execute(
-        "DELETE FROM expense_section WHERE uid_section = ?1",
+        include_str!("sql_queries/delete_section/expense_section.sql"),
         params!(uid),
     )
     .expect("Failed to add query to transaction");
 
-    tx.execute("DELETE FROM sections WHERE uid = ?1", params!(uid))
-        .expect("Failed to add query to transaction");
+    tx.execute(
+        include_str!("sql_queries/delete_section/section.sql"),
+        params!(uid),
+    )
+    .expect("Failed to add query to transaction");
 
     tx.commit().expect("Failed to commit transaction");
 }
@@ -359,7 +367,7 @@ pub fn delete_fq(uid: &str) {
         .transaction()
         .expect("Impossible to create transaction");
 
-    tx.execute("DELETE FROM fqs WHERE uid = ?1", params!(uid))
+    tx.execute(include_str!("sql_queries/delete_fq.sql"), params!(uid))
         .expect("Failed to add query to transaction");
 
     tx.commit().expect("Failed to commit transaction");
@@ -370,7 +378,7 @@ pub fn update_section(uid: &str, title: &str, color: &str, members_count: i32, a
     let conn = get_connection().expect("Cannot get connection");
 
     let existing_sections: Vec<Section> = execute_read_sql(
-        "SELECT uid, title, color, members_count, adults_count FROM sections WHERE title = ?1 AND uid != ?2",
+        include_str!("sql_queries/update_section/existing_sections.sql"),
         params!(title, uid),
         |row| {
             Ok(Section {
@@ -389,7 +397,7 @@ pub fn update_section(uid: &str, title: &str, color: &str, members_count: i32, a
     }
 
     execute_write_sql(
-        "UPDATE sections SET title = ?1, color = ?2, members_count=?3, adults_count=?4 WHERE uid = ?5",
+        include_str!("sql_queries/update_section/update.sql"),
         params!(title, color, members_count.abs(), adults_count.abs(), uid),
         &conn,
     );
@@ -407,7 +415,7 @@ pub fn update_fq(
     let conn = get_connection().expect("Cannot get connection");
 
     let existing_fqs: Vec<Fq> = execute_read_sql(
-        "SELECT uid, title, coeff, national_contribution, online_commission_rate, online_commission_fees FROM fqs WHERE title = ?1 and uid != ?2",
+        include_str!("sql_queries/update_fq/existing_fqs.sql"),
         params!(title, uid),
         |row| {
             Ok(Fq {
@@ -438,8 +446,15 @@ pub fn update_fq(
         .expect("Failed to parse online_commission_fees as f32");
 
     execute_write_sql(
-        "UPDATE fqs SET title = ?1, coeff = ?2, national_contribution=?3, online_commission_rate=?4, online_commission_fees=?5 WHERE uid = ?6",
-        params!(title, coeff_f32, national_contribution_f32, online_commission_rate_f32, online_commission_fees_f32, uid),
+        include_str!("sql_queries/update_fq/update.sql"),
+        params!(
+            title,
+            coeff_f32,
+            national_contribution_f32,
+            online_commission_rate_f32,
+            online_commission_fees_f32,
+            uid
+        ),
         &conn,
     );
 }
@@ -453,7 +468,7 @@ pub fn update_section_order(section_list: Vec<&str>) {
 
     for (index, uid) in section_list.iter().enumerate() {
         tx.execute(
-            "UPDATE sections SET position = ?1 WHERE uid = ?2",
+            include_str!("sql_queries/update_section_order.sql"),
             params!(index, uid),
         )
         .expect("Failed to add query to transaction");
@@ -471,7 +486,7 @@ pub fn update_fq_order(fq_list: Vec<&str>) {
 
     for (index, uid) in fq_list.iter().enumerate() {
         tx.execute(
-            "UPDATE fqs SET position = ?1 WHERE uid = ?2",
+            include_str!("sql_queries/update_fq_order.sql"),
             params!(index, uid),
         )
         .expect("Failed to add query to transaction");
@@ -484,7 +499,7 @@ pub fn update_fq_order(fq_list: Vec<&str>) {
 pub fn update_members_count(uid: &str, members_count: i32) {
     let conn = get_connection().expect("Cannot get connection");
     execute_write_sql(
-        "UPDATE sections SET members_count = ?1 WHERE uid = ?2",
+        include_str!("sql_queries/update_members_count.sql"),
         params!(members_count.abs(), uid),
         &conn,
     );
@@ -494,7 +509,7 @@ pub fn update_members_count(uid: &str, members_count: i32) {
 pub fn update_adults_count(uid: &str, adults_count: i32) {
     let conn = get_connection().expect("Cannot get connection");
     execute_write_sql(
-        "UPDATE sections SET adults_count = ?1 WHERE uid = ?2",
+        include_str!("sql_queries/update_adults_count.sql"),
         params!(adults_count.abs(), uid),
         &conn,
     );
@@ -504,7 +519,7 @@ pub fn update_adults_count(uid: &str, adults_count: i32) {
 pub fn update_fq_section_members_count(section_uid: &str, fq_uid: &str, members_count: i32) {
     let conn = get_connection().expect("Cannot get connection");
     execute_write_sql(
-        "UPDATE sections_fqs SET members_count = ?1 WHERE uid_section = ?2 AND uid_fq = ?3",
+        include_str!("sql_queries/update_fq_section_members_count.sql"),
         params!(members_count.abs(), section_uid, fq_uid),
         &conn,
     );
@@ -533,13 +548,14 @@ pub fn insert_new_expense(
         .expect("Impossible to create transaction");
 
     tx.execute(
-        "INSERT INTO expenses (uid, title, description, rate, unit_price, position) VALUES (?1, ?2, ?3, ?4, ?5, (SELECT COALESCE(MAX(position), -1) + 1 FROM expenses))",
+        include_str!("sql_queries/insert_new_expense/expense.sql"),
         params!(uid_expense, title, description, rate_f32, unitprice_f32),
-    ).expect("Failed to add query to transaction");
+    )
+    .expect("Failed to add query to transaction");
 
     for section in sections_in_db {
         tx.execute(
-            "INSERT INTO expense_section (uid_expense, uid_section) VALUES (?1, ?2)",
+            include_str!("sql_queries/insert_new_expense/expense_section.sql"),
             params!(uid_expense, section.uid),
         )
         .expect("Failed to add query to transaction");
@@ -552,7 +568,7 @@ fn section_list_from_uid_vec(section_list: Vec<&str>, conn: &Connection) -> Vec<
     let mut section_list_vec: Vec<Section> = vec![];
     for section in section_list {
         let mut sections_in_db = execute_read_sql(
-            "SELECT uid, title, color, members_count, adults_count FROM sections WHERE uid = ?1",
+            include_str!("sql_queries/section_list_from_uid_vec.sql"),
             params!(section),
             |row| {
                 Ok(Section {
@@ -576,7 +592,7 @@ fn section_list_from_uid_vec(section_list: Vec<&str>, conn: &Connection) -> Vec<
 pub fn get_members_fq_count_by_section(section_uid: &str) -> i32 {
     let conn = get_connection().expect("Cannot get connection");
     let count: i32 = execute_read_sql(
-        "SELECT COALESCE(SUM(members_count),0) AS total FROM sections_fqs WHERE uid_section = ?1",
+        include_str!("sql_queries/get_members_fq_count_by_section.sql"),
         params!(section_uid),
         |row| row.get(0),
         &conn,
@@ -589,11 +605,11 @@ pub fn get_members_fq_count_by_section(section_uid: &str) -> i32 {
 /// Returns a list of member counts across QF categories for all sections.
 pub fn get_members_fq_count_for_all_sections() -> Vec<FqMembersCount> {
     let conn = get_connection().expect("Cannot get connection");
-    let result : Vec<FqMembersCount> = execute_read_sql(
-        "SELECT sections_fqs.uid_section, COALESCE(SUM(members_count),0) AS total FROM sections_fqs GROUP BY sections_fqs.uid_section",
+    let result: Vec<FqMembersCount> = execute_read_sql(
+        include_str!("sql_queries/get_members_fq_count_for_all_sections.sql"),
         [],
         |row| {
-            Ok(FqMembersCount{
+            Ok(FqMembersCount {
                 uid_section: row.get(0)?,
                 count: row.get(1)?,
             })
@@ -614,9 +630,9 @@ pub fn update_expense(uid: &str, title: &str, description: &str, rate: &str, uni
         .expect("Failed to parse unit_price as f32");
 
     execute_write_sql(
-        "UPDATE expenses SET title = ?1, description = ?2, rate = ?3, unit_price = ?4 WHERE uid = ?5",
+        include_str!("sql_queries/update_expense.sql"),
         params!(title, description, rate_f32, unitprice_f32, uid),
-        &conn
+        &conn,
     );
 }
 
@@ -629,7 +645,7 @@ pub fn update_expense_instance_order(vec_expense_instance_list: Vec<&str>) {
 
     for (index, uid) in vec_expense_instance_list.iter().enumerate() {
         tx.execute(
-            "UPDATE expenses_instances SET position = ?1 WHERE uid = ?2",
+            include_str!("sql_queries/update_expense_instance_order.sql"),
             params!(index, uid),
         )
         .expect("Failed to add query to transaction");
@@ -662,9 +678,17 @@ pub fn update_expense_instance(
     }
 
     execute_write_sql(
-        "UPDATE expenses_instances SET units = ?1, units_adults=?2, unit_price = ?3, rate = ?4, comments=?5, number = ?6 WHERE uid = ?7",
-        params!(units_f32, units_adults_f32, unit_price_f32, rate_f32, comments_s, number_f32, uid_expense_instance),
-        &conn
+        include_str!("sql_queries/update_expense_instance.sql"),
+        params!(
+            units_f32,
+            units_adults_f32,
+            unit_price_f32,
+            rate_f32,
+            comments_s,
+            number_f32,
+            uid_expense_instance
+        ),
+        &conn,
     );
 }
 
@@ -673,7 +697,7 @@ pub fn delete_expense_instance(uid_expense_instance: &str) {
     let conn = get_connection().expect("Cannot get connection");
 
     execute_write_sql(
-        "DELETE FROM expenses_instances WHERE uid = ?1",
+        include_str!("sql_queries/delete_expense_instance.sql"),
         params!(uid_expense_instance),
         &conn,
     );
@@ -684,9 +708,9 @@ pub fn copy_expense_instance(uid_expense_instance: &str) {
     let conn = get_connection().expect("Cannot get connection");
 
     execute_write_sql(
-        "INSERT INTO  expenses_instances (uid, uid_expense, uid_section, comments, number, units, units_adults, unit_price, rate, position) SELECT ?1 AS uid, uid_expense, uid_section, comments, number, units, units_adults, unit_price, rate, (SELECT COALESCE(MAX(position), -1) + 1 FROM expenses_instances) AS position FROM expenses_instances WHERE uid = ?2",
+        include_str!("sql_queries/copy_expense_instance.sql"),
         params!(Uuid::new_v4().to_string(), uid_expense_instance),
-        &conn
+        &conn,
     );
 }
 
@@ -725,14 +749,14 @@ pub fn update_expense_section_association(uid_expense: &str, section_list: Vec<&
         .expect("Impossible to create transaction");
 
     tx.execute(
-        "DELETE FROM expense_section WHERE uid_expense = ?1",
+        include_str!("sql_queries/update_expense_section_association/delete.sql"),
         params!(uid_expense),
     )
     .expect("Failed to add query to transaction");
 
     for section in sections_in_db {
         tx.execute(
-            "INSERT INTO expense_section (uid_expense, uid_section) VALUES (?1, ?2)",
+            include_str!("sql_queries/update_expense_section_association/insert.sql"),
             params!(uid_expense, section.uid),
         )
         .expect("Failed to add query to transaction");
@@ -748,7 +772,7 @@ pub fn delete_expense(uid: &str) {
     let mut conn = get_connection().expect("Cannot get connection");
 
     let count: i32 = execute_read_sql(
-        "SELECT COUNT(uid) FROM expenses_instances WHERE uid_expense = ?1",
+        include_str!("sql_queries/delete_expense/count.sql"),
         params!(uid),
         |row| row.get(0),
         &conn,
@@ -764,13 +788,16 @@ pub fn delete_expense(uid: &str) {
         .expect("Impossible to create transaction");
 
     tx.execute(
-        "DELETE FROM expense_section WHERE uid_expense = ?1",
+        include_str!("sql_queries/delete_expense/delete_expense_section.sql"),
         params!(uid),
     )
     .expect("Failed to add query to transaction");
 
-    tx.execute("DELETE FROM expenses WHERE uid = ?1", params!(uid))
-        .expect("Failed to add query to transaction");
+    tx.execute(
+        include_str!("sql_queries/delete_expense/delete_expense.sql"),
+        params!(uid),
+    )
+    .expect("Failed to add query to transaction");
 
     tx.commit().expect("Failed to commit transaction");
 }
@@ -785,11 +812,7 @@ pub fn execute_write_sql<T: rusqlite::Params>(sql: &str, params: T, conn: &Conne
 pub fn get_section_expense() -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT expense_section.uid_section, expense_section.uid_expense, sections.title AS title_section, expenses.title AS title_expense, expenses.description
-        FROM expense_section
-        INNER JOIN sections ON expense_section.uid_section = sections.uid
-        INNER JOIN expenses ON expense_section.uid_expense = expenses.uid
-        ORDER BY sections.position ASC, expenses.position ASC",
+        include_str!("sql_queries/get_section_expense.sql"),
         [],
         |row| {
             Ok(SectionExpense {
@@ -798,10 +821,10 @@ pub fn get_section_expense() -> Vec<SectionExpense> {
                 title_section: row.get(2)?,
                 title_expense: row.get(3)?,
                 count: 0,
-                description: row.get(4)?
+                description: row.get(4)?,
             })
         },
-        &conn
+        &conn,
     )
 }
 
@@ -809,11 +832,7 @@ pub fn get_section_expense() -> Vec<SectionExpense> {
 pub fn get_section_expense_cnt_from_instance(section_uid: &str, expense_uid: &str) -> f32 {
     let conn = get_connection().expect("Cannot get connection");
     let result = execute_read_sql(
-        "SELECT ROUND(SUM(number),2) AS cnt
-        FROM expenses_instances
-        WHERE uid_section = ?1
-        AND uid_expense = ?2
-        GROUP BY expenses_instances.uid_expense",
+        include_str!("sql_queries/get_section_expense_cnt_from_instance.sql"),
         params!(section_uid, expense_uid),
         |row| row.get(0),
         &conn,
@@ -832,13 +851,7 @@ pub fn get_section_expense_from_instance(
 ) -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, expenses.description
-        FROM expenses_instances
-        INNER JOIN sections ON expenses_instances.uid_section = sections.uid
-        INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
-        WHERE expenses_instances.uid_section = ?1 
-        AND expenses_instances.uid_expense = ?2
-        ORDER BY expenses_instances.position ASC",
+        include_str!("sql_queries/get_section_expense_from_instance.sql"),
         params!(section_uid, expense_uid),
         |row| {
             Ok(SectionExpense {
@@ -850,7 +863,7 @@ pub fn get_section_expense_from_instance(
                 description: row.get(4)?,
             })
         },
-        &conn
+        &conn,
     )
 }
 
@@ -861,13 +874,7 @@ pub fn get_section_expense_from_association(
 ) -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT DISTINCT expense_section.uid_section, expense_section.uid_expense, sections.title AS title_section, expenses.title AS title_expense, expenses.description
-        FROM expense_section
-        INNER JOIN sections ON expense_section.uid_section = sections.uid
-        INNER JOIN expenses ON expense_section.uid_expense = expenses.uid
-        WHERE expense_section.uid_section = ?1 
-        AND expense_section.uid_expense = ?2
-        ORDER BY sections.position ASC",
+        include_str!("sql_queries/get_section_expense_from_association.sql"),
         params!(section_uid, expense_uid),
         |row| {
             Ok(SectionExpense {
@@ -879,7 +886,7 @@ pub fn get_section_expense_from_association(
                 description: row.get(4)?,
             })
         },
-        &conn
+        &conn,
     )
 }
 
@@ -891,12 +898,7 @@ pub fn get_section_expense_from_instances_wrapper(expense_uid: &str) -> Vec<Sect
 
 fn get_section_expense_from_instances(expense_uid: &str, conn: &Connection) -> Vec<SectionExpense> {
     execute_read_sql(
-        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, expenses.description
-        FROM expenses_instances
-        INNER JOIN sections ON expenses_instances.uid_section = sections.uid
-        INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
-        WHERE expenses.uid = ?1
-        ORDER BY expenses_instances.position ASC",
+        include_str!("sql_queries/get_section_expense_from_instances.sql"),
         params!(expense_uid),
         |row| {
             Ok(SectionExpense {
@@ -905,10 +907,10 @@ fn get_section_expense_from_instances(expense_uid: &str, conn: &Connection) -> V
                 title_section: row.get(2)?,
                 title_expense: row.get(3)?,
                 count: 0,
-                description: row.get(4)?
+                description: row.get(4)?,
             })
         },
-        conn
+        conn,
     )
 }
 
@@ -916,12 +918,7 @@ fn get_section_expense_from_instances(expense_uid: &str, conn: &Connection) -> V
 pub fn get_section_expense_from_expenses_instances() -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, COUNT(uid_expense) AS cnt_uid_expense, expenses.description
-        FROM expenses_instances
-        INNER JOIN sections ON expenses_instances.uid_section = sections.uid
-        INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
-        GROUP BY expenses_instances.uid_expense
-        ORDER BY expenses_instances.position ASC",
+        include_str!("sql_queries/get_section_expense_from_expenses_instances.sql"),
         [],
         |row| {
             Ok(SectionExpense {
@@ -930,10 +927,10 @@ pub fn get_section_expense_from_expenses_instances() -> Vec<SectionExpense> {
                 title_section: row.get(2)?,
                 title_expense: row.get(3)?,
                 count: row.get(4)?,
-                description: row.get(5)?
+                description: row.get(5)?,
             })
         },
-        &conn
+        &conn,
     )
 }
 
@@ -943,14 +940,7 @@ pub fn get_section_expense_from_expenses_instances_and_section(
 ) -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
     execute_read_sql(
-        "SELECT expenses_instances.uid_section, expenses_instances.uid_expense, sections.title AS title_section, expenses.title AS title_expense, COUNT(uid_expense) AS cnt_uid_expense, expenses.description
-        FROM expenses_instances
-        INNER JOIN sections ON expenses_instances.uid_section = sections.uid
-        INNER JOIN expenses ON expenses_instances.uid_expense = expenses.uid
-        WHERE expenses_instances.uid_section = ?1
-        GROUP BY expenses_instances.uid_expense
-        ORDER BY expenses.position ASC
-        ",
+        include_str!("sql_queries/get_section_expense_from_expenses_instances_and_section.sql"),
         params!(section_uid),
         |row| {
             Ok(SectionExpense {
@@ -959,10 +949,10 @@ pub fn get_section_expense_from_expenses_instances_and_section(
                 title_section: row.get(2)?,
                 title_expense: row.get(3)?,
                 count: row.get(4)?,
-                description: row.get(5)?
+                description: row.get(5)?,
             })
         },
-        &conn
+        &conn,
     )
 }
 
@@ -970,7 +960,7 @@ pub fn get_section_expense_from_expenses_instances_and_section(
 pub fn get_members_count(section_uid: &str) -> i32 {
     let conn = get_connection().expect("Cannot get connection");
     let members_count_list: Vec<i32> = execute_read_sql(
-        "SELECT members_count FROM sections WHERE uid = ?1",
+        include_str!("sql_queries/get_members_count.sql"),
         params!(section_uid),
         |row| row.get(0),
         &conn,
@@ -985,7 +975,7 @@ pub fn get_members_count(section_uid: &str) -> i32 {
 pub fn get_adults_count(section_uid: &str) -> i32 {
     let conn = get_connection().expect("Cannot get connection");
     let adults_count_list: Vec<i32> = execute_read_sql(
-        "SELECT adults_count FROM sections WHERE uid = ?1",
+        include_str!("sql_queries/get_adults_count.sql"),
         params!(section_uid),
         |row| row.get(0),
         &conn,
@@ -1001,13 +991,8 @@ pub fn get_section_expense_from_expenses_instances_section(
     section_uid: &str,
 ) -> Vec<SectionExpense> {
     let conn = get_connection().expect("Cannot get connection");
-    execute_read_sql("SELECT expense_section.uid_section, expense_section.uid_expense, sections.title AS title_section, expenses.title AS title_expense, expenses.description
-    FROM expense_section
-    INNER JOIN sections ON expense_section.uid_section = sections.uid
-    INNER JOIN expenses ON expense_section.uid_expense = expenses.uid
-    WHERE expense_section.uid_section = ?1 
-    GROUP BY sections.uid, expenses.uid
-    ORDER BY expenses.position ASC",
+    execute_read_sql(
+        include_str!("sql_queries/get_section_expense_from_expenses_instances_section.sql"),
         params!(section_uid),
         |row| {
             Ok(SectionExpense {
@@ -1016,22 +1001,18 @@ pub fn get_section_expense_from_expenses_instances_section(
                 title_section: row.get(2)?,
                 title_expense: row.get(3)?,
                 count: 0,
-                description: row.get(4)?
+                description: row.get(4)?,
             })
         },
-        &conn
+        &conn,
     )
 }
 
 /// Returns all calculated expenses for a specific section.
 pub fn get_calculated_expenses(section_uid: &str) -> Vec<CalculatedExpense> {
     let conn = get_connection().expect("Cannot get connection");
-    execute_read_sql("SELECT uid_expense_instance, uid_section, uid_expense, title_section, title_expense, comments, section_color, expenses_units, expenses_units_adults,
-expenses_unit_price, expenses_rate, expenses_instances_units, expenses_instances_units_adults, expenses_instances_unit_price, expenses_instances_rate,
-live_units, live_units_adults, live_unit_price, live_rate, group_rate, applyed_price, total_applyed_price, total_inital_price, group_applyed_total_price, group_applyed_unit_price, group_members_count, expenses_description, expenses_instances_number
-FROM view_calculated_expenses_sections_instances
-WHERE uid_section = ?1
-ORDER BY expenses_instances_position ASC",
+    execute_read_sql(
+        include_str!("sql_queries/get_calculated_expenses.sql"),
         params!(section_uid),
         |row| {
             Ok(CalculatedExpense {
@@ -1062,84 +1043,78 @@ ORDER BY expenses_instances_position ASC",
                 group_applyed_unit_price: row.get(24)?,
                 group_members_count: row.get(25)?,
                 expenses_description: row.get(26)?,
-                expenses_instances_number: row.get(27)?
+                expenses_instances_number: row.get(27)?,
             })
         },
-        &conn
+        &conn,
     )
 }
 
 /// Returns the total sum of expenses per member for a specific section.
 pub fn get_total_per_member(section_uid: &str) -> SumExpenseInstance {
     let conn = get_connection().expect("Cannot get connection");
-    let results : Vec <SumExpenseInstance> = execute_read_sql("SELECT ROUND(SUM(sum_group_applyed_unit_price),2) AS sum_group_applyed_unit_price, ROUND(SUM(sum_group_applyed_total_price),2) AS sum_group_applyed_total_price FROM 
-(
-    SELECT SUM(total_applyed_price / expenses_units) AS sum_group_applyed_unit_price, SUM(total_applyed_price) AS sum_group_applyed_total_price
-    FROM view_calculated_expenses_sections_instances
-    WHERE uid_section = ?1
-UNION ALL    
-    SELECT SUM(group_applyed_unit_price) AS sum_group_applyed_unit_price, SUM(group_applyed_total_price) AS sum_group_applyed_total_price
-    FROM view_calculated_expenses_sections_instances
-    WHERE group_rate <> 0
-UNION ALL
-    SELECT SUM(total_applyed_price / group_members_count) AS sum_group_applyed_unit_price, SUM(total_applyed_price) AS sum_group_applyed_total_price
-    FROM view_calculated_expenses_sections_instances
-    WHERE uid_section = 'group'
-)", params!(section_uid), |row| {
-        Ok(SumExpenseInstance{
-            sum_unit: row.get(0)?,
-            sum_total: row.get(1)?,
-        })
-    }, &conn);
+    let results: Vec<SumExpenseInstance> = execute_read_sql(
+        include_str!("sql_queries/get_total_per_member.sql"),
+        params!(section_uid),
+        |row| {
+            Ok(SumExpenseInstance {
+                sum_unit: row.get(0)?,
+                sum_total: row.get(1)?,
+            })
+        },
+        &conn,
+    );
     sum_expense_instance_from_vec(results)
 }
 
 /// Returns the sum of calculated expenses for a specific section.
 pub fn get_sum_calculated_expenses(section_uid: &str) -> SumExpenseInstance {
     let conn = get_connection().expect("Cannot get connection");
-    let results : Vec <SumExpenseInstance> = execute_read_sql("SELECT ROUND(SUM(total_applyed_price / expenses_units),2) AS applyed_price, ROUND(SUM(total_applyed_price),2) AS total_applyed_price
-    FROM view_calculated_expenses_sections_instances
-    WHERE uid_section = ?1", params!(section_uid), |row| {
-        Ok(SumExpenseInstance{
-            sum_unit: row.get(0)?,
-            sum_total: row.get(1)?,
-        })
-    }, &conn);
+    let results: Vec<SumExpenseInstance> = execute_read_sql(
+        include_str!("sql_queries/get_sum_calculated_expenses.sql"),
+        params!(section_uid),
+        |row| {
+            Ok(SumExpenseInstance {
+                sum_unit: row.get(0)?,
+                sum_total: row.get(1)?,
+            })
+        },
+        &conn,
+    );
     sum_expense_instance_from_vec(results)
 }
 
 /// Returns the total sum of calculated expenses for the entire group.
 pub fn get_group_sum_calculated_expenses() -> SumExpenseInstance {
     let conn = get_connection().expect("Cannot get connection");
-    let results : Vec <SumExpenseInstance> = execute_read_sql("SELECT ROUND(SUM(sum_group_applyed_unit_price),2) AS sum_group_applyed_unit_price, ROUND(SUM(sum_group_applyed_total_price),2) AS sum_group_applyed_total_price FROM 
-(
-    SELECT SUM(group_applyed_unit_price) AS sum_group_applyed_unit_price, SUM(group_applyed_total_price) AS sum_group_applyed_total_price
-    FROM view_calculated_expenses_sections_instances
-    WHERE group_rate <> 0
-UNION ALL
-    SELECT SUM(total_applyed_price / group_members_count) AS sum_group_applyed_unit_price, SUM(total_applyed_price) AS sum_group_applyed_total_price
-    FROM view_calculated_expenses_sections_instances
-    WHERE uid_section = 'group'
-)", [], |row| {
-        Ok(SumExpenseInstance{
-            sum_unit: row.get(0)?,
-            sum_total: row.get(1)?,
-        })
-    }, &conn);
+    let results: Vec<SumExpenseInstance> = execute_read_sql(
+        include_str!("sql_queries/get_group_sum_calculated_expenses.sql"),
+        [],
+        |row| {
+            Ok(SumExpenseInstance {
+                sum_unit: row.get(0)?,
+                sum_total: row.get(1)?,
+            })
+        },
+        &conn,
+    );
     sum_expense_instance_from_vec(results)
 }
 
 /// Returns the sum of calculated expenses only for group-level instances.
 pub fn get_group_only_sum_calculated_expenses() -> SumExpenseInstance {
     let conn = get_connection().expect("Cannot get connection");
-    let results : Vec <SumExpenseInstance> = execute_read_sql("SELECT ROUND(SUM(group_applyed_unit_price),2) AS sum_group_applyed_unit_price, ROUND(SUM(group_applyed_total_price),2) AS sum_group_applyed_total_price
-    FROM view_calculated_expenses_sections_instances
-    WHERE group_rate <> 0", [], |row| {
-        Ok(SumExpenseInstance{
-            sum_unit: row.get(0)?,
-            sum_total: row.get(1)?,
-        })
-    }, &conn);
+    let results: Vec<SumExpenseInstance> = execute_read_sql(
+        include_str!("sql_queries/get_group_only_sum_calculated_expenses.sql"),
+        [],
+        |row| {
+            Ok(SumExpenseInstance {
+                sum_unit: row.get(0)?,
+                sum_total: row.get(1)?,
+            })
+        },
+        &conn,
+    );
     sum_expense_instance_from_vec(results)
 }
 
@@ -1157,12 +1132,7 @@ fn sum_expense_instance_from_vec(vec: Vec<SumExpenseInstance>) -> SumExpenseInst
 /// Returns all calculated expenses associated with the entire group.
 pub fn get_group_calculated_expenses() -> Vec<CalculatedExpense> {
     let conn = get_connection().expect("Cannot get connection");
-    execute_read_sql("SELECT uid_expense_instance, uid_section, uid_expense, title_section, title_expense, comments, section_color, expenses_units, expenses_units_adults,
-    expenses_unit_price, expenses_rate, expenses_instances_units, expenses_instances_units_adults, expenses_instances_unit_price, expenses_instances_rate,
-    live_units, live_units_adults, live_unit_price, live_rate, group_rate, applyed_price, total_applyed_price, total_inital_price, group_applyed_total_price, group_applyed_unit_price, group_members_count, expenses_description, expenses_instances_number
-    FROM view_calculated_expenses_sections_instances
-    WHERE group_rate <> 0
-    ORDER BY sections_position ASC, expenses_instances_position ASC",
+    execute_read_sql(include_str!("sql_queries/get_group_calculated_expenses.sql"),
     [],
     |row| {
             Ok(CalculatedExpense {
@@ -1203,7 +1173,7 @@ pub fn get_group_calculated_expenses() -> Vec<CalculatedExpense> {
 pub fn add_expense_instance(section_uid: &str, expense_id: &str) {
     let conn = get_connection().expect("Cannot get connection");
     execute_write_sql(
-        "INSERT INTO expenses_instances (uid, uid_section, uid_expense, position) VALUES (?1, ?2, ?3, (SELECT COALESCE(MAX(position), -1) + 1 FROM expenses_instances WHERE uid_section = ?2))",
+        include_str!("sql_queries/add_expense_instance.sql"),
         params!(Uuid::new_v4().to_string(), section_uid, expense_id),
         &conn,
     );
@@ -1218,7 +1188,7 @@ pub fn update_expense_order(expense_list: Vec<&str>) {
 
     for (index, uid) in expense_list.iter().enumerate() {
         tx.execute(
-            "UPDATE expenses SET position = ?1 WHERE uid = ?2",
+            include_str!("sql_queries/update_expense_order.sql"),
             params!(index, uid),
         )
         .expect("Failed to add query to transaction");
