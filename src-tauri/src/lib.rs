@@ -680,5 +680,5 @@ pub fn run() {
             get_build_mode,
         ])
         .run(tauri::generate_context!())
-        .expect("error) while running tauri application");
+        .expect("Erreur lors de l'exécution de l'application");
 }

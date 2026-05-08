@@ -225,23 +225,23 @@ pub struct FqMembersCount {
 
 /// Serializes a vector of data to a JSON string.
 pub fn vec_to_json<T: Serialize>(vec_data: Vec<T>) -> String {
-    serde_json::to_string(&vec_data).expect("Cannot serialize section list")
+    serde_json::to_string(&vec_data).expect("Impossible de sérialiser la liste des sections")
 }
 
 /// Serializes a single struct to a JSON string.
 pub fn struct_to_json<T: Serialize>(struct_data: T) -> String {
-    serde_json::to_string(&struct_data).expect("Cannot serialize struct list")
+    serde_json::to_string(&struct_data).expect("Impossible de sérialiser la structure")
 }
 
 /// Deserializes a JSON string into a vector of string slices.
 pub fn json_to_vec(json_data: &str) -> Vec<&str> {
-    serde_json::from_str(json_data).expect("Cannot deserialize section list")
+    serde_json::from_str(json_data).expect("Impossible de désérialiser la liste des sections")
 }
 
 /// Converts a hex color string (e.g., "#RRGGBB") to a `rust_xlsxwriter::Color`.
 pub fn get_xlsx_color_from_str(color: &str) -> Color {
     let rgb_color: u32 =
-        u32::from_str_radix(&color[1..], 16).expect("Conversion error hexadecimal to rgb");
+        u32::from_str_radix(&color[1..], 16).expect("Erreur de conversion de l'hexadécimal vers le RGB");
     Color::RGB(rgb_color)
 }
 
@@ -336,7 +336,7 @@ fn handle_worksheet(
 
     let _ = worksheet
         .set_name(title_tab)
-        .expect("Impossible to set the sheet's name");
+        .expect("Impossible de définir le nom de la feuille");
 
     let _ = worksheet.merge_range(0, 0, 0, 7, &section.title, &main_title_format);
 
@@ -802,7 +802,7 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook, repo: &repository::Reposito
     let worksheet: &mut Worksheet = workbook
         .add_worksheet()
         .set_name("QF")
-        .expect("Impossible to set the sheet's name");
+        .expect("Impossible de définir le nom de la feuille");
 
     let _ = worksheet.merge_range(0, 0, 0, 12, "QF", &title_format);
 
@@ -1049,7 +1049,7 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook, repo: &repositor
     let worksheet: &mut Worksheet = workbook
         .add_worksheet()
         .set_name("Balance")
-        .expect("Impossible to set the sheet's name");
+        .expect("Impossible de définir le nom de la feuille");
 
     let title_format = Format::new().set_bold().set_align(FormatAlign::Center);
 

@@ -37,7 +37,7 @@ impl Repository {
 
     /// Returns the database file path.
     pub fn get_file_path(&self) -> String {
-        let path = self.file_path.read().expect("Impossible to read file path");
+        let path = self.file_path.read().expect("Impossible de lire le chemin du fichier");
         path.clone()
     }
 
@@ -50,24 +50,24 @@ impl Repository {
         let path = Path::new(&real_path);
 
         if erase_if_exists && path.exists() {
-            fs::remove_file(path).expect("Impossible to erase file")
+            fs::remove_file(path).expect("Impossible de supprimer le fichier")
         }
 
         {
             let mut file_path = self
                 .file_path
                 .write()
-                .expect("Impossible to write file path");
+                .expect("Impossible d'écrire le chemin du fichier");
             *file_path = real_path.clone();
         }
 
-        let conn = Connection::open(real_path).expect("Unable to open file");
+        let conn = Connection::open(real_path).expect("Impossible d'ouvrir le fichier de base de données");
         self.execute_migrations(&conn);
 
         let mut connection_lock = self
             .connection
             .lock()
-            .expect("Impossible to lock connection");
+            .expect("Impossible de verrouiller la connexion");
         *connection_lock = Some(conn);
     }
 
@@ -79,10 +79,10 @@ impl Repository {
         let connection_lock = self
             .connection
             .lock()
-            .expect("Impossible to lock connection");
+            .expect("Impossible de verrouiller la connexion");
         let conn = connection_lock
             .as_ref()
-            .expect("Database connection not initialized");
+            .expect("La connexion à la base de données n'est pas initialisée");
         f(conn)
     }
 
@@ -94,10 +94,10 @@ impl Repository {
         let mut connection_lock = self
             .connection
             .lock()
-            .expect("Impossible to lock connection");
+            .expect("Impossible de verrouiller la connexion");
         let conn = connection_lock
             .as_mut()
-            .expect("Database connection not initialized");
+            .expect("La connexion à la base de données n'est pas initialisée");
         f(conn)
     }
 
@@ -152,16 +152,16 @@ impl Repository {
         online_commission_rate: &str,
         online_commission_fees: &str,
     ) {
-        let coeff_f32: f32 = coeff.parse().expect("Failed to parse coeff as f32");
+        let coeff_f32: f32 = coeff.parse().expect("Échec de l'analyse du coefficient (coeff) en f32");
         let national_contribution_f32: f32 = national_contribution
             .parse()
-            .expect("Failed to parse national_contribution as f32");
+            .expect("Échec de l'analyse de la cotisation nationale en f32");
         let online_commission_rate_f32: f32 = online_commission_rate
             .parse()
-            .expect("Failed to parse online_commission_rate as f32");
+            .expect("Échec de l'analyse du taux de commission en ligne en f32");
         let online_commission_fees_f32: f32 = online_commission_fees
             .parse()
-            .expect("Failed to parse online_commission_fees as f32");
+            .expect("Échec de l'analyse des frais de commission en ligne en f32");
 
         self.with_connection(|conn| {
             let existing_fqs: Vec<Fq> = self.execute_read_sql(
@@ -307,7 +307,7 @@ impl Repository {
                 conn,
             );
 
-            result.pop().expect("No Cotisation fees")
+            result.pop().expect("Aucun frais de cotisation trouvé")
         })
     }
 
@@ -376,28 +376,28 @@ impl Repository {
                     conn,
                 )
                 .pop()
-                .expect("Cannot get count");
+                .expect("Impossible d'obtenir le décompte (count)");
             if count > 0 {
                 return;
             }
 
             let tx = conn
                 .transaction()
-                .expect("Impossible to create transaction");
+                .expect("Impossible de créer une transaction");
 
             tx.execute(
                 include_str!("sql_queries/delete_section/expense_section.sql"),
                 params!(uid),
             )
-            .expect("Failed to add query to transaction");
+            .expect("Échec de l'ajout de la requête à la transaction");
 
             tx.execute(
                 include_str!("sql_queries/delete_section/section.sql"),
                 params!(uid),
             )
-            .expect("Failed to add query to transaction");
+            .expect("Échec de l'ajout de la requête à la transaction");
 
-            tx.commit().expect("Failed to commit transaction");
+            tx.commit().expect("Échec de la validation (commit) de la transaction");
         });
     }
 
@@ -406,12 +406,12 @@ impl Repository {
         self.with_connection_mut(|conn| {
             let tx = conn
                 .transaction()
-                .expect("Impossible to create transaction");
+                .expect("Impossible de créer une transaction");
 
             tx.execute(include_str!("sql_queries/delete_fq.sql"), params!(uid))
-                .expect("Failed to add query to transaction");
+                .expect("Échec de l'ajout de la requête à la transaction");
 
-            tx.commit().expect("Failed to commit transaction");
+            tx.commit().expect("Échec de la validation (commit) de la transaction");
         });
     }
 
@@ -462,16 +462,16 @@ impl Repository {
         online_commission_rate: &str,
         online_commission_fees: &str,
     ) {
-        let coeff_f32: f32 = coeff.parse().expect("Failed to parse coeff as f32");
+        let coeff_f32: f32 = coeff.parse().expect("Échec de l'analyse du coefficient (coeff) en f32");
         let national_contribution_f32: f32 = national_contribution
             .parse()
-            .expect("Failed to parse national_contribution as f32");
+            .expect("Échec de l'analyse de la cotisation nationale en f32");
         let online_commission_rate_f32: f32 = online_commission_rate
             .parse()
-            .expect("Failed to parse online_commission_rate as f32");
+            .expect("Échec de l'analyse du taux de commission en ligne en f32");
         let online_commission_fees_f32: f32 = online_commission_fees
             .parse()
-            .expect("Failed to parse online_commission_fees as f32");
+            .expect("Échec de l'analyse des frais de commission en ligne en f32");
 
         self.with_connection(|conn| {
             let existing_fqs: Vec<Fq> = self.execute_read_sql(
@@ -514,17 +514,17 @@ impl Repository {
         self.with_connection_mut(|conn| {
             let tx = conn
                 .transaction()
-                .expect("Impossible to create transaction");
+                .expect("Impossible de créer une transaction");
 
             for (index, uid) in section_list.iter().enumerate() {
                 tx.execute(
                     include_str!("sql_queries/update_section_order.sql"),
                     params!(index, uid),
                 )
-                .expect("Failed to add query to transaction");
+                .expect("Échec de l'ajout de la requête à la transaction");
             }
 
-            tx.commit().expect("Failed to commit transaction");
+            tx.commit().expect("Échec de la validation (commit) de la transaction");
         });
     }
 
@@ -533,17 +533,17 @@ impl Repository {
         self.with_connection_mut(|conn| {
             let tx = conn
                 .transaction()
-                .expect("Impossible to create transaction");
+                .expect("Impossible de créer une transaction");
 
             for (index, uid) in fq_list.iter().enumerate() {
                 tx.execute(
                     include_str!("sql_queries/update_fq_order.sql"),
                     params!(index, uid),
                 )
-                .expect("Failed to add query to transaction");
+                .expect("Échec de l'ajout de la requête à la transaction");
             }
 
-            tx.commit().expect("Failed to commit transaction");
+            tx.commit().expect("Échec de la validation (commit) de la transaction");
         });
     }
 
@@ -594,8 +594,8 @@ impl Repository {
         unitprice: &str,
         section_list: Vec<&str>,
     ) {
-        let rate_f32: f32 = rate.parse().expect("Failed to parse rate as f32");
-        let unitprice_f32: f32 = unitprice.parse().expect("Failed to parse unitprice as f32");
+        let rate_f32: f32 = rate.parse().expect("Échec de l'analyse du taux en f32");
+        let unitprice_f32: f32 = unitprice.parse().expect("Échec de l'analyse du prix unitaire en f32");
         let uid_expense = Uuid::new_v4().to_string();
 
         self.with_connection_mut(|conn| {
@@ -606,23 +606,23 @@ impl Repository {
 
             let tx = conn
                 .transaction()
-                .expect("Impossible to create transaction");
+                .expect("Impossible de créer une transaction");
 
             tx.execute(
                 include_str!("sql_queries/insert_new_expense/expense.sql"),
                 params!(uid_expense, title, description, rate_f32, unitprice_f32),
             )
-            .expect("Failed to add query to transaction");
+            .expect("Échec de l'ajout de la requête à la transaction");
 
             for section in sections_in_db {
                 tx.execute(
                     include_str!("sql_queries/insert_new_expense/expense_section.sql"),
                     params!(uid_expense, section.uid),
                 )
-                .expect("Failed to add query to transaction");
+                .expect("Échec de l'ajout de la requête à la transaction");
             }
 
-            tx.commit().expect("Failed to commit transaction");
+            tx.commit().expect("Échec de la validation (commit) de la transaction");
         });
     }
 
@@ -648,7 +648,7 @@ impl Repository {
                 conn,
             );
             if !sections_in_db.is_empty() {
-                section_list_vec.push(sections_in_db.pop().expect("Impossible to pop section"));
+                section_list_vec.push(sections_in_db.pop().expect("Impossible de récupérer la section"));
             }
         }
         section_list_vec
@@ -665,7 +665,7 @@ impl Repository {
                     conn,
                 )
                 .pop()
-                .expect("Cannot get count");
+                .expect("Impossible d'obtenir le décompte (count)");
             count
         })
     }
@@ -698,10 +698,10 @@ impl Repository {
         rate: &str,
         unitprice: &str,
     ) {
-        let rate_f32: f32 = rate.parse().expect("Failed to parse rate as f32");
+        let rate_f32: f32 = rate.parse().expect("Échec de l'analyse du taux en f32");
         let unitprice_f32: f32 = unitprice
             .parse()
-            .expect("Failed to parse unit_price as f32");
+            .expect("Échec de l'analyse du prix unitaire en f32");
 
         self.with_connection(|conn| {
             self.execute_write_sql(
@@ -717,17 +717,17 @@ impl Repository {
         self.with_connection_mut(|conn| {
             let tx = conn
                 .transaction()
-                .expect("Impossible to create transaction");
+                .expect("Impossible de créer une transaction");
 
             for (index, uid) in vec_expense_instance_list.iter().enumerate() {
                 tx.execute(
                     include_str!("sql_queries/update_expense_instance_order.sql"),
                     params!(index, uid),
                 )
-                .expect("Failed to add query to transaction");
+                .expect("Échec de l'ajout de la requête à la transaction");
             }
 
-            tx.commit().expect("Failed to commit transaction");
+            tx.commit().expect("Échec de la validation (commit) de la transaction");
         });
     }
 
@@ -824,23 +824,23 @@ impl Repository {
 
             let tx = conn
                 .transaction()
-                .expect("Impossible to create transaction");
+                .expect("Impossible de créer une transaction");
 
             tx.execute(
                 include_str!("sql_queries/update_expense_section_association/delete.sql"),
                 params!(uid_expense),
             )
-            .expect("Failed to add query to transaction");
+            .expect("Échec de l'ajout de la requête à la transaction");
 
             for section in sections_in_db {
                 tx.execute(
                     include_str!("sql_queries/update_expense_section_association/insert.sql"),
                     params!(uid_expense, section.uid),
                 )
-                .expect("Failed to add query to transaction");
+                .expect("Échec de l'ajout de la requête à la transaction");
             }
 
-            tx.commit().expect("Failed to commit transaction");
+            tx.commit().expect("Échec de la validation (commit) de la transaction");
         });
     }
 
@@ -857,35 +857,35 @@ impl Repository {
                     conn,
                 )
                 .pop()
-                .expect("Cannot get count");
+                .expect("Impossible d'obtenir le décompte (count)");
             if count > 0 {
                 return;
             }
 
             let tx = conn
                 .transaction()
-                .expect("Impossible to create transaction");
+                .expect("Impossible de créer une transaction");
 
             tx.execute(
                 include_str!("sql_queries/delete_expense/delete_expense_section.sql"),
                 params!(uid),
             )
-            .expect("Failed to add query to transaction");
+            .expect("Échec de l'ajout de la requête à la transaction");
 
             tx.execute(
                 include_str!("sql_queries/delete_expense/delete_expense.sql"),
                 params!(uid),
             )
-            .expect("Failed to add query to transaction");
+            .expect("Échec de l'ajout de la requête à la transaction");
 
-            tx.commit().expect("Failed to commit transaction");
+            tx.commit().expect("Échec de la validation (commit) de la transaction");
         });
     }
 
     /// Utility function to execute a write SQL statement.
     pub fn execute_write_sql<T: rusqlite::Params>(&self, sql: &str, params: T, conn: &Connection) {
-        let mut statement = conn.prepare_cached(sql).expect("Cannot prepare statement");
-        statement.execute(params).expect("Cannot execute write sql");
+        let mut statement = conn.prepare_cached(sql).expect("Impossible de préparer l'instruction SQL");
+        statement.execute(params).expect("Impossible d'exécuter l'écriture SQL");
     }
 
     /// Returns a list of all section-expense template associations.
@@ -1298,21 +1298,22 @@ impl Repository {
         self.with_connection_mut(|conn| {
             let tx = conn
                 .transaction()
-                .expect("Impossible to create transaction");
+                .expect("Impossible de créer une transaction");
 
             for (index, uid) in expense_list.iter().enumerate() {
                 tx.execute(
                     include_str!("sql_queries/update_expense_order.sql"),
                     params!(index, uid),
                 )
-                .expect("Failed to add query to transaction");
+                .expect("Échec de l'ajout de la requête à la transaction");
             }
 
-            tx.commit().expect("Failed to commit transaction");
+            tx.commit().expect("Échec de la validation (commit) de la transaction");
         });
     }
 
-    /// Utility function to execute a read SQL query and map results to a vector.
+    /// Uti
+	/// lity function to execute a read SQL query and map results to a vector.
     pub fn execute_read_sql<F, T, P: rusqlite::Params>(
         &self,
         sql: &str,
@@ -1325,9 +1326,9 @@ impl Repository {
     {
         let data_iter: Vec<T> = conn
             .prepare_cached(sql)
-            .expect("Cannot prepare query")
+            .expect("Impossible de préparer la requête SQL")
             .query_map(params, row_closure)
-            .expect("Cannot execute query_map")
+            .expect("Impossible d'exécuter query_map")
             .flatten()
             .collect();
         data_iter
@@ -1336,7 +1337,7 @@ impl Repository {
     /// Initializes the database schema by executing migrations.
     pub fn execute_migrations(&self, conn: &Connection) {
         conn.execute_batch(include_str!("sql_queries/_init_or_update_db.sql"))
-            .expect("Cannot execute migrations");
+            .expect("Impossible d'exécuter les migrations");
     }
 }
 
@@ -1395,7 +1396,7 @@ mod tests {
         let test_section = sections
             .iter()
             .find(|s| s.title == "Test Section")
-            .expect("Test section not found");
+            .expect("Section de test non trouvée");
         assert_eq!(test_section.color, "#FF0000");
         assert_eq!(sections.len(), 2);
 
@@ -1421,7 +1422,7 @@ mod tests {
         let section_a = sections
             .iter()
             .find(|s| s.title == "Section A")
-            .expect("Section A not found");
+            .expect("Section A non trouvée");
 
         repo.insert_new_expense("Bread", "Bakery", "100", "1.5", vec![&section_a.uid]);
 
@@ -1452,7 +1453,7 @@ mod tests {
         let test_fq = fqs
             .iter()
             .find(|f| f.title == "Test FQ")
-            .expect("Test FQ not found");
+            .expect("Quotient Familial (QF) de test non trouvé");
         assert_eq!(test_fq.coeff, 1.5);
         assert_eq!(fqs.len(), 1);
 
@@ -1463,7 +1464,7 @@ mod tests {
         let test_fq_updated = fqs_updated
             .iter()
             .find(|f| f.title == "Updated FQ")
-            .expect("Updated FQ not found");
+            .expect("Quotient Familial (QF) mis à jour non trouvé");
         assert_eq!(test_fq_updated.coeff, 2.0);
 
         // Duplicate prevention
