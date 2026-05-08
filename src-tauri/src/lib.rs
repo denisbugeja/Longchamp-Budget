@@ -5,7 +5,8 @@
 mod helper;
 mod repository;
 
-use tauri::{AppHandle, Runtime};
+use crate::repository::Repository;
+use tauri::{AppHandle, Runtime, State};
 
 use crate::helper::struct_to_json;
 
@@ -24,16 +25,16 @@ const BUILD_MODE: &str = "release";
 /// * `path` - The new path to the database file.
 /// * `erase_if_exists` - Whether to erase the file if it already exists.
 #[tauri::command]
-fn update_db_path(path: &str, erase_if_exists: bool) {
-    repository::update_db_file_path(path, erase_if_exists);
+fn update_db_path(path: &str, erase_if_exists: bool, state: State<Repository>) {
+    state.set_file_path(path, erase_if_exists);
 }
 
 // Section part
 
 /// Loads the list of all sections as a JSON string.
 #[tauri::command]
-fn section_list_load() -> String {
-    helper::vec_to_json(repository::section_list())
+fn section_list_load(state: State<Repository>) -> String {
+    helper::vec_to_json(state.section_list())
 }
 
 /// Inserts a new section into the database.
@@ -45,8 +46,14 @@ fn section_list_load() -> String {
 /// * `members_count` - The number of members in the section.
 /// * `adults_count` - The number of adults in the section.
 #[tauri::command]
-fn insert_new_section(title: &str, color: &str, members_count: i32, adults_count: i32) {
-    repository::insert_new_section(title, color, members_count, adults_count);
+fn insert_new_section(
+    title: &str,
+    color: &str,
+    members_count: i32,
+    adults_count: i32,
+    state: State<Repository>,
+) {
+    state.insert_new_section(title, color, members_count, adults_count);
 }
 
 /// Deletes a section from the database by its UID.
@@ -55,8 +62,8 @@ fn insert_new_section(title: &str, color: &str, members_count: i32, adults_count
 ///
 /// * `uid` - The unique identifier of the section.
 #[tauri::command]
-fn delete_section(uid: &str) {
-    repository::delete_section(uid);
+fn delete_section(uid: &str, state: State<Repository>) {
+    state.delete_section(uid);
 }
 
 /// Updates an existing section in the database.
@@ -69,16 +76,23 @@ fn delete_section(uid: &str) {
 /// * `members_count` - The new number of members in the section.
 /// * `adults_count` - The new number of adults in the section.
 #[tauri::command]
-fn update_section(uid: &str, title: &str, color: &str, members_count: i32, adults_count: i32) {
-    repository::update_section(uid, title, color, members_count, adults_count);
+fn update_section(
+    uid: &str,
+    title: &str,
+    color: &str,
+    members_count: i32,
+    adults_count: i32,
+    state: State<Repository>,
+) {
+    state.update_section(uid, title, color, members_count, adults_count);
 }
 
 // Expense part
 
 /// Loads the list of all expenses as a JSON string.
 #[tauri::command]
-fn expense_list_load() -> String {
-    helper::vec_to_json(repository::expense_list())
+fn expense_list_load(state: State<Repository>) -> String {
+    helper::vec_to_json(state.expense_list())
 }
 
 /// Inserts a new expense into the database and associates it with sections.
@@ -97,9 +111,10 @@ fn insert_new_expense(
     rate: &str,
     unit_price: &str,
     section_list: &str,
+    state: State<Repository>,
 ) {
     let vec_section_list: Vec<&str> = helper::json_to_vec(section_list);
-    repository::insert_new_expense(title, description, rate, unit_price, vec_section_list);
+    state.insert_new_expense(title, description, rate, unit_price, vec_section_list);
 }
 
 /// Updates an existing expense in the database.
@@ -112,8 +127,15 @@ fn insert_new_expense(
 /// * `rate` - The new rate (as a string).
 /// * `unit_price` - The new unit price (as a string).
 #[tauri::command]
-fn update_expense(uid: &str, title: &str, description: &str, rate: &str, unit_price: &str) {
-    repository::update_expense(uid, title, description, rate, unit_price);
+fn update_expense(
+    uid: &str,
+    title: &str,
+    description: &str,
+    rate: &str,
+    unit_price: &str,
+    state: State<Repository>,
+) {
+    state.update_expense(uid, title, description, rate, unit_price);
 }
 
 /// Updates the display order of expenses.
@@ -122,9 +144,9 @@ fn update_expense(uid: &str, title: &str, description: &str, rate: &str, unit_pr
 ///
 /// * `expense_list` - A JSON array of expense UIDs in the desired order.
 #[tauri::command]
-fn update_expense_order(expense_list: &str) {
+fn update_expense_order(expense_list: &str, state: State<Repository>) {
     let vec_expense_list: Vec<&str> = helper::json_to_vec(expense_list);
-    repository::update_expense_order(vec_expense_list);
+    state.update_expense_order(vec_expense_list);
 }
 
 /// Updates the display order of sections.
@@ -133,9 +155,9 @@ fn update_expense_order(expense_list: &str) {
 ///
 /// * `section_list` - A JSON array of section UIDs in the desired order.
 #[tauri::command]
-fn update_section_order(section_list: &str) {
+fn update_section_order(section_list: &str, state: State<Repository>) {
     let vec_section_list: Vec<&str> = helper::json_to_vec(section_list);
-    repository::update_section_order(vec_section_list);
+    state.update_section_order(vec_section_list);
 }
 
 /// Updates the display order of expense instances.
@@ -144,9 +166,9 @@ fn update_section_order(section_list: &str) {
 ///
 /// * `expense_instance_list` - A JSON array of expense instance UIDs in the desired order.
 #[tauri::command]
-fn update_expense_instance_order(expense_instance_list: &str) {
+fn update_expense_instance_order(expense_instance_list: &str, state: State<Repository>) {
     let vec_expense_instance_list: Vec<&str> = helper::json_to_vec(expense_instance_list);
-    repository::update_expense_instance_order(vec_expense_instance_list);
+    state.update_expense_instance_order(vec_expense_instance_list);
 }
 
 /// Updates the association between an expense and multiple sections.
@@ -156,15 +178,15 @@ fn update_expense_instance_order(expense_instance_list: &str) {
 /// * `uid` - The unique identifier of the expense.
 /// * `section_list` - A JSON array of section UIDs.
 #[tauri::command]
-fn update_expense_section_association(uid: &str, section_list: &str) {
+fn update_expense_section_association(uid: &str, section_list: &str, state: State<Repository>) {
     let vec_section_list: Vec<&str> = helper::json_to_vec(section_list);
-    repository::update_expense_section_association(uid, vec_section_list);
+    state.update_expense_section_association(uid, vec_section_list);
 }
 
 /// Gets section-expense associations from all expense instances as a JSON string.
 #[tauri::command]
-fn get_section_expense_from_expenses_instances() -> String {
-    helper::vec_to_json(repository::get_section_expense_from_expenses_instances())
+fn get_section_expense_from_expenses_instances(state: State<Repository>) -> String {
+    helper::vec_to_json(state.get_section_expense_from_expenses_instances())
 }
 
 /// Gets section-expense associations for a specific section from its expense instances.
@@ -173,16 +195,17 @@ fn get_section_expense_from_expenses_instances() -> String {
 ///
 /// * `section_uid` - The unique identifier of the section.
 #[tauri::command]
-fn get_section_expense_from_expenses_instances_section(section_uid: &str) -> String {
-    helper::vec_to_json(
-        repository::get_section_expense_from_expenses_instances_section(section_uid),
-    )
+fn get_section_expense_from_expenses_instances_section(
+    section_uid: &str,
+    state: State<Repository>,
+) -> String {
+    helper::vec_to_json(state.get_section_expense_from_expenses_instances_section(section_uid))
 }
 
 /// Gets all section-expense associations as a JSON string.
 #[tauri::command]
-fn get_section_expense() -> String {
-    helper::vec_to_json(repository::get_section_expense())
+fn get_section_expense(state: State<Repository>) -> String {
+    helper::vec_to_json(state.get_section_expense())
 }
 
 /// Gets section-expense associations for a specific section and expense instance.
@@ -192,11 +215,12 @@ fn get_section_expense() -> String {
 /// * `section_uid` - The UID of the section.
 /// * `expense_uid` - The UID of the expense.
 #[tauri::command]
-fn get_section_expense_from_instance(section_uid: &str, expense_uid: &str) -> String {
-    helper::struct_to_json(repository::get_section_expense_from_instance(
-        section_uid,
-        expense_uid,
-    ))
+fn get_section_expense_from_instance(
+    section_uid: &str,
+    expense_uid: &str,
+    state: State<Repository>,
+) -> String {
+    helper::struct_to_json(state.get_section_expense_from_instance(section_uid, expense_uid))
 }
 
 /// Gets all section-expense associations for a specific expense across all instances.
@@ -205,10 +229,11 @@ fn get_section_expense_from_instance(section_uid: &str, expense_uid: &str) -> St
 ///
 /// * `expense_uid` - The unique identifier of the expense.
 #[tauri::command]
-fn get_section_expense_from_instances_by_expense(expense_uid: &str) -> String {
-    helper::vec_to_json(repository::get_section_expense_from_instances_wrapper(
-        expense_uid,
-    ))
+fn get_section_expense_from_instances_by_expense(
+    expense_uid: &str,
+    state: State<Repository>,
+) -> String {
+    helper::vec_to_json(state.get_section_expense_from_instances_wrapper(expense_uid))
 }
 
 /// Deletes an expense from the database by its UID.
@@ -217,8 +242,8 @@ fn get_section_expense_from_instances_by_expense(expense_uid: &str) -> String {
 ///
 /// * `uid` - The unique identifier of the expense.
 #[tauri::command]
-fn delete_expense(uid: &str) {
-    repository::delete_expense(uid);
+fn delete_expense(uid: &str, state: State<Repository>) {
+    state.delete_expense(uid);
 }
 
 /// Updates the members count for a section.
@@ -228,8 +253,8 @@ fn delete_expense(uid: &str) {
 /// * `uid` - The unique identifier of the section.
 /// * `members_count` - The new number of members.
 #[tauri::command]
-fn update_members_count(uid: &str, members_count: i32) {
-    repository::update_members_count(uid, members_count);
+fn update_members_count(uid: &str, members_count: i32, state: State<Repository>) {
+    state.update_members_count(uid, members_count);
 }
 
 /// Updates the adults count for a section.
@@ -239,8 +264,8 @@ fn update_members_count(uid: &str, members_count: i32) {
 /// * `uid` - The unique identifier of the section.
 /// * `adults_count` - The new number of adults.
 #[tauri::command]
-fn update_adults_count(uid: &str, adults_count: i32) {
-    repository::update_adults_count(uid, adults_count);
+fn update_adults_count(uid: &str, adults_count: i32, state: State<Repository>) {
+    state.update_adults_count(uid, adults_count);
 }
 
 /// Adds a new expense instance for a specific section and expense.
@@ -250,8 +275,8 @@ fn update_adults_count(uid: &str, adults_count: i32) {
 /// * `section_uid` - The UID of the section.
 /// * `expense_id` - The UID of the expense.
 #[tauri::command]
-fn add_expense_instance(section_uid: &str, expense_id: &str) {
-    repository::add_expense_instance(section_uid, expense_id);
+fn add_expense_instance(section_uid: &str, expense_id: &str, state: State<Repository>) {
+    state.add_expense_instance(section_uid, expense_id);
 }
 
 /// Gets calculated expenses for a specific section as a JSON string.
@@ -260,8 +285,8 @@ fn add_expense_instance(section_uid: &str, expense_id: &str) {
 ///
 /// * `section_uid` - The unique identifier of the section.
 #[tauri::command]
-fn get_calculated_expenses(section_uid: &str) -> String {
-    helper::vec_to_json(repository::get_calculated_expenses(section_uid))
+fn get_calculated_expenses(section_uid: &str, state: State<Repository>) -> String {
+    helper::vec_to_json(state.get_calculated_expenses(section_uid))
 }
 
 /// Gets the members count for a specific section.
@@ -270,8 +295,8 @@ fn get_calculated_expenses(section_uid: &str) -> String {
 ///
 /// * `section_uid` - The unique identifier of the section.
 #[tauri::command]
-fn get_members_count(section_uid: &str) -> i32 {
-    repository::get_members_count(section_uid)
+fn get_members_count(section_uid: &str, state: State<Repository>) -> i32 {
+    state.get_members_count(section_uid)
 }
 
 /// Gets the adults count for a specific section.
@@ -280,8 +305,8 @@ fn get_members_count(section_uid: &str) -> i32 {
 ///
 /// * `section_uid` - The unique identifier of the section.
 #[tauri::command]
-fn get_adults_count(section_uid: &str) -> i32 {
-    repository::get_adults_count(section_uid)
+fn get_adults_count(section_uid: &str, state: State<Repository>) -> i32 {
+    state.get_adults_count(section_uid)
 }
 
 /// Updates an existing expense instance.
@@ -304,8 +329,9 @@ fn update_expense_instance(
     units_adults: &str,
     rate: &str,
     comments: &str,
+    state: State<Repository>,
 ) {
-    repository::update_expense_instance(
+    state.update_expense_instance(
         uid_expense_instance,
         unit_price,
         number,
@@ -322,8 +348,8 @@ fn update_expense_instance(
 ///
 /// * `uid_expense_instance` - The unique identifier of the expense instance.
 #[tauri::command]
-fn delete_expense_instance(uid_expense_instance: &str) {
-    repository::delete_expense_instance(uid_expense_instance);
+fn delete_expense_instance(uid_expense_instance: &str, state: State<Repository>) {
+    state.delete_expense_instance(uid_expense_instance);
 }
 
 /// Copies an existing expense instance.
@@ -332,26 +358,26 @@ fn delete_expense_instance(uid_expense_instance: &str) {
 ///
 /// * `uid_expense_instance` - The unique identifier of the expense instance to copy.
 #[tauri::command]
-fn copy_expense_instance(uid_expense_instance: &str) {
-    repository::copy_expense_instance(uid_expense_instance);
+fn copy_expense_instance(uid_expense_instance: &str, state: State<Repository>) {
+    state.copy_expense_instance(uid_expense_instance);
 }
 
 /// Gets calculated expenses for the entire group as a JSON string.
 #[tauri::command]
-fn get_group_calculated_expenses() -> String {
-    helper::vec_to_json(repository::get_group_calculated_expenses())
+fn get_group_calculated_expenses(state: State<Repository>) -> String {
+    helper::vec_to_json(state.get_group_calculated_expenses())
 }
 
 /// Gets the sum of calculated expenses for the entire group as a JSON string.
 #[tauri::command]
-fn get_group_sum_calculated_expenses() -> String {
-    helper::struct_to_json(repository::get_group_sum_calculated_expenses())
+fn get_group_sum_calculated_expenses(state: State<Repository>) -> String {
+    helper::struct_to_json(state.get_group_sum_calculated_expenses())
 }
 
 /// Gets the sum of calculated expenses only for the group as a JSON string.
 #[tauri::command]
-fn get_group_only_sum_calculated_expenses() -> String {
-    helper::struct_to_json(repository::get_group_only_sum_calculated_expenses())
+fn get_group_only_sum_calculated_expenses(state: State<Repository>) -> String {
+    helper::struct_to_json(state.get_group_only_sum_calculated_expenses())
 }
 
 /// Gets the sum of calculated expenses for a specific section as a JSON string.
@@ -360,8 +386,8 @@ fn get_group_only_sum_calculated_expenses() -> String {
 ///
 /// * `section_uid` - The unique identifier of the section.
 #[tauri::command]
-fn get_sum_calculated_expenses(section_uid: &str) -> String {
-    helper::struct_to_json(repository::get_sum_calculated_expenses(section_uid))
+fn get_sum_calculated_expenses(section_uid: &str, state: State<Repository>) -> String {
+    helper::struct_to_json(state.get_sum_calculated_expenses(section_uid))
 }
 
 /// Gets the total expense per member for a specific section as a JSON string.
@@ -370,8 +396,8 @@ fn get_sum_calculated_expenses(section_uid: &str) -> String {
 ///
 /// * `section_uid` - The unique identifier of the section.
 #[tauri::command]
-fn get_total_per_member(section_uid: &str) -> String {
-    helper::struct_to_json(repository::get_total_per_member(section_uid))
+fn get_total_per_member(section_uid: &str, state: State<Repository>) -> String {
+    helper::struct_to_json(state.get_total_per_member(section_uid))
 }
 
 /// Gets the count of a specific expense for a section from its instances.
@@ -381,8 +407,14 @@ fn get_total_per_member(section_uid: &str) -> String {
 /// * `section_uid` - The UID of the section.
 /// * `expense_uid` - The UID of the expense.
 #[tauri::command]
-fn get_section_expense_cnt_from_instance(section_uid: &str, expense_uid: &str) -> String {
-    repository::get_section_expense_cnt_from_instance(section_uid, expense_uid).to_string()
+fn get_section_expense_cnt_from_instance(
+    section_uid: &str,
+    expense_uid: &str,
+    state: State<Repository>,
+) -> String {
+    state
+        .get_section_expense_cnt_from_instance(section_uid, expense_uid)
+        .to_string()
 }
 
 /// Gets the section-expense association for a specific section and expense.
@@ -392,11 +424,12 @@ fn get_section_expense_cnt_from_instance(section_uid: &str, expense_uid: &str) -
 /// * `section_uid` - The UID of the section.
 /// * `expense_uid` - The UID of the expense.
 #[tauri::command]
-fn get_section_expense_from_association(section_uid: &str, expense_uid: &str) -> String {
-    helper::struct_to_json(repository::get_section_expense_from_association(
-        section_uid,
-        expense_uid,
-    ))
+fn get_section_expense_from_association(
+    section_uid: &str,
+    expense_uid: &str,
+    state: State<Repository>,
+) -> String {
+    helper::struct_to_json(state.get_section_expense_from_association(section_uid, expense_uid))
 }
 
 /// Gets section-expense associations for a section from its expense instances as a JSON string.
@@ -405,9 +438,12 @@ fn get_section_expense_from_association(section_uid: &str, expense_uid: &str) ->
 ///
 /// * `section_uid` - The unique identifier of the section.
 #[tauri::command]
-fn get_section_expense_from_expenses_instances_and_section(section_uid: &str) -> String {
+fn get_section_expense_from_expenses_instances_and_section(
+    section_uid: &str,
+    state: State<Repository>,
+) -> String {
     helper::struct_to_json(
-        repository::get_section_expense_from_expenses_instances_and_section(section_uid),
+        state.get_section_expense_from_expenses_instances_and_section(section_uid),
     )
 }
 
@@ -430,20 +466,20 @@ fn read_asset<R: Runtime>(app: AppHandle<R>, path: &str) -> String {
 
 /// Generates an XLS file based on the database data.
 #[tauri::command]
-fn generate_xls_file() {
-    helper::generate_xls_file();
+fn generate_xls_file(state: State<Repository>) {
+    helper::generate_xls_file(&state);
 }
 
 /// Gets the global database file path.
 #[tauri::command]
-fn get_global_file_path() -> String {
-    repository::get_global_file_path()
+fn get_global_file_path(state: State<Repository>) -> String {
+    state.get_file_path()
 }
 
 /// Loads the list of all QFs (Quotient Familial) as a JSON string.
 #[tauri::command]
-fn fq_list_load() -> String {
-    helper::vec_to_json(repository::fq_list())
+fn fq_list_load(state: State<Repository>) -> String {
+    helper::vec_to_json(state.fq_list())
 }
 
 /// Loads the list of QFs associated with a specific section as a JSON string.
@@ -452,8 +488,8 @@ fn fq_list_load() -> String {
 ///
 /// * `section_uid` - The unique identifier of the section.
 #[tauri::command]
-fn fq_section_list_load(section_uid: &str) -> String {
-    helper::vec_to_json(repository::fq_section_list_load(section_uid))
+fn fq_section_list_load(section_uid: &str, state: State<Repository>) -> String {
+    helper::vec_to_json(state.fq_section_list_load(section_uid))
 }
 
 /// Inserts a new QF into the database.
@@ -472,8 +508,9 @@ fn insert_new_fq(
     national_contribution: &str,
     online_commission_rate: &str,
     online_commission_fees: &str,
+    state: State<Repository>,
 ) {
-    repository::insert_new_fq(
+    state.insert_new_fq(
         title,
         coeff,
         national_contribution,
@@ -500,8 +537,9 @@ fn update_fq(
     national_contribution: &str,
     online_commission_rate: &str,
     online_commission_fees: &str,
+    state: State<Repository>,
 ) {
-    repository::update_fq(
+    state.update_fq(
         uid,
         title,
         coeff,
@@ -517,8 +555,8 @@ fn update_fq(
 ///
 /// * `uid` - The unique identifier of the QF.
 #[tauri::command]
-fn delete_fq(uid: &str) {
-    repository::delete_fq(uid);
+fn delete_fq(uid: &str, state: State<Repository>) {
+    state.delete_fq(uid);
 }
 
 /// Updates the display order of QFs.
@@ -527,9 +565,9 @@ fn delete_fq(uid: &str) {
 ///
 /// * `fq_list` - A JSON array of QF UIDs in the desired order.
 #[tauri::command]
-fn update_fq_order(fq_list: &str) {
+fn update_fq_order(fq_list: &str, state: State<Repository>) {
     let vec_fq_list: Vec<&str> = helper::json_to_vec(fq_list);
-    repository::update_fq_order(vec_fq_list);
+    state.update_fq_order(vec_fq_list);
 }
 
 /// Updates the members count for a specific QF in a section.
@@ -540,8 +578,13 @@ fn update_fq_order(fq_list: &str) {
 /// * `fq_uid` - The UID of the QF.
 /// * `members_count` - The new number of members.
 #[tauri::command]
-fn update_fq_section_members_count(section_uid: &str, fq_uid: &str, members_count: i32) {
-    repository::update_fq_section_members_count(section_uid, fq_uid, members_count);
+fn update_fq_section_members_count(
+    section_uid: &str,
+    fq_uid: &str,
+    members_count: i32,
+    state: State<Repository>,
+) {
+    state.update_fq_section_members_count(section_uid, fq_uid, members_count);
 }
 
 /// Gets the total number of members across all QFs for a specific section.
@@ -550,14 +593,16 @@ fn update_fq_section_members_count(section_uid: &str, fq_uid: &str, members_coun
 ///
 /// * `section_uid` - The unique identifier of the section.
 #[tauri::command]
-fn get_members_fq_count_by_section(section_uid: &str) -> String {
-    repository::get_members_fq_count_by_section(section_uid).to_string()
+fn get_members_fq_count_by_section(section_uid: &str, state: State<Repository>) -> String {
+    state
+        .get_members_fq_count_by_section(section_uid)
+        .to_string()
 }
 
 /// Gets the members count for all sections as a JSON string.
 #[tauri::command]
-fn get_members_fq_count_for_all_sections() -> String {
-    struct_to_json(repository::get_members_fq_count_for_all_sections())
+fn get_members_fq_count_for_all_sections(state: State<Repository>) -> String {
+    struct_to_json(state.get_members_fq_count_for_all_sections())
 }
 
 /// Gets calculated QF values for a specific section as a JSON string.
@@ -566,8 +611,8 @@ fn get_members_fq_count_for_all_sections() -> String {
 ///
 /// * `section_uid` - The unique identifier of the section.
 #[tauri::command]
-fn get_fqs_calculated_by_section(section_uid: &str) -> String {
-    helper::struct_to_json(repository::get_fqs_calculated_by_section(section_uid))
+fn get_fqs_calculated_by_section(section_uid: &str, state: State<Repository>) -> String {
+    helper::struct_to_json(state.get_fqs_calculated_by_section(section_uid))
 }
 
 /// Gets the current build mode (debug or release).
@@ -580,6 +625,7 @@ fn get_build_mode() -> String {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .manage(Repository::new())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![

@@ -246,32 +246,29 @@ pub fn get_xlsx_color_from_str(color: &str) -> Color {
 }
 
 /// Generates an Excel (.xlsx) file containing the budget report.
-///
-/// This function reads data from the database, creates worksheets for each section,
-/// adds QF calculations, and generates a balance sheet.
-pub fn generate_xls_file() {
-    let file_path = repository::get_global_file_path();
+pub fn generate_xls_file(repo: &repository::Repository) {
+    let file_path = repo.get_file_path();
     let path = Path::new(&file_path);
     let mut path_buf = PathBuf::from(path);
 
     path_buf.set_extension("xlsx");
     let final_path = path_buf.to_string_lossy().into_owned();
 
-    let section_list: Vec<Section> = repository::section_list();
+    let section_list: Vec<Section> = repo.section_list();
     let mut workbook = Workbook::new();
 
-    let group_expense_list: Vec<CalculatedExpense> = repository::get_group_calculated_expenses();
+    let group_expense_list: Vec<CalculatedExpense> = repo.get_group_calculated_expenses();
 
     for section in section_list {
-        handle_worksheet(&section, &mut workbook, &group_expense_list);
+        handle_worksheet(&section, &mut workbook, &group_expense_list, repo);
     }
 
-    let fq_list = repository::fq_list();
+    let fq_list = repo.fq_list();
     if !fq_list.is_empty() {
-        add_fq_data_to_work_book(&mut workbook);
+        add_fq_data_to_work_book(&mut workbook, repo);
     }
 
-    create_accounting_balance_sheet(&mut workbook);
+    create_accounting_balance_sheet(&mut workbook, repo);
 
     let _ = workbook.save(final_path);
 }
@@ -280,6 +277,7 @@ fn handle_worksheet(
     section: &Section,
     workbook: &mut Workbook,
     group_expense_list: &Vec<CalculatedExpense>,
+    repo: &repository::Repository,
 ) {
     let color = get_xlsx_color_from_str(&section.color);
     let worksheet: &mut Worksheet = workbook.add_worksheet();
@@ -321,7 +319,7 @@ fn handle_worksheet(
         .set_bold();
 
     let calculated_expenses_list: Vec<CalculatedExpense> =
-        repository::get_calculated_expenses(&section.uid);
+        repo.get_calculated_expenses(&section.uid);
     let mut row: u32 = 2;
     let mut row_total_unite: u32 = 2;
     let formula_children_string: &str = "=$B$3";
@@ -432,7 +430,7 @@ fn handle_worksheet(
     }
 
     if !calculated_expenses_list.is_empty() {
-        let sum_calculated = repository::get_sum_calculated_expenses(&section.uid);
+        let sum_calculated = repo.get_sum_calculated_expenses(&section.uid);
         let formula_sum = Formula::new(format!("=SUM(H{first_excel_row}:H{row})"))
             .set_result(sum_calculated.sum_total.to_string());
 
@@ -464,8 +462,7 @@ fn handle_worksheet(
 
         if "group" != section.uid {
             row += 1;
-            let sum_calculated_group: SumExpenseInstance =
-                repository::get_group_sum_calculated_expenses();
+            let sum_calculated_group: SumExpenseInstance = repo.get_group_sum_calculated_expenses();
             let _ =
                 worksheet.merge_range(row, 4, row, 6, "Total Groupe par enfant", &border_format);
             let _ = worksheet.write_number_with_format(
@@ -476,7 +473,7 @@ fn handle_worksheet(
             );
 
             row += 1;
-            let total_per_member = repository::get_total_per_member(&section.uid);
+            let total_per_member = repo.get_total_per_member(&section.uid);
             let formula_sum_total = Formula::new(format!("=SUM(H{}:H{})", row - 1, row))
                 .set_result(total_per_member.sum_unit.to_string());
             let _ = worksheet.merge_range(row, 4, row, 6, "Total par enfant", &border_format);
@@ -491,7 +488,7 @@ fn handle_worksheet(
 
     if "group" == section.uid {
         let group_sum_expense_instance: SumExpenseInstance =
-            repository::get_group_only_sum_calculated_expenses();
+            repo.get_group_only_sum_calculated_expenses();
 
         if !&group_expense_list.is_empty() {
             row += 3;
@@ -584,8 +581,7 @@ fn handle_worksheet(
                 total_label_ratio = String::from("Total Groupe par enfant");
             }
             let row_total_rated_group = row + 2;
-            let sum_calculated_group: SumExpenseInstance =
-                repository::get_group_sum_calculated_expenses();
+            let sum_calculated_group: SumExpenseInstance = repo.get_group_sum_calculated_expenses();
 
             if true {
                 let _ = worksheet.merge_range(
@@ -650,12 +646,12 @@ fn handle_worksheet(
 
     // FQ //TODO Afficher montant unité et montant pondéré unité
     if !calculated_expenses_list.is_empty() {
-        let fq_list: Vec<FqTotal> = repository::get_fqs_calculated_by_section(&section.uid);
+        let fq_list: Vec<FqTotal> = repo.get_fqs_calculated_by_section(&section.uid);
         if !fq_list.is_empty() {
             row += 2;
             let _ = worksheet.merge_range(row, 0, row, 7, "Prise en charge des QF", &title_format);
 
-            let fqs_calculated = repository::get_fqs_calculated_by_section(&section.uid);
+            let fqs_calculated = repo.get_fqs_calculated_by_section(&section.uid);
             if !fqs_calculated.is_empty() {
                 row += 2;
                 if "group" != section.uid {
@@ -760,8 +756,8 @@ fn handle_worksheet(
     let _ = worksheet.autofit();
 }
 
-fn add_fq_data_to_work_book(workbook: &mut Workbook) {
-    let fq_list = repository::get_calculated_fqs_total_without_group();
+fn add_fq_data_to_work_book(workbook: &mut Workbook, repo: &repository::Repository) {
+    let fq_list = repo.get_calculated_fqs_total_without_group();
     if fq_list.is_empty() {
         return;
     }
@@ -813,7 +809,7 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
     let mut row = 0;
     let mut formula_row;
 
-    let section_list = repository::section_list();
+    let section_list = repo.section_list();
     if !section_list.is_empty() {
         let mut count_declared_members;
         let mut members_list;
@@ -822,8 +818,8 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
         let mut sum_calculated;
         for section in section_list {
             row += 2;
-            count_declared_members = repository::get_members_fq_count_by_section(&section.uid);
-            fqs_calculated = repository::get_fqs_calculated_by_section(&section.uid);
+            count_declared_members = repo.get_members_fq_count_by_section(&section.uid);
+            fqs_calculated = repo.get_fqs_calculated_by_section(&section.uid);
 
             let color = get_xlsx_color_from_str(&section.color);
             let border_color_bold_center_format = border_bold_center_format
@@ -848,7 +844,7 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
                 &border_bold_center_format,
             );
             let _ = worksheet.write_with_format(row, 2, "Enfants/Ados", &border_bold_center_format);
-            members_list = repository::fq_section_list_load(&section.uid);
+            members_list = repo.fq_section_list_load(&section.uid);
             if !members_list.is_empty() {
                 first_row = row + 2;
                 for members in members_list {
@@ -870,9 +866,9 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
                 );
 
                 if "group" == section.uid {
-                    sum_calculated = repository::get_group_sum_calculated_expenses();
+                    sum_calculated = repo.get_group_only_sum_calculated_expenses();
                 } else {
-                    sum_calculated = repository::get_sum_calculated_expenses(&section.uid);
+                    sum_calculated = repo.get_sum_calculated_expenses(&section.uid);
                 }
 
                 let border_color_bold_number_right_format = border_bold_number_right_format
@@ -1049,8 +1045,7 @@ fn add_fq_data_to_work_book(workbook: &mut Workbook) {
     let _ = worksheet.autofit();
 }
 
-// Shameful, crappy but works... need a refactoring, maybe later
-pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
+pub fn create_accounting_balance_sheet(workbook: &mut Workbook, repo: &repository::Repository) {
     let worksheet: &mut Worksheet = workbook
         .add_worksheet()
         .set_name("Balance")
@@ -1109,23 +1104,23 @@ pub fn create_accounting_balance_sheet(workbook: &mut Workbook) {
     let _ = worksheet.write_with_format(row, 4, "Branche", &border_center_bold_format_yellow);
     let _ = worksheet.write_with_format(row, 5, "Montant", &border_center_bold_format_yellow);
 
-    let section_list = repository::section_list();
+    let section_list = repo.section_list();
     if !section_list.is_empty() {
         row += 1;
 
         let mut total_integral_left: f32 = 0.0;
         let mut total_integral_right: f32 = 0.0;
         let mut total_rows: Vec<u32> = vec![];
-        let national_cotisation: NationalFees = repository::get_total_national_cotisation();
+        let national_cotisation: NationalFees = repo.get_total_national_cotisation();
 
         for section in section_list {
             let original_row = row;
             let calculated_expenses_list: Vec<CalculatedExpense> =
-                repository::get_calculated_expenses(&section.uid);
+                repo.get_calculated_expenses(&section.uid);
             let mut group_calculated_expenses_list: Vec<CalculatedExpense> = vec![];
 
             if "group" == section.uid {
-                group_calculated_expenses_list = repository::get_group_calculated_expenses();
+                group_calculated_expenses_list = repo.get_group_calculated_expenses();
             }
 
             let mut right: Vec<CalculatedExpense> = vec![];
@@ -1476,8 +1471,5 @@ mod tests {
     #[serial]
     fn test_get_xlsx_color_from_str() {
         let _color = get_xlsx_color_from_str("#FFFFFF");
-        // Color::RGB(0xFFFFFF) doesn't implement Eq easily for comparison here without knowing internal structure
-        // But we can check if it doesn't panic and we can assume it works if we use it correctly.
-        // Actually, let's just check it doesn't panic for now.
     }
 }
