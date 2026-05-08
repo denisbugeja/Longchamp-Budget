@@ -240,8 +240,8 @@ pub fn json_to_vec(json_data: &str) -> Vec<&str> {
 
 /// Converts a hex color string (e.g., "#RRGGBB") to a `rust_xlsxwriter::Color`.
 pub fn get_xlsx_color_from_str(color: &str) -> Color {
-    let rgb_color: u32 =
-        u32::from_str_radix(&color[1..], 16).expect("Erreur de conversion de l'hexadécimal vers le RGB");
+    let rgb_color: u32 = u32::from_str_radix(&color[1..], 16)
+        .expect("Erreur de conversion de l'hexadécimal vers le RGB");
     Color::RGB(rgb_color)
 }
 
