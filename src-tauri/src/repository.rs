@@ -4,11 +4,12 @@
 //! It includes functions for managing sections, expenses, QFs, and their associations,
 //! as well as database initialization and migrations.
 
-use crate::helper::{
+use crate::structs::{
     CalculatedExpense, Expense, Fq, FqMembersCount, FqSection, FqTotal, NationalFees, Section,
     SectionExpense, SumExpenseInstance,
 };
-use rusqlite::{params, Connection, Result, Row};
+use rusqlite::types::FromSql;
+use rusqlite::{params, Connection, Row};
 use std::fs;
 use std::path::Path;
 use std::sync::{Mutex, RwLock};
@@ -66,7 +67,8 @@ impl Repository {
 
         let conn =
             Connection::open(real_path).expect("Impossible d'ouvrir le fichier de base de données");
-        self.execute_migrations(&conn);
+
+        Self::execute_migrations(&conn);
 
         let mut connection_lock = self
             .connection
@@ -83,18 +85,9 @@ impl Repository {
         members_count: i32,
         adults_count: i32,
     ) {
-        let existing_sections: Vec<Section> = self.execute_read_sql(
+        let existing_sections: Vec<Section> = self.fetch_rows(
             include_str!("sql_queries/insert_new_section/existing_sections.sql"),
             params!(title),
-            |row| {
-                Ok(Section {
-                    uid: row.get(0)?,
-                    title: row.get(1)?,
-                    color: row.get(2)?,
-                    members_count: row.get(3)?,
-                    adults_count: row.get(4)?,
-                })
-            },
         );
 
         if !existing_sections.is_empty() {
@@ -135,19 +128,9 @@ impl Repository {
             .parse()
             .expect("Échec de l'analyse des frais de commission en ligne en f32");
 
-        let existing_fqs: Vec<Fq> = self.execute_read_sql(
+        let existing_fqs: Vec<Fq> = self.fetch_rows(
             include_str!("sql_queries/insert_new_fq/existing_fqs.sql"),
             params!(title),
-            |row| {
-                Ok(Fq {
-                    uid: row.get(0)?,
-                    title: row.get(1)?,
-                    coeff: row.get(2)?,
-                    national_contribution: row.get(3)?,
-                    online_commission_rate: row.get(4)?,
-                    online_commission_fees: row.get(5)?,
-                })
-            },
         );
 
         if !existing_fqs.is_empty() {
@@ -169,88 +152,35 @@ impl Repository {
 
     /// Returns a list of all sections ordered by position.
     pub fn section_list(&self) -> Vec<Section> {
-        self.execute_read_sql(include_str!("sql_queries/section_list.sql"), [], |row| {
-            Ok(Section {
-                uid: row.get(0)?,
-                title: row.get(1)?,
-                color: row.get(2)?,
-                members_count: row.get(3)?,
-                adults_count: row.get(4)?,
-            })
-        })
+        self.fetch_rows(include_str!("sql_queries/section_list.sql"), [])
     }
 
     /// Returns a list of all QF categories ordered by position.
     pub fn fq_list(&self) -> Vec<Fq> {
-        self.execute_read_sql(include_str!("sql_queries/fq_list.sql"), [], |row| {
-            Ok(Fq {
-                uid: row.get(0)?,
-                title: row.get(1)?,
-                coeff: row.get(2)?,
-                national_contribution: row.get(3)?,
-                online_commission_rate: row.get(4)?,
-                online_commission_fees: row.get(5)?,
-            })
-        })
+        self.fetch_rows(include_str!("sql_queries/fq_list.sql"), [])
     }
 
     /// Returns a list of QF categories and their member counts for a specific section.
     pub fn fq_section_list_load(&self, section_uid: &str) -> Vec<FqSection> {
-        self.execute_read_sql(
+        self.fetch_rows(
             include_str!("sql_queries/fq_section_list_load.sql"),
             params!(section_uid),
-            |row| {
-                Ok(FqSection {
-                    uid_fq: row.get(1)?,
-                    uid_section: row.get(0)?,
-                    coeff: row.get(2)?,
-                    members_count: row.get(3)?,
-                    title_section: row.get(4)?,
-                    title_fq: row.get(5)?,
-                })
-            },
         )
     }
 
     /// Returns calculated QF total data for a specific section.
     pub fn get_fqs_calculated_by_section(&self, section_uid: &str) -> Vec<FqTotal> {
-        self.execute_read_sql(
+        self.fetch_rows(
             include_str!("sql_queries/get_fqs_calculated_by_section.sql"),
             params!(section_uid),
-            |row| {
-                Ok(FqTotal {
-                    title_section: row.get(0)?,
-                    title_fq: row.get(1)?,
-                    uid_fq: row.get(2)?,
-                    uid_section: row.get(3)?,
-                    declared_unit_price: row.get(4)?,
-                    declared_group_unit_price: row.get(5)?,
-                    coeff: row.get(6)?,
-                    calculated_unit_price_with_coeff: row.get(7)?,
-                    group_calculated_unit_price: row.get(8)?,
-                    total_group_member_price: row.get(9)?,
-                    national_contribution: row.get(10)?,
-                    total_member_price: row.get(11)?,
-                    national_commission: row.get(12)?,
-                    total: row.get(13)?,
-                    members_declared_count: row.get(14)?,
-                    color: row.get(15)?,
-                })
-            },
         )
     }
 
     /// Returns the total national fees (contribution and commission) across all sections.
     pub fn get_total_national_cotisation(&self) -> NationalFees {
-        let mut result = self.execute_read_sql(
+        let mut result = self.fetch_rows(
             include_str!("sql_queries/get_total_national_cotisation.sql"),
             [],
-            |row| {
-                Ok(NationalFees {
-                    total_national_contribution: row.get(0)?,
-                    total_national_commission: row.get(1)?,
-                })
-            },
         );
 
         result.pop().expect("Aucun frais de cotisation trouvé")
@@ -258,58 +188,25 @@ impl Repository {
 
     /// Returns calculated QF total data for all sections except the aggregate group.
     pub fn get_calculated_fqs_total_without_group(&self) -> Vec<FqTotal> {
-        self.execute_read_sql(
+        self.fetch_rows(
             include_str!("sql_queries/get_calculated_fqs_total_without_group.sql"),
             [],
-            |row| {
-                Ok(FqTotal {
-                    title_section: row.get(0)?,
-                    title_fq: row.get(1)?,
-                    uid_fq: row.get(2)?,
-                    uid_section: row.get(3)?,
-                    declared_unit_price: row.get(4)?,
-                    declared_group_unit_price: row.get(5)?,
-                    coeff: row.get(6)?,
-                    calculated_unit_price_with_coeff: row.get(7)?,
-                    group_calculated_unit_price: row.get(8)?,
-                    total_group_member_price: row.get(9)?,
-                    national_contribution: row.get(10)?,
-                    total_member_price: row.get(11)?,
-                    national_commission: row.get(12)?,
-                    total: row.get(13)?,
-                    members_declared_count: row.get(14)?,
-                    color: row.get(15)?,
-                })
-            },
         )
     }
 
     /// Returns a list of all expenses ordered by position.
     pub fn expense_list(&self) -> Vec<Expense> {
-        self.execute_read_sql(include_str!("sql_queries/expense_list.sql"), [], |row| {
-            Ok(Expense {
-                uid: row.get(0)?,
-                title: row.get(1)?,
-                description: row.get(2)?,
-                rate: row.get(3)?,
-                unit_price: row.get(4)?,
-                position: row.get(5)?,
-            })
-        })
+        self.fetch_rows(include_str!("sql_queries/expense_list.sql"), [])
     }
 
     /// Deletes a section from the database.
     ///
     /// Only succeeds if the section has no associated expense instances.
     pub fn delete_section(&self, uid: &str) {
-        let count: i32 = self
-            .execute_read_sql(
-                include_str!("sql_queries/delete_section/count.sql"),
-                params!(uid),
-                |row| row.get(0),
-            )
-            .pop()
-            .expect("Impossible d'obtenir le décompte (count)");
+        let count: i32 = self.fetch_one_value(
+            include_str!("sql_queries/delete_section/count.sql"),
+            params!(uid),
+        );
         if count > 0 {
             return;
         }
@@ -344,23 +241,7 @@ impl Repository {
 
     /// Deletes a QF category from the database.
     pub fn delete_fq(&self, uid: &str) {
-        let mut connection_lock = self
-            .connection
-            .lock()
-            .expect("Impossible de verrouiller la connexion");
-        let conn = connection_lock
-            .as_mut()
-            .expect("La connexion à la base de données n'est pas initialisée");
-
-        let tx = conn
-            .transaction()
-            .expect("Impossible de créer une transaction");
-
-        tx.execute(include_str!("sql_queries/delete_fq.sql"), params!(uid))
-            .expect("Échec de l'ajout de la requête à la transaction");
-
-        tx.commit()
-            .expect("Échec de la validation (commit) de la transaction");
+        self.execute_write_sql(include_str!("sql_queries/delete_fq.sql"), params!(uid));
     }
 
     /// Updates section information in the database.
@@ -372,18 +253,9 @@ impl Repository {
         members_count: i32,
         adults_count: i32,
     ) {
-        let existing_sections: Vec<Section> = self.execute_read_sql(
+        let existing_sections: Vec<Section> = self.fetch_rows(
             include_str!("sql_queries/update_section/existing_sections.sql"),
             params!(title, uid),
-            |row| {
-                Ok(Section {
-                    uid: row.get(0)?,
-                    title: row.get(1)?,
-                    color: row.get(2)?,
-                    members_count: row.get(3)?,
-                    adults_count: row.get(4)?,
-                })
-            },
         );
 
         if !existing_sections.is_empty() {
@@ -419,19 +291,9 @@ impl Repository {
             .parse()
             .expect("Échec de l'analyse des frais de commission en ligne en f32");
 
-        let existing_fqs: Vec<Fq> = self.execute_read_sql(
+        let existing_fqs: Vec<Fq> = self.fetch_rows(
             include_str!("sql_queries/update_fq/existing_fqs.sql"),
             params!(title, uid),
-            |row| {
-                Ok(Fq {
-                    uid: row.get(0)?,
-                    title: row.get(1)?,
-                    coeff: row.get(2)?,
-                    national_contribution: row.get(3)?,
-                    online_commission_rate: row.get(4)?,
-                    online_commission_fees: row.get(5)?,
-                })
-            },
         );
 
         if !existing_fqs.is_empty() {
@@ -585,18 +447,9 @@ impl Repository {
     fn section_list_from_uid_vec(&self, section_list: Vec<&str>) -> Vec<Section> {
         let mut section_list_vec: Vec<Section> = vec![];
         for section in section_list {
-            let mut sections_in_db = self.execute_read_sql(
+            let mut sections_in_db = self.fetch_rows(
                 include_str!("sql_queries/section_list_from_uid_vec.sql"),
                 params!(section),
-                |row| {
-                    Ok(Section {
-                        uid: row.get(0)?,
-                        title: row.get(1)?,
-                        color: row.get(2)?,
-                        members_count: row.get(3)?,
-                        adults_count: row.get(4)?,
-                    })
-                },
             );
             if !sections_in_db.is_empty() {
                 section_list_vec.push(
@@ -611,28 +464,18 @@ impl Repository {
 
     /// Returns the total number of members across all QF categories for a section.
     pub fn get_members_fq_count_by_section(&self, section_uid: &str) -> i32 {
-        let count: i32 = self
-            .execute_read_sql(
-                include_str!("sql_queries/get_members_fq_count_by_section.sql"),
-                params!(section_uid),
-                |row| row.get(0),
-            )
-            .pop()
-            .expect("Impossible d'obtenir le décompte (count)");
+        let count: i32 = self.fetch_one_value(
+            include_str!("sql_queries/get_members_fq_count_by_section.sql"),
+            params!(section_uid),
+        );
         count
     }
 
     /// Returns a list of member counts across QF categories for all sections.
     pub fn get_members_fq_count_for_all_sections(&self) -> Vec<FqMembersCount> {
-        let result: Vec<FqMembersCount> = self.execute_read_sql(
+        let result: Vec<FqMembersCount> = self.fetch_rows(
             include_str!("sql_queries/get_members_fq_count_for_all_sections.sql"),
             [],
-            |row| {
-                Ok(FqMembersCount {
-                    uid_section: row.get(0)?,
-                    count: row.get(1)?,
-                })
-            },
         );
 
         result
@@ -778,14 +621,14 @@ impl Repository {
             .expect("Impossible de créer une transaction");
 
         tx.execute(
-            include_str!("sql_queries/update_expense_section_association/delete.sql"),
+            include_str!("sql_queries/delete_expense/delete_expense_section.sql"),
             params!(uid_expense),
         )
         .expect("Échec de l'ajout de la requête à la transaction");
 
         for section in sections_in_db {
             tx.execute(
-                include_str!("sql_queries/update_expense_section_association/insert.sql"),
+                include_str!("sql_queries/insert_new_expense/expense_section.sql"),
                 params!(uid_expense, section.uid),
             )
             .expect("Échec de l'ajout de la requête à la transaction");
@@ -799,14 +642,11 @@ impl Repository {
     ///
     /// Only succeeds if the expense has no associated instances.
     pub fn delete_expense(&self, uid: &str) {
-        let count: i32 = self
-            .execute_read_sql(
-                include_str!("sql_queries/delete_expense/count.sql"),
-                params!(uid),
-                |row| row.get(0),
-            )
-            .pop()
-            .expect("Impossible d'obtenir le décompte (count)");
+        let count: i32 = self.fetch_one_value(
+            include_str!("sql_queries/delete_expense/count.sql"),
+            params!(uid),
+        );
+
         if count > 0 {
             return;
         }
@@ -841,20 +681,7 @@ impl Repository {
 
     /// Returns a list of all section-expense template associations.
     pub fn get_section_expense(&self) -> Vec<SectionExpense> {
-        self.execute_read_sql(
-            include_str!("sql_queries/get_section_expense.sql"),
-            [],
-            |row| {
-                Ok(SectionExpense {
-                    uid_section: row.get(0)?,
-                    uid_expense: row.get(1)?,
-                    title_section: row.get(2)?,
-                    title_expense: row.get(3)?,
-                    count: 0,
-                    description: row.get(4)?,
-                })
-            },
-        )
+        self.fetch_rows(include_str!("sql_queries/get_section_expense.sql"), [])
     }
 
     /// Returns the sum of occurrences (number) for a specific section and expense instance.
@@ -863,15 +690,10 @@ impl Repository {
         section_uid: &str,
         expense_uid: &str,
     ) -> f32 {
-        let result = self.execute_read_sql(
+        let count: f32 = self.fetch_one_value(
             include_str!("sql_queries/get_section_expense_cnt_from_instance.sql"),
             params!(section_uid, expense_uid),
-            |row| row.get(0),
         );
-        let mut count: f32 = 0.0;
-        if !result.is_empty() {
-            count = result[0];
-        }
         count
     }
 
@@ -881,19 +703,9 @@ impl Repository {
         section_uid: &str,
         expense_uid: &str,
     ) -> Vec<SectionExpense> {
-        self.execute_read_sql(
+        self.fetch_rows(
             include_str!("sql_queries/get_section_expense_from_instance.sql"),
             params!(section_uid, expense_uid),
-            |row| {
-                Ok(SectionExpense {
-                    uid_section: row.get(0)?,
-                    uid_expense: row.get(1)?,
-                    title_section: row.get(2)?,
-                    title_expense: row.get(3)?,
-                    count: 0,
-                    description: row.get(4)?,
-                })
-            },
         )
     }
 
@@ -903,19 +715,9 @@ impl Repository {
         section_uid: &str,
         expense_uid: &str,
     ) -> Vec<SectionExpense> {
-        self.execute_read_sql(
+        self.fetch_rows(
             include_str!("sql_queries/get_section_expense_from_association.sql"),
             params!(section_uid, expense_uid),
-            |row| {
-                Ok(SectionExpense {
-                    uid_section: row.get(0)?,
-                    uid_expense: row.get(1)?,
-                    title_section: row.get(2)?,
-                    title_expense: row.get(3)?,
-                    count: 0,
-                    description: row.get(4)?,
-                })
-            },
         )
     }
 
@@ -928,37 +730,17 @@ impl Repository {
     }
 
     fn get_section_expense_from_instances(&self, expense_uid: &str) -> Vec<SectionExpense> {
-        self.execute_read_sql(
+        self.fetch_rows(
             include_str!("sql_queries/get_section_expense_from_instances.sql"),
             params!(expense_uid),
-            |row| {
-                Ok(SectionExpense {
-                    uid_section: row.get(0)?,
-                    uid_expense: row.get(1)?,
-                    title_section: row.get(2)?,
-                    title_expense: row.get(3)?,
-                    count: 0,
-                    description: row.get(4)?,
-                })
-            },
         )
     }
 
     /// Returns section-expense associations from all expense instances.
     pub fn get_section_expense_from_expenses_instances(&self) -> Vec<SectionExpense> {
-        self.execute_read_sql(
+        self.fetch_rows(
             include_str!("sql_queries/get_section_expense_from_expenses_instances.sql"),
             [],
-            |row| {
-                Ok(SectionExpense {
-                    uid_section: row.get(0)?,
-                    uid_expense: row.get(1)?,
-                    title_section: row.get(2)?,
-                    title_expense: row.get(3)?,
-                    count: row.get(4)?,
-                    description: row.get(5)?,
-                })
-            },
         )
     }
 
@@ -967,46 +749,28 @@ impl Repository {
         &self,
         section_uid: &str,
     ) -> Vec<SectionExpense> {
-        self.execute_read_sql(
+        self.fetch_rows(
             include_str!("sql_queries/get_section_expense_from_expenses_instances_and_section.sql"),
             params!(section_uid),
-            |row| {
-                Ok(SectionExpense {
-                    uid_section: row.get(0)?,
-                    uid_expense: row.get(1)?,
-                    title_section: row.get(2)?,
-                    title_expense: row.get(3)?,
-                    count: row.get(4)?,
-                    description: row.get(5)?,
-                })
-            },
         )
     }
 
     /// Returns the member count for a specific section.
     pub fn get_members_count(&self, section_uid: &str) -> i32 {
-        let members_count_list: Vec<i32> = self.execute_read_sql(
+        let members_count: i32 = self.fetch_one_value(
             include_str!("sql_queries/get_members_count.sql"),
             params!(section_uid),
-            |row| row.get(0),
         );
-        if !members_count_list.is_empty() {
-            return members_count_list[0];
-        }
-        0
+        members_count
     }
 
     /// Returns the adult count for a specific section.
     pub fn get_adults_count(&self, section_uid: &str) -> i32 {
-        let adults_count_list: Vec<i32> = self.execute_read_sql(
+        let adults_count: i32 = self.fetch_one_value(
             include_str!("sql_queries/get_adults_count.sql"),
             params!(section_uid),
-            |row| row.get(0),
         );
-        if !adults_count_list.is_empty() {
-            return adults_count_list[0];
-        }
-        0
+        adults_count
     }
 
     /// Returns section-expense template associations for a specific section.
@@ -1014,118 +778,52 @@ impl Repository {
         &self,
         section_uid: &str,
     ) -> Vec<SectionExpense> {
-        self.execute_read_sql(
+        self.fetch_rows(
             include_str!("sql_queries/get_section_expense_from_expenses_instances_section.sql"),
             params!(section_uid),
-            |row| {
-                Ok(SectionExpense {
-                    uid_section: row.get(0)?,
-                    uid_expense: row.get(1)?,
-                    title_section: row.get(2)?,
-                    title_expense: row.get(3)?,
-                    count: 0,
-                    description: row.get(4)?,
-                })
-            },
         )
     }
 
     /// Returns all calculated expenses for a specific section.
     pub fn get_calculated_expenses(&self, section_uid: &str) -> Vec<CalculatedExpense> {
-        self.execute_read_sql(
+        self.fetch_rows(
             include_str!("sql_queries/get_calculated_expenses.sql"),
             params!(section_uid),
-            |row| {
-                Ok(CalculatedExpense {
-                    uid_expense_instance: row.get(0)?,
-                    uid_section: row.get(1)?,
-                    uid_expense: row.get(2)?,
-                    title_section: row.get(3)?,
-                    title_expense: row.get(4)?,
-                    comments: row.get(5)?,
-                    section_color: row.get(6)?,
-                    expenses_units: row.get(7)?,
-                    expenses_units_adults: row.get(8)?,
-                    expenses_unit_price: row.get(9)?,
-                    expenses_rate: row.get(10)?,
-                    expenses_instances_units: row.get(11)?,
-                    expenses_instances_units_adults: row.get(12)?,
-                    expenses_instances_unit_price: row.get(13)?,
-                    expenses_instances_rate: row.get(14)?,
-                    live_units: row.get(15)?,
-                    live_units_adults: row.get(16)?,
-                    live_unit_price: row.get(17)?,
-                    live_rate: row.get(18)?,
-                    group_rate: row.get(19)?,
-                    applyed_price: row.get(20)?,
-                    total_applyed_price: row.get(21)?,
-                    total_inital_price: row.get(22)?,
-                    group_applyed_total_price: row.get(23)?,
-                    group_applyed_unit_price: row.get(24)?,
-                    group_members_count: row.get(25)?,
-                    expenses_description: row.get(26)?,
-                    expenses_instances_number: row.get(27)?,
-                })
-            },
         )
     }
 
     /// Returns the total sum of expenses per member for a specific section.
     pub fn get_total_per_member(&self, section_uid: &str) -> SumExpenseInstance {
-        let results: Vec<SumExpenseInstance> = self.execute_read_sql(
+        let results: Vec<SumExpenseInstance> = self.fetch_rows(
             include_str!("sql_queries/get_total_per_member.sql"),
             params!(section_uid),
-            |row| {
-                Ok(SumExpenseInstance {
-                    sum_unit: row.get(0)?,
-                    sum_total: row.get(1)?,
-                })
-            },
         );
         self.sum_expense_instance_from_vec(results)
     }
 
     /// Returns the sum of calculated expenses for a specific section.
     pub fn get_sum_calculated_expenses(&self, section_uid: &str) -> SumExpenseInstance {
-        let results: Vec<SumExpenseInstance> = self.execute_read_sql(
+        let results: Vec<SumExpenseInstance> = self.fetch_rows(
             include_str!("sql_queries/get_sum_calculated_expenses.sql"),
             params!(section_uid),
-            |row| {
-                Ok(SumExpenseInstance {
-                    sum_unit: row.get(0)?,
-                    sum_total: row.get(1)?,
-                })
-            },
         );
         self.sum_expense_instance_from_vec(results)
     }
 
     /// Returns the total sum of calculated expenses for the entire group.
     pub fn get_group_sum_calculated_expenses(&self) -> SumExpenseInstance {
-        let results: Vec<SumExpenseInstance> = self.execute_read_sql(
+        let results: Vec<SumExpenseInstance> = self.fetch_rows(
             include_str!("sql_queries/get_group_sum_calculated_expenses.sql"),
             [],
-            |row| {
-                Ok(SumExpenseInstance {
-                    sum_unit: row.get(0)?,
-                    sum_total: row.get(1)?,
-                })
-            },
         );
         self.sum_expense_instance_from_vec(results)
     }
 
     /// Returns the sum of calculated expenses only for group-level instances.
     pub fn get_group_only_sum_calculated_expenses(&self) -> SumExpenseInstance {
-        let results: Vec<SumExpenseInstance> = self.execute_read_sql(
+        let results: Vec<SumExpenseInstance> = self.fetch_rows(
             include_str!("sql_queries/get_group_only_sum_calculated_expenses.sql"),
             [],
-            |row| {
-                Ok(SumExpenseInstance {
-                    sum_unit: row.get(0)?,
-                    sum_total: row.get(1)?,
-                })
-            },
         );
         self.sum_expense_instance_from_vec(results)
     }
@@ -1143,41 +841,9 @@ impl Repository {
 
     /// Returns all calculated expenses associated with the entire group.
     pub fn get_group_calculated_expenses(&self) -> Vec<CalculatedExpense> {
-        self.execute_read_sql(
+        self.fetch_rows(
             include_str!("sql_queries/get_group_calculated_expenses.sql"),
             [],
-            |row| {
-                Ok(CalculatedExpense {
-                    uid_expense_instance: row.get(0)?,
-                    uid_section: row.get(1)?,
-                    uid_expense: row.get(2)?,
-                    title_section: row.get(3)?,
-                    title_expense: row.get(4)?,
-                    comments: row.get(5)?,
-                    section_color: row.get(6)?,
-                    expenses_units: row.get(7)?,
-                    expenses_units_adults: row.get(8)?,
-                    expenses_unit_price: row.get(9)?,
-                    expenses_rate: row.get(10)?,
-                    expenses_instances_units: row.get(11)?,
-                    expenses_instances_units_adults: row.get(12)?,
-                    expenses_instances_unit_price: row.get(13)?,
-                    expenses_instances_rate: row.get(14)?,
-                    live_units: row.get(15)?,
-                    live_units_adults: row.get(16)?,
-                    live_unit_price: row.get(17)?,
-                    live_rate: row.get(18)?,
-                    group_rate: row.get(19)?,
-                    applyed_price: row.get(20)?,
-                    total_applyed_price: row.get(21)?,
-                    total_inital_price: row.get(22)?,
-                    group_applyed_total_price: row.get(23)?,
-                    group_applyed_unit_price: row.get(24)?,
-                    group_members_count: row.get(25)?,
-                    expenses_description: row.get(26)?,
-                    expenses_instances_number: row.get(27)?,
-                })
-            },
         )
     }
 
@@ -1233,14 +899,10 @@ impl Repository {
     }
 
     /// Utility function to execute a read SQL query and map results to a vector.
-    pub fn execute_read_sql<F, T, P: rusqlite::Params>(
-        &self,
-        sql: &str,
-        params: P,
-        row_closure: F,
-    ) -> Vec<T>
+    pub fn fetch_rows<T, P>(&self, sql: &str, params: P) -> Vec<T>
     where
-        F: FnMut(&Row) -> Result<T, rusqlite::Error>,
+        T: for<'a> TryFrom<&'a Row<'a>, Error = rusqlite::Error>,
+        P: rusqlite::Params,
     {
         let connection_lock = self
             .connection
@@ -1252,15 +914,33 @@ impl Repository {
         let data_iter: Vec<T> = conn
             .prepare_cached(sql)
             .expect("Impossible de préparer la requête SQL")
-            .query_map(params, row_closure)
-            .expect("Impossible d'exécuter query_map")
+            .query_map(params, |row| row.try_into())
+            .expect("Impossible d'exécuter un mapping vers la struct voulue")
             .flatten()
             .collect();
+
         data_iter
     }
 
+    pub fn fetch_one_value<T, P>(&self, sql: &str, params: P) -> T
+    where
+        T: FromSql,
+        P: rusqlite::Params,
+    {
+        let connection_lock = self
+            .connection
+            .lock()
+            .expect("Impossible de verrouiller la connexion");
+        let conn = connection_lock
+            .as_ref()
+            .expect("La connexion à la base de données n'est pas initialisée");
+
+        conn.query_row(sql, params, |row| row.get(0))
+            .expect("Impossible d'obtenir une seule valeur")
+    }
+
     /// Initializes the database schema by executing migrations.
-    pub fn execute_migrations(&self, conn: &Connection) {
+    pub fn execute_migrations(conn: &Connection) {
         conn.execute_batch(include_str!("sql_queries/_init_or_update_db.sql"))
             .expect("Impossible d'exécuter les migrations");
     }

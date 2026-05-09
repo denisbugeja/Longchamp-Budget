@@ -8,4 +8,4 @@ FROM
 	sections
 WHERE
 	title = ?1
-	AND uid != ?2
+AND uid <> ?2

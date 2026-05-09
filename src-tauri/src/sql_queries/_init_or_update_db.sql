@@ -124,22 +124,22 @@ SELECT
 	expenses_instances.rate AS expenses_instances_rate,
 	CASE
 		WHEN expenses_instances.units IS NOT NULL
-		AND TRIM(expenses_instances.units, " ") != "" THEN expenses_instances.units
+		AND TRIM(expenses_instances.units, " ") <> "" THEN expenses_instances.units
 		ELSE sections.members_count
 	END AS live_units,
 	CASE
 		WHEN expenses_instances.units_adults IS NOT NULL
-		AND TRIM(expenses_instances.units_adults, " ") != "" THEN expenses_instances.units_adults
+		AND TRIM(expenses_instances.units_adults, " ") <> "" THEN expenses_instances.units_adults
 		ELSE sections.adults_count
 	END AS live_units_adults,
 	CASE
 		WHEN expenses_instances.unit_price IS NOT NULL
-		AND TRIM(expenses_instances.unit_price, " ") != "" THEN CAST(expenses_instances.unit_price AS REAL)
+		AND TRIM(expenses_instances.unit_price, " ") <> "" THEN CAST(expenses_instances.unit_price AS REAL)
 		ELSE CAST(expenses.unit_price AS REAL)
 	END AS live_unit_price,
 	CASE
 		WHEN expenses_instances.rate IS NOT NULL
-		AND TRIM(expenses_instances.rate, " ") != "" THEN CAST(expenses_instances.rate AS REAL)
+		AND TRIM(expenses_instances.rate, " ") <> "" THEN CAST(expenses_instances.rate AS REAL)
 		ELSE CAST(expenses.rate AS REAL)
 	END AS live_rate,
 	CASE
@@ -256,7 +256,7 @@ SET
 			FROM
 				sections
 			WHERE
-				uid != 'group'
+				uid <> 'group'
 		),
 		0
 	),
@@ -267,7 +267,7 @@ SET
 			FROM
 				sections
 			WHERE
-				uid != 'group'
+				uid <> 'group'
 		),
 		0
 	)
@@ -292,7 +292,7 @@ SET
 			FROM
 				sections
 			WHERE
-				uid != 'group'
+				uid <> 'group'
 		),
 		0
 	),
@@ -303,7 +303,7 @@ SET
 			FROM
 				sections
 			WHERE
-				uid != 'group'
+				uid <> 'group'
 		),
 		0
 	)
@@ -327,7 +327,7 @@ SET
 			FROM
 				sections
 			WHERE
-				uid != 'group'
+				uid <> 'group'
 		),
 		0
 	),
@@ -338,7 +338,7 @@ SET
 			FROM
 				sections
 			WHERE
-				uid != 'group'
+				uid <> 'group'
 		),
 		0
 	)
@@ -404,7 +404,7 @@ SET
 		FROM
 			sections_fqs s2
 		WHERE
-			s2.uid_section != 'group'
+			s2.uid_section <> 'group'
 			AND s2.uid_fq = sections_fqs.uid_fq
 	)
 WHERE
@@ -427,7 +427,7 @@ SET
 		FROM
 			sections_fqs s2
 		WHERE
-			s2.uid_section != 'group'
+			s2.uid_section <> 'group'
 			AND s2.uid_fq = sections_fqs.uid_fq
 	)
 WHERE
@@ -452,7 +452,7 @@ SET
 		FROM
 			sections_fqs s2
 		WHERE
-			s2.uid_section != 'group'
+			s2.uid_section <> 'group'
 			AND s2.uid_fq = sections_fqs.uid_fq
 	)
 WHERE

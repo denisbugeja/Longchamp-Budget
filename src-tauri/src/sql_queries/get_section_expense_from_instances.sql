@@ -3,6 +3,7 @@ SELECT
 	expenses_instances.uid_expense,
 	sections.title AS title_section,
 	expenses.title AS title_expense,
+	1 AS count,
 	expenses.description
 FROM
 	expenses_instances

@@ -9,4 +9,4 @@ FROM
 	fqs
 WHERE
 	title = ?1
-	and uid != ?2
+and uid <> ?2

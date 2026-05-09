@@ -4,6 +4,7 @@
 
 mod helper;
 mod repository;
+mod structs;
 
 use crate::repository::Repository;
 use tauri::{AppHandle, Runtime, State};
