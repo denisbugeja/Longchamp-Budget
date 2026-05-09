@@ -904,13 +904,10 @@ impl Repository {
         T: for<'a> TryFrom<&'a Row<'a>, Error = rusqlite::Error>,
         P: rusqlite::Params,
     {
-        let connection_lock = self
-            .connection
-            .lock()
-            .expect("Impossible de verrouiller la connexion");
-        let conn = connection_lock
-            .as_ref()
-            .expect("La connexion à la base de données n'est pas initialisée");
+        //don't use Mutex for now, parallel connections works fine and provide data more quickly
+		let conn =Connection::open(self.get_file_path())
+			.expect("Impossible d'ouvrir le fichier de base de données");
+
         let data_iter: Vec<T> = conn
             .prepare_cached(sql)
             .expect("Impossible de préparer la requête SQL")
@@ -927,13 +924,9 @@ impl Repository {
         T: FromSql,
         P: rusqlite::Params,
     {
-        let connection_lock = self
-            .connection
-            .lock()
-            .expect("Impossible de verrouiller la connexion");
-        let conn = connection_lock
-            .as_ref()
-            .expect("La connexion à la base de données n'est pas initialisée");
+        //don't use Mutex for now, parallel connections works fine and provide data more quickly
+		let conn =Connection::open(self.get_file_path())
+			.expect("Impossible d'ouvrir le fichier de base de données");
 
         conn.query_row(sql, params, |row| row.get(0))
             .expect("Impossible d'obtenir une seule valeur")
