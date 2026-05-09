@@ -325,6 +325,12 @@ Stimulus.register("section-edit", class extends Controller {
         }
     }
 
+	sectionAdultsCountTargetConnected() {
+		if (GROUP_ID === this.uidValue) {
+			this.sectionAdultsCountTarget.setAttribute('readonly', 'readonly')
+		}
+	}
+
     async update(e) {
         if (!this.validate()) {
             return
