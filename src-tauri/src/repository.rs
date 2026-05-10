@@ -904,7 +904,7 @@ impl Repository {
         T: for<'a> TryFrom<&'a Row<'a>, Error = rusqlite::Error>,
         P: rusqlite::Params,
     {
-        //don't use Mutex for now, parallel connections works fine and provide data more quickly
+        //don't use Mutex for now, parallel connections works fine and provides data more quickly
 		let conn =Connection::open(self.get_file_path())
 			.expect("Impossible d'ouvrir le fichier de base de données");
 
@@ -924,7 +924,7 @@ impl Repository {
         T: FromSql,
         P: rusqlite::Params,
     {
-        //don't use Mutex for now, parallel connections works fine and provide data more quickly
+        //don't use Mutex for now, parallel connections works fine and provides data more quickly
 		let conn =Connection::open(self.get_file_path())
 			.expect("Impossible d'ouvrir le fichier de base de données");
 
