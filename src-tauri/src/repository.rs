@@ -9,7 +9,10 @@ use crate::structs::{
     SectionExpense, SumExpenseInstance,
 };
 use rusqlite::types::FromSql;
-use rusqlite::{params, Connection, Row};
+use rusqlite::{Connection, Row};
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 use std::sync::{Mutex, RwLock};
@@ -19,6 +22,7 @@ use uuid::Uuid;
 pub struct Repository {
     connection: Mutex<Option<Connection>>,
     file_path: RwLock<String>,
+    cache: RwLock<HashMap<String, String>>,
 }
 
 impl Default for Repository {
@@ -33,6 +37,7 @@ impl Repository {
         Self {
             connection: Mutex::new(None),
             file_path: RwLock::new(String::from("")),
+            cache: RwLock::new(HashMap::new()),
         }
     }
 
@@ -65,6 +70,9 @@ impl Repository {
             *file_path = real_path.clone();
         }
 
+        let mut cache_ref = self.cache.write().expect("Erreur de verrouillage de cache");
+        cache_ref.clear();
+
         let conn =
             Connection::open(real_path).expect("Impossible d'ouvrir le fichier de base de données");
 
@@ -87,7 +95,7 @@ impl Repository {
     ) {
         let existing_sections: Vec<Section> = self.fetch_rows(
             include_str!("sql_queries/insert_new_section/existing_sections.sql"),
-            params!(title),
+            &[title],
         );
 
         if !existing_sections.is_empty() {
@@ -96,12 +104,12 @@ impl Repository {
 
         self.execute_write_sql(
             include_str!("sql_queries/insert_new_section/insert.sql"),
-            params!(
+            (
                 Uuid::new_v4().to_string(),
                 title,
                 color,
                 members_count.abs(),
-                adults_count.abs()
+                adults_count.abs(),
             ),
         );
     }
@@ -130,7 +138,7 @@ impl Repository {
 
         let existing_fqs: Vec<Fq> = self.fetch_rows(
             include_str!("sql_queries/insert_new_fq/existing_fqs.sql"),
-            params!(title),
+            &[title],
         );
 
         if !existing_fqs.is_empty() {
@@ -139,13 +147,13 @@ impl Repository {
 
         self.execute_write_sql(
             include_str!("sql_queries/insert_new_fq/insert.sql"),
-            params!(
+            (
                 Uuid::new_v4().to_string(),
                 title,
                 coeff_f32,
                 national_contribution_f32,
                 online_commission_rate_f32,
-                online_commission_fees_f32
+                online_commission_fees_f32,
             ),
         );
     }
@@ -164,7 +172,7 @@ impl Repository {
     pub fn fq_section_list_load(&self, section_uid: &str) -> Vec<FqSection> {
         self.fetch_rows(
             include_str!("sql_queries/fq_section_list_load.sql"),
-            params!(section_uid),
+            &[section_uid],
         )
     }
 
@@ -172,7 +180,7 @@ impl Repository {
     pub fn get_fqs_calculated_by_section(&self, section_uid: &str) -> Vec<FqTotal> {
         self.fetch_rows(
             include_str!("sql_queries/get_fqs_calculated_by_section.sql"),
-            params!(section_uid),
+            &[section_uid],
         )
     }
 
@@ -203,13 +211,14 @@ impl Repository {
     ///
     /// Only succeeds if the section has no associated expense instances.
     pub fn delete_section(&self, uid: &str) {
-        let count: i32 = self.fetch_one_value(
-            include_str!("sql_queries/delete_section/count.sql"),
-            params!(uid),
-        );
+        let count: i32 =
+            self.fetch_one_value(include_str!("sql_queries/delete_section/count.sql"), &[uid]);
         if count > 0 {
             return;
         }
+
+        let mut cache_ref = self.cache.write().expect("Erreur de verrouillage de cache");
+        cache_ref.clear();
 
         let mut connection_lock = self
             .connection
@@ -225,13 +234,13 @@ impl Repository {
 
         tx.execute(
             include_str!("sql_queries/delete_section/expense_section.sql"),
-            params!(uid),
+            &[uid],
         )
         .expect("Échec de l'ajout de la requête à la transaction");
 
         tx.execute(
             include_str!("sql_queries/delete_section/section.sql"),
-            params!(uid),
+            &[uid],
         )
         .expect("Échec de l'ajout de la requête à la transaction");
 
@@ -241,7 +250,7 @@ impl Repository {
 
     /// Deletes a QF category from the database.
     pub fn delete_fq(&self, uid: &str) {
-        self.execute_write_sql(include_str!("sql_queries/delete_fq.sql"), params!(uid));
+        self.execute_write_sql(include_str!("sql_queries/delete_fq.sql"), &[uid]);
     }
 
     /// Updates section information in the database.
@@ -255,7 +264,7 @@ impl Repository {
     ) {
         let existing_sections: Vec<Section> = self.fetch_rows(
             include_str!("sql_queries/update_section/existing_sections.sql"),
-            params!(title, uid),
+            (title, uid),
         );
 
         if !existing_sections.is_empty() {
@@ -264,7 +273,7 @@ impl Repository {
 
         self.execute_write_sql(
             include_str!("sql_queries/update_section/update.sql"),
-            params!(title, color, members_count.abs(), adults_count.abs(), uid),
+            (title, color, members_count.abs(), adults_count.abs(), uid),
         );
     }
 
@@ -293,7 +302,7 @@ impl Repository {
 
         let existing_fqs: Vec<Fq> = self.fetch_rows(
             include_str!("sql_queries/update_fq/existing_fqs.sql"),
-            params!(title, uid),
+            (title, uid),
         );
 
         if !existing_fqs.is_empty() {
@@ -302,19 +311,22 @@ impl Repository {
 
         self.execute_write_sql(
             include_str!("sql_queries/update_fq/update.sql"),
-            params!(
+            (
                 title,
                 coeff_f32,
                 national_contribution_f32,
                 online_commission_rate_f32,
                 online_commission_fees_f32,
-                uid
+                uid,
             ),
         );
     }
 
     /// Updates the display order of sections.
     pub fn update_section_order(&self, section_list: Vec<&str>) {
+        let mut cache_ref = self.cache.write().expect("Erreur de verrouillage de cache");
+        cache_ref.clear();
+
         let mut connection_lock = self
             .connection
             .lock()
@@ -330,7 +342,7 @@ impl Repository {
         for (index, uid) in section_list.iter().enumerate() {
             tx.execute(
                 include_str!("sql_queries/update_section_order.sql"),
-                params!(index, uid),
+                (index, uid),
             )
             .expect("Échec de l'ajout de la requête à la transaction");
         }
@@ -341,6 +353,9 @@ impl Repository {
 
     /// Updates the display order of QF categories.
     pub fn update_fq_order(&self, fq_list: Vec<&str>) {
+        let mut cache_ref = self.cache.write().expect("Erreur de verrouillage de cache");
+        cache_ref.clear();
+
         let mut connection_lock = self
             .connection
             .lock()
@@ -356,7 +371,7 @@ impl Repository {
         for (index, uid) in fq_list.iter().enumerate() {
             tx.execute(
                 include_str!("sql_queries/update_fq_order.sql"),
-                params!(index, uid),
+                (index, uid),
             )
             .expect("Échec de l'ajout de la requête à la transaction");
         }
@@ -369,7 +384,7 @@ impl Repository {
     pub fn update_members_count(&self, uid: &str, members_count: i32) {
         self.execute_write_sql(
             include_str!("sql_queries/update_members_count.sql"),
-            params!(members_count.abs(), uid),
+            (members_count.abs(), uid),
         );
     }
 
@@ -377,7 +392,7 @@ impl Repository {
     pub fn update_adults_count(&self, uid: &str, adults_count: i32) {
         self.execute_write_sql(
             include_str!("sql_queries/update_adults_count.sql"),
-            params!(adults_count.abs(), uid),
+            (adults_count.abs(), uid),
         );
     }
 
@@ -390,7 +405,7 @@ impl Repository {
     ) {
         self.execute_write_sql(
             include_str!("sql_queries/update_fq_section_members_count.sql"),
-            params!(members_count.abs(), section_uid, fq_uid),
+            (members_count.abs(), section_uid, fq_uid),
         );
     }
 
@@ -414,6 +429,9 @@ impl Repository {
             return;
         }
 
+        let mut cache_ref = self.cache.write().expect("Erreur de verrouillage de cache");
+        cache_ref.clear();
+
         let mut connection_lock = self
             .connection
             .lock()
@@ -428,14 +446,20 @@ impl Repository {
 
         tx.execute(
             include_str!("sql_queries/insert_new_expense/expense.sql"),
-            params!(uid_expense, title, description, rate_f32, unitprice_f32),
+            (
+                uid_expense.clone(),
+                title,
+                description,
+                rate_f32,
+                unitprice_f32,
+            ),
         )
         .expect("Échec de l'ajout de la requête à la transaction");
 
         for section in sections_in_db {
             tx.execute(
                 include_str!("sql_queries/insert_new_expense/expense_section.sql"),
-                params!(uid_expense, section.uid),
+                (uid_expense.clone(), section.uid),
             )
             .expect("Échec de l'ajout de la requête à la transaction");
         }
@@ -449,7 +473,7 @@ impl Repository {
         for section in section_list {
             let mut sections_in_db = self.fetch_rows(
                 include_str!("sql_queries/section_list_from_uid_vec.sql"),
-                params!(section),
+                &[section],
             );
             if !sections_in_db.is_empty() {
                 section_list_vec.push(
@@ -466,7 +490,7 @@ impl Repository {
     pub fn get_members_fq_count_by_section(&self, section_uid: &str) -> i32 {
         let count: i32 = self.fetch_one_value(
             include_str!("sql_queries/get_members_fq_count_by_section.sql"),
-            params!(section_uid),
+            &[section_uid],
         );
         count
     }
@@ -497,12 +521,15 @@ impl Repository {
 
         self.execute_write_sql(
             include_str!("sql_queries/update_expense.sql"),
-            params!(title, description, rate_f32, unitprice_f32, uid),
+            (title, description, rate_f32, unitprice_f32, uid),
         );
     }
 
     /// Updates the display order of expense instances.
     pub fn update_expense_instance_order(&self, vec_expense_instance_list: Vec<&str>) {
+        let mut cache_ref = self.cache.write().expect("Erreur de verrouillage de cache");
+        cache_ref.clear();
+
         let mut connection_lock = self
             .connection
             .lock()
@@ -518,7 +545,7 @@ impl Repository {
         for (index, uid) in vec_expense_instance_list.iter().enumerate() {
             tx.execute(
                 include_str!("sql_queries/update_expense_instance_order.sql"),
-                params!(index, uid),
+                (index, uid),
             )
             .expect("Échec de l'ajout de la requête à la transaction");
         }
@@ -551,14 +578,14 @@ impl Repository {
 
         self.execute_write_sql(
             include_str!("sql_queries/update_expense_instance.sql"),
-            params!(
+            (
                 units_f32,
                 units_adults_f32,
                 unit_price_f32,
                 rate_f32,
                 comments_s,
                 number_f32,
-                uid_expense_instance
+                uid_expense_instance,
             ),
         );
     }
@@ -567,7 +594,7 @@ impl Repository {
     pub fn delete_expense_instance(&self, uid_expense_instance: &str) {
         self.execute_write_sql(
             include_str!("sql_queries/delete_expense_instance.sql"),
-            params!(uid_expense_instance),
+            &[uid_expense_instance],
         );
     }
 
@@ -575,7 +602,7 @@ impl Repository {
     pub fn copy_expense_instance(&self, uid_expense_instance: &str) {
         self.execute_write_sql(
             include_str!("sql_queries/copy_expense_instance.sql"),
-            params!(Uuid::new_v4().to_string(), uid_expense_instance),
+            (Uuid::new_v4().to_string(), uid_expense_instance),
         );
     }
 
@@ -608,6 +635,9 @@ impl Repository {
             return;
         }
 
+        let mut cache_ref = self.cache.write().expect("Erreur de verrouillage de cache");
+        cache_ref.clear();
+
         let mut connection_lock = self
             .connection
             .lock()
@@ -622,14 +652,14 @@ impl Repository {
 
         tx.execute(
             include_str!("sql_queries/delete_expense/delete_expense_section.sql"),
-            params!(uid_expense),
+            &[uid_expense],
         )
         .expect("Échec de l'ajout de la requête à la transaction");
 
         for section in sections_in_db {
             tx.execute(
                 include_str!("sql_queries/insert_new_expense/expense_section.sql"),
-                params!(uid_expense, section.uid),
+                (uid_expense, section.uid),
             )
             .expect("Échec de l'ajout de la requête à la transaction");
         }
@@ -642,14 +672,15 @@ impl Repository {
     ///
     /// Only succeeds if the expense has no associated instances.
     pub fn delete_expense(&self, uid: &str) {
-        let count: i32 = self.fetch_one_value(
-            include_str!("sql_queries/delete_expense/count.sql"),
-            params!(uid),
-        );
+        let count: i32 =
+            self.fetch_one_value(include_str!("sql_queries/delete_expense/count.sql"), &[uid]);
 
         if count > 0 {
             return;
         }
+
+        let mut cache_ref = self.cache.write().expect("Erreur de verrouillage de cache");
+        cache_ref.clear();
 
         let mut connection_lock = self
             .connection
@@ -665,13 +696,13 @@ impl Repository {
 
         tx.execute(
             include_str!("sql_queries/delete_expense/delete_expense_section.sql"),
-            params!(uid),
+            &[uid],
         )
         .expect("Échec de l'ajout de la requête à la transaction");
 
         tx.execute(
             include_str!("sql_queries/delete_expense/delete_expense.sql"),
-            params!(uid),
+            &[uid],
         )
         .expect("Échec de l'ajout de la requête à la transaction");
 
@@ -692,7 +723,7 @@ impl Repository {
     ) -> f32 {
         let count: f32 = self.fetch_one_value(
             include_str!("sql_queries/get_section_expense_cnt_from_instance.sql"),
-            params!(section_uid, expense_uid),
+            &[section_uid, expense_uid],
         );
         count
     }
@@ -705,7 +736,7 @@ impl Repository {
     ) -> Vec<SectionExpense> {
         self.fetch_rows(
             include_str!("sql_queries/get_section_expense_from_instance.sql"),
-            params!(section_uid, expense_uid),
+            &[section_uid, expense_uid],
         )
     }
 
@@ -717,7 +748,7 @@ impl Repository {
     ) -> Vec<SectionExpense> {
         self.fetch_rows(
             include_str!("sql_queries/get_section_expense_from_association.sql"),
-            params!(section_uid, expense_uid),
+            &[section_uid, expense_uid],
         )
     }
 
@@ -732,7 +763,7 @@ impl Repository {
     fn get_section_expense_from_instances(&self, expense_uid: &str) -> Vec<SectionExpense> {
         self.fetch_rows(
             include_str!("sql_queries/get_section_expense_from_instances.sql"),
-            params!(expense_uid),
+            &[expense_uid],
         )
     }
 
@@ -751,7 +782,7 @@ impl Repository {
     ) -> Vec<SectionExpense> {
         self.fetch_rows(
             include_str!("sql_queries/get_section_expense_from_expenses_instances_and_section.sql"),
-            params!(section_uid),
+            &[section_uid],
         )
     }
 
@@ -759,7 +790,7 @@ impl Repository {
     pub fn get_members_count(&self, section_uid: &str) -> i32 {
         let members_count: i32 = self.fetch_one_value(
             include_str!("sql_queries/get_members_count.sql"),
-            params!(section_uid),
+            &[section_uid],
         );
         members_count
     }
@@ -768,7 +799,7 @@ impl Repository {
     pub fn get_adults_count(&self, section_uid: &str) -> i32 {
         let adults_count: i32 = self.fetch_one_value(
             include_str!("sql_queries/get_adults_count.sql"),
-            params!(section_uid),
+            &[section_uid],
         );
         adults_count
     }
@@ -780,7 +811,7 @@ impl Repository {
     ) -> Vec<SectionExpense> {
         self.fetch_rows(
             include_str!("sql_queries/get_section_expense_from_expenses_instances_section.sql"),
-            params!(section_uid),
+            &[section_uid],
         )
     }
 
@@ -788,7 +819,7 @@ impl Repository {
     pub fn get_calculated_expenses(&self, section_uid: &str) -> Vec<CalculatedExpense> {
         self.fetch_rows(
             include_str!("sql_queries/get_calculated_expenses.sql"),
-            params!(section_uid),
+            &[section_uid],
         )
     }
 
@@ -796,7 +827,7 @@ impl Repository {
     pub fn get_total_per_member(&self, section_uid: &str) -> SumExpenseInstance {
         let results: Vec<SumExpenseInstance> = self.fetch_rows(
             include_str!("sql_queries/get_total_per_member.sql"),
-            params!(section_uid),
+            &[section_uid],
         );
         self.sum_expense_instance_from_vec(results)
     }
@@ -805,7 +836,7 @@ impl Repository {
     pub fn get_sum_calculated_expenses(&self, section_uid: &str) -> SumExpenseInstance {
         let results: Vec<SumExpenseInstance> = self.fetch_rows(
             include_str!("sql_queries/get_sum_calculated_expenses.sql"),
-            params!(section_uid),
+            &[section_uid],
         );
         self.sum_expense_instance_from_vec(results)
     }
@@ -851,12 +882,15 @@ impl Repository {
     pub fn add_expense_instance(&self, section_uid: &str, expense_id: &str) {
         self.execute_write_sql(
             include_str!("sql_queries/add_expense_instance.sql"),
-            params!(Uuid::new_v4().to_string(), section_uid, expense_id),
+            (Uuid::new_v4().to_string(), section_uid, expense_id),
         );
     }
 
     /// Updates the display order of expense templates.
     pub fn update_expense_order(&self, expense_list: Vec<&str>) {
+        let mut cache_ref = self.cache.write().expect("Erreur de verrouillage de cache");
+        cache_ref.clear();
+
         let mut connection_lock = self
             .connection
             .lock()
@@ -872,7 +906,7 @@ impl Repository {
         for (index, uid) in expense_list.iter().enumerate() {
             tx.execute(
                 include_str!("sql_queries/update_expense_order.sql"),
-                params!(index, uid),
+                (index, uid),
             )
             .expect("Échec de l'ajout de la requête à la transaction");
         }
@@ -883,6 +917,9 @@ impl Repository {
 
     /// Utility function to execute a write SQL statement.
     pub fn execute_write_sql<T: rusqlite::Params>(&self, sql: &str, params: T) {
+        let mut cache_ref = self.cache.write().expect("Erreur de verrouillage de cache");
+        cache_ref.clear();
+
         let connection_lock = self
             .connection
             .lock()
@@ -901,12 +938,26 @@ impl Repository {
     /// Utility function to execute a read SQL query and map results to a vector.
     pub fn fetch_rows<T, P>(&self, sql: &str, params: P) -> Vec<T>
     where
-        T: for<'a> TryFrom<&'a Row<'a>, Error = rusqlite::Error>,
-        P: rusqlite::Params,
+        T: for<'a> TryFrom<&'a Row<'a>, Error = rusqlite::Error> + Serialize + DeserializeOwned,
+        P: rusqlite::Params + Serialize,
     {
+        let cache_key = generate_key(String::from(sql), &params);
+        let cache_ref = self.cache.read().expect("Impossible d'accéder au cache");
+
+        let item = cache_ref.get(&cache_key);
+        if item.is_some() {
+            let json_result = item.unwrap();
+            let result: Vec<T> =
+                serde_json::from_str(json_result).expect("Échec de désérialisation");
+            return result;
+        }
+
+        //free the lock
+        drop(cache_ref);
+
         //don't use Mutex for now, parallel connections works fine and provides data more quickly
-		let conn =Connection::open(self.get_file_path())
-			.expect("Impossible d'ouvrir le fichier de base de données");
+        let conn = Connection::open(self.get_file_path())
+            .expect("Impossible d'ouvrir le fichier de base de données");
 
         let data_iter: Vec<T> = conn
             .prepare_cached(sql)
@@ -916,20 +967,44 @@ impl Repository {
             .flatten()
             .collect();
 
+        let data_iter_json = serde_json::to_string(&data_iter).expect("Erreur de sérialisation");
+        let mut cache_ref = self.cache.write().expect("Erreur de verrouillage de cache");
+        cache_ref.insert(cache_key, data_iter_json);
+
         data_iter
     }
 
     pub fn fetch_one_value<T, P>(&self, sql: &str, params: P) -> T
     where
-        T: FromSql,
-        P: rusqlite::Params,
+        T: FromSql + Serialize + for<'a> Deserialize<'a>,
+        P: rusqlite::Params + Serialize,
     {
-        //don't use Mutex for now, parallel connections works fine and provides data more quickly
-		let conn =Connection::open(self.get_file_path())
-			.expect("Impossible d'ouvrir le fichier de base de données");
+        let cache_key = generate_key(String::from(sql), &params);
+        let cache_ref = self.cache.read().expect("Impossible d'accéder au cache");
 
-        conn.query_row(sql, params, |row| row.get(0))
-            .expect("Impossible d'obtenir une seule valeur")
+        let item = cache_ref.get(&cache_key);
+        if item.is_some() {
+            let string_result = item.unwrap();
+            let result: T = serde_json::from_str(string_result).expect("Erreur de deserialization");
+            return result;
+        }
+
+        //free the lock
+        drop(cache_ref);
+
+        //don't use Mutex for now, parallel connections works fine and provides data more quickly
+        let conn = Connection::open(self.get_file_path())
+            .expect("Impossible d'ouvrir le fichier de base de données");
+
+        let result = conn
+            .query_row(sql, params, |row| row.get(0))
+            .expect("Impossible d'obtenir une seule valeur");
+
+        let result_json = serde_json::to_string(&result).expect("Erreur de sérialisation");
+        let mut cache_ref = self.cache.write().expect("Erreur de verrouillage de cache");
+        cache_ref.insert(cache_key, result_json);
+
+        result
     }
 
     /// Initializes the database schema by executing migrations.
@@ -954,6 +1029,25 @@ fn parse_i_or_none(s: &str) -> Option<i32> {
     }
 
     parse_f_or_none(s).map(|value| value.floor() as i32)
+}
+
+pub fn generate_key<P>(sql: String, params: &P) -> String
+where
+    P: rusqlite::Params + Serialize,
+{
+    let sql_hash = generate_md5(&sql);
+    let params_hash = generate_md5(params);
+
+    format!("{}-{}", sql_hash, params_hash)
+}
+
+fn generate_md5<T>(data: &T) -> String
+where
+    T: Serialize,
+{
+    let bytes = serde_json::to_vec(data).unwrap();
+    let digest = md5::compute(bytes);
+    format!("{:x}", digest)
 }
 
 #[cfg(test)]

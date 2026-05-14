@@ -2238,6 +2238,7 @@ version = "0.1.0"
 dependencies = [
  "itertools 0.14.0",
  "lazy_static",
+ "md5",
  "rusqlite",
  "rust_xlsxwriter",
  "serde",
@@ -2312,6 +2313,12 @@ name = "matchit"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0e7465ac9959cc2b1404e8e2367b43684a6d13790fe23056cc8c6c5a6b7bcb94"
+
+[[package]]
+name = "md5"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ae960838283323069879657ca3de837e9f7bbb4c7bf6ea7f1b290d5e9476d2e0"
 
 [[package]]
 name = "memchr"
