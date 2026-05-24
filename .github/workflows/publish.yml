@@ -98,6 +98,13 @@ jobs:
       steps:
         - uses: actions/checkout@v4
 
+        - name: Upload budget example
+          env:
+            GH_TOKEN: ${{ github.token }}
+          run: |
+            gh release upload v${{ github.ref_name }} "Exemple de fichier budget.lb" --clobber
+          shell: pwsh
+
         - name: Make Release Public
           env:
             GH_TOKEN: ${{ github.token }}

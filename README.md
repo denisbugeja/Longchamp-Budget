@@ -320,6 +320,23 @@ Cette méthode permet de **gagner du temps en capitalisant sur les années préc
 
 ---
 
+# Exemple de budget
+
+Un fichier **`Exemple de fichier budget.lb`** est fourni pour vous aider à ne pas partir de zéro. 
+Ce fichier est un exemple concret et peut servir de base de travail.
+
+**Pour l’utiliser correctement, vous devez impérativement :**
+
+1.  **Le renommer** en indiquant l’année concernée (ex : `budget-2027.lb`).
+2.  **Ajuster les effectifs** dans l’écran Unités.
+3.  **Mettre à jour les dépenses** (noms et prix unitaires).
+4.  **Configurer les quotients familiaux (QF)** et la répartition des enfants par tranche.
+5.  **Ajuster le budget** en ajoutant ou supprimant les lignes de dépenses spécifiques à votre groupe.
+
+N’oubliez pas de **modifier, renommer et sauvegarder** votre fichier pour qu’il corresponde à la réalité de votre groupe.
+
+---
+
 # Bonnes pratiques
 
 Pour un usage optimal :
