@@ -55,6 +55,51 @@ Il est utilisé **en amont de l’année scoute** pour :
 
 ---
 
+# Téléchargement & Installation
+
+Pour obtenir la dernière version stable de **Longchamp Budget**, rendez-vous sur la [page des versions (Releases) de GitHub](https://github.com/denisbugeja/Longchamp-Budget/releases/latest).
+
+Vous y trouverez également la présentation des fonctionnalités et des conseils de prise en main sur la [page principale du projet GitHub](https://github.com/denisbugeja/Longchamp-Budget).
+
+### 1. Choisir le fichier correspondant à votre système
+
+| Système d'exploitation | Fichier à télécharger |
+| :--- | :--- |
+| **Windows** | `longchamp-budget.exe` |
+| **macOS (Modèles récents M1/M2/M3 - Apple Silicon)** | `longchamp-budget-macos-arm64` |
+| **macOS (Anciens modèles - Intel)** | `longchamp-budget-macos-intel` |
+| **Linux** | `longchamp-budget-linux-x64` |
+
+> [!TIP]
+> Pensez à télécharger également le fichier de démonstration **`Exemple.de.fichier.budget.lb`** disponible sur la page des releases pour tester rapidement le logiciel avec des données réalistes.
+
+---
+
+### 2. Instructions de lancement
+
+Les systèmes d'exploitation modernes se méfient des programmes téléchargés qu'ils ne connaissent pas et peuvent bloquer leur exécution. Ces manipulations simples permettent de démarrer le logiciel en toute sécurité :
+
+#### Windows
+1. Double-cliquez sur le fichier `longchamp-budget.exe` téléchargé.
+2. Si un avertissement **Windows Defender SmartScreen** apparaît (fenêtre bleue ou grise) :
+   * Cliquez sur le lien **"Plus d'infos"** (généralement situé sous le texte d'avertissement).
+   * Un nouveau bouton apparaît en bas de la fenêtre. Cliquez sur **"Exécuter quand même"**.
+
+#### macOS
+Après avoir téléchargé la version adaptée à votre Mac, ouvrez un terminal et exécutez les commandes suivantes pour lever la quarantaine de macOS et rendre le fichier exécutable :
+```bash
+xattr -d com.apple.quarantine ./chemin_vers_l_executable
+chmod 555 ./chemin_vers_l_executable
+```
+
+#### Linux
+Ouvrez un terminal et rendez le fichier téléchargé exécutable à l'aide de la commande suivante :
+```bash
+chmod 555 ./chemin_vers_l_executable
+```
+
+---
+
 # Principe général du logiciel
 
 Le logiciel repose sur quatre éléments principaux :
