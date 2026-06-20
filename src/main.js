@@ -1434,7 +1434,7 @@ Stimulus.register("matrix-expense-instance", class extends Controller {
      */
     async deleteExpenseInstance() {
         this.element.classList.add('table-active')
-		if (await confirm("Êtes vous sûr de vouloir supprimer cette dépense ?")) {
+		if (await confirm("Êtes-vous sûr(e) de vouloir supprimer cette dépense ?")) {
             await invoke("delete_expense_instance", { uidExpenseInstance: this.uidValue })
             this.matrixSectionOutlet.triggerGlobalRefresh()
         }
