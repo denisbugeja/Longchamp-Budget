@@ -163,16 +163,19 @@ function escapeHtmlAttribute(str) {
 // textarea's resize handle (bottom-right corner) as the start of a drag on
 // the TD. To avoid this, we temporarily disable draggable while the mouse
 // is pressed on a textarea, then re-enable it on release.
-document.addEventListener('mousedown', (e) => {
-	const td = e.target.closest('td[draggable]');
-	if (td) td.draggable = !e.target.closest('textarea');
-});
+let mousedownOnTextarea = false
 
-// Listen on document (not on the TD) so draggable is restored even if the
-// mouse is released outside the TD at the end of a resize.
-document.addEventListener('mouseup', () => {
-	document.querySelectorAll('td[draggable="false"]').forEach(td => td.draggable = true);
-});
+document.addEventListener('mousedown', (e) => {
+	mousedownOnTextarea = !!e.target.closest('textarea')
+})
+
+// Capture phase: runs before the Stimulus data-action handlers
+document.addEventListener('dragstart', (e) => {
+	if (mousedownOnTextarea) {
+		e.preventDefault()
+		e.stopImmediatePropagation()
+	}
+}, true)
 // --- END FIX: textarea resize / TD drag ---
 
 window.Stimulus = Application.start()
