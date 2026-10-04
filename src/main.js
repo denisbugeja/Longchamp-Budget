@@ -158,6 +158,23 @@ function escapeHtmlAttribute(str) {
     return str.toString().replace(/["'&<>]/g, (char) => ({ '"': '&quot;', "'": '&#39;', '&': '&amp;', '<': '&lt;', '>': '&gt;' }[char] ?? char))
 }
 
+// --- FIX: resizing <textarea> elements inside a draggable TD ---
+// When a parent is draggable="true", the browser treats a mousedown on the
+// textarea's resize handle (bottom-right corner) as the start of a drag on
+// the TD. To avoid this, we temporarily disable draggable while the mouse
+// is pressed on a textarea, then re-enable it on release.
+document.addEventListener('mousedown', (e) => {
+	const td = e.target.closest('td[draggable]');
+	if (td) td.draggable = !e.target.closest('textarea');
+});
+
+// Listen on document (not on the TD) so draggable is restored even if the
+// mouse is released outside the TD at the end of a resize.
+document.addEventListener('mouseup', () => {
+	document.querySelectorAll('td[draggable="false"]').forEach(td => td.draggable = true);
+});
+// --- END FIX: textarea resize / TD drag ---
+
 window.Stimulus = Application.start()
 
 /**
