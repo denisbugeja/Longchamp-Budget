@@ -95,7 +95,7 @@ impl Repository {
     ) {
         let existing_sections: Vec<Section> = self.fetch_rows(
             include_str!("sql_queries/insert_new_section/existing_sections.sql"),
-            &[title],
+            [title],
         );
 
         if !existing_sections.is_empty() {
@@ -138,7 +138,7 @@ impl Repository {
 
         let existing_fqs: Vec<Fq> = self.fetch_rows(
             include_str!("sql_queries/insert_new_fq/existing_fqs.sql"),
-            &[title],
+            [title],
         );
 
         if !existing_fqs.is_empty() {
@@ -172,7 +172,7 @@ impl Repository {
     pub fn fq_section_list_load(&self, section_uid: &str) -> Vec<FqSection> {
         self.fetch_rows(
             include_str!("sql_queries/fq_section_list_load.sql"),
-            &[section_uid],
+            [section_uid],
         )
     }
 
@@ -180,7 +180,7 @@ impl Repository {
     pub fn get_fqs_calculated_by_section(&self, section_uid: &str) -> Vec<FqTotal> {
         self.fetch_rows(
             include_str!("sql_queries/get_fqs_calculated_by_section.sql"),
-            &[section_uid],
+            [section_uid],
         )
     }
 
@@ -212,7 +212,7 @@ impl Repository {
     /// Only succeeds if the section has no associated expense instances.
     pub fn delete_section(&self, uid: &str) {
         let count: i32 =
-            self.fetch_one_value(include_str!("sql_queries/delete_section/count.sql"), &[uid]);
+            self.fetch_one_value(include_str!("sql_queries/delete_section/count.sql"), [uid]);
         if count > 0 {
             return;
         }
@@ -234,13 +234,13 @@ impl Repository {
 
         tx.execute(
             include_str!("sql_queries/delete_section/expense_section.sql"),
-            &[uid],
+            [uid],
         )
         .expect("Échec de l'ajout de la requête à la transaction");
 
         tx.execute(
             include_str!("sql_queries/delete_section/section.sql"),
-            &[uid],
+            [uid],
         )
         .expect("Échec de l'ajout de la requête à la transaction");
 
@@ -250,7 +250,7 @@ impl Repository {
 
     /// Deletes a QF category from the database.
     pub fn delete_fq(&self, uid: &str) {
-        self.execute_write_sql(include_str!("sql_queries/delete_fq.sql"), &[uid]);
+        self.execute_write_sql(include_str!("sql_queries/delete_fq.sql"), [uid]);
     }
 
     /// Updates section information in the database.
@@ -342,7 +342,7 @@ impl Repository {
         for (index, uid) in section_list.iter().enumerate() {
             tx.execute(
                 include_str!("sql_queries/update_section_order.sql"),
-                (index, uid),
+                (index as i64, uid),
             )
             .expect("Échec de l'ajout de la requête à la transaction");
         }
@@ -371,7 +371,7 @@ impl Repository {
         for (index, uid) in fq_list.iter().enumerate() {
             tx.execute(
                 include_str!("sql_queries/update_fq_order.sql"),
-                (index, uid),
+                (index as i64, uid),
             )
             .expect("Échec de l'ajout de la requête à la transaction");
         }
@@ -473,7 +473,7 @@ impl Repository {
         for section in section_list {
             let mut sections_in_db = self.fetch_rows(
                 include_str!("sql_queries/section_list_from_uid_vec.sql"),
-                &[section],
+                [section],
             );
             if !sections_in_db.is_empty() {
                 section_list_vec.push(
@@ -490,7 +490,7 @@ impl Repository {
     pub fn get_members_fq_count_by_section(&self, section_uid: &str) -> i32 {
         let count: i32 = self.fetch_one_value(
             include_str!("sql_queries/get_members_fq_count_by_section.sql"),
-            &[section_uid],
+            [section_uid],
         );
         count
     }
@@ -545,7 +545,7 @@ impl Repository {
         for (index, uid) in vec_expense_instance_list.iter().enumerate() {
             tx.execute(
                 include_str!("sql_queries/update_expense_instance_order.sql"),
-                (index, uid),
+                (index as i64, uid),
             )
             .expect("Échec de l'ajout de la requête à la transaction");
         }
@@ -594,7 +594,7 @@ impl Repository {
     pub fn delete_expense_instance(&self, uid_expense_instance: &str) {
         self.execute_write_sql(
             include_str!("sql_queries/delete_expense_instance.sql"),
-            &[uid_expense_instance],
+            [uid_expense_instance],
         );
     }
 
@@ -652,7 +652,7 @@ impl Repository {
 
         tx.execute(
             include_str!("sql_queries/delete_expense/delete_expense_section.sql"),
-            &[uid_expense],
+            [uid_expense],
         )
         .expect("Échec de l'ajout de la requête à la transaction");
 
@@ -673,7 +673,7 @@ impl Repository {
     /// Only succeeds if the expense has no associated instances.
     pub fn delete_expense(&self, uid: &str) {
         let count: i32 =
-            self.fetch_one_value(include_str!("sql_queries/delete_expense/count.sql"), &[uid]);
+            self.fetch_one_value(include_str!("sql_queries/delete_expense/count.sql"), [uid]);
 
         if count > 0 {
             return;
@@ -696,13 +696,13 @@ impl Repository {
 
         tx.execute(
             include_str!("sql_queries/delete_expense/delete_expense_section.sql"),
-            &[uid],
+            [uid],
         )
         .expect("Échec de l'ajout de la requête à la transaction");
 
         tx.execute(
             include_str!("sql_queries/delete_expense/delete_expense.sql"),
-            &[uid],
+            [uid],
         )
         .expect("Échec de l'ajout de la requête à la transaction");
 
@@ -723,7 +723,7 @@ impl Repository {
     ) -> f32 {
         let count: f32 = self.fetch_one_value(
             include_str!("sql_queries/get_section_expense_cnt_from_instance.sql"),
-            &[section_uid, expense_uid],
+            [section_uid, expense_uid],
         );
         count
     }
@@ -736,7 +736,7 @@ impl Repository {
     ) -> Vec<SectionExpense> {
         self.fetch_rows(
             include_str!("sql_queries/get_section_expense_from_instance.sql"),
-            &[section_uid, expense_uid],
+            [section_uid, expense_uid]
         )
     }
 
@@ -748,7 +748,7 @@ impl Repository {
     ) -> Vec<SectionExpense> {
         self.fetch_rows(
             include_str!("sql_queries/get_section_expense_from_association.sql"),
-            &[section_uid, expense_uid],
+            [section_uid, expense_uid]
         )
     }
 
@@ -763,7 +763,7 @@ impl Repository {
     fn get_section_expense_from_instances(&self, expense_uid: &str) -> Vec<SectionExpense> {
         self.fetch_rows(
             include_str!("sql_queries/get_section_expense_from_instances.sql"),
-            &[expense_uid],
+            [expense_uid]
         )
     }
 
@@ -782,7 +782,7 @@ impl Repository {
     ) -> Vec<SectionExpense> {
         self.fetch_rows(
             include_str!("sql_queries/get_section_expense_from_expenses_instances_and_section.sql"),
-            &[section_uid],
+            [section_uid],
         )
     }
 
@@ -790,7 +790,7 @@ impl Repository {
     pub fn get_members_count(&self, section_uid: &str) -> i32 {
         let members_count: i32 = self.fetch_one_value(
             include_str!("sql_queries/get_members_count.sql"),
-            &[section_uid],
+            [section_uid],
         );
         members_count
     }
@@ -799,7 +799,7 @@ impl Repository {
     pub fn get_adults_count(&self, section_uid: &str) -> i32 {
         let adults_count: i32 = self.fetch_one_value(
             include_str!("sql_queries/get_adults_count.sql"),
-            &[section_uid],
+            [section_uid],
         );
         adults_count
     }
@@ -811,7 +811,7 @@ impl Repository {
     ) -> Vec<SectionExpense> {
         self.fetch_rows(
             include_str!("sql_queries/get_section_expense_from_expenses_instances_section.sql"),
-            &[section_uid],
+            [section_uid],
         )
     }
 
@@ -819,7 +819,7 @@ impl Repository {
     pub fn get_calculated_expenses(&self, section_uid: &str) -> Vec<CalculatedExpense> {
         self.fetch_rows(
             include_str!("sql_queries/get_calculated_expenses.sql"),
-            &[section_uid],
+            [section_uid],
         )
     }
 
@@ -827,7 +827,7 @@ impl Repository {
     pub fn get_total_per_member(&self, section_uid: &str) -> SumExpenseInstance {
         let results: Vec<SumExpenseInstance> = self.fetch_rows(
             include_str!("sql_queries/get_total_per_member.sql"),
-            &[section_uid],
+            [section_uid],
         );
         self.sum_expense_instance_from_vec(results)
     }
@@ -836,7 +836,7 @@ impl Repository {
     pub fn get_sum_calculated_expenses(&self, section_uid: &str) -> SumExpenseInstance {
         let results: Vec<SumExpenseInstance> = self.fetch_rows(
             include_str!("sql_queries/get_sum_calculated_expenses.sql"),
-            &[section_uid],
+            [section_uid],
         );
         self.sum_expense_instance_from_vec(results)
     }
@@ -906,7 +906,7 @@ impl Repository {
         for (index, uid) in expense_list.iter().enumerate() {
             tx.execute(
                 include_str!("sql_queries/update_expense_order.sql"),
-                (index, uid),
+                (index as i64, uid),
             )
             .expect("Échec de l'ajout de la requête à la transaction");
         }

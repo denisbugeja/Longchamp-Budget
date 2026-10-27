@@ -119,9 +119,9 @@ fn handle_worksheet(
     let formula_adults =
         Formula::new(formula_adults_string).set_result(section.adults_count.to_string());
 
-    let mut title_tab = format!("Unité {}", &section.title);
+    let mut title_tab = format!("Unité {}", section.title);
     if "group" == section.uid {
-        title_tab = format!("Agrégat {}", &section.title);
+        title_tab = format!("Agrégat {}", section.title);
     }
 
     let _ = worksheet
